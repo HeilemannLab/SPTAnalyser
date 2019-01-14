@@ -52,7 +52,6 @@ class ExpDisplacement():
         mjd_no_zeros = np.ma.masked_array(self.mjd[:,0], self.mjd[:,0] == 0)
         self.average_mjd = mjd_no_zeros.mean()
 
-
     def save_mjd_frequencies(self):
         out_file_name = self.file_name[:-4] + "mjd_frequencies.txt"
         #header = "The expected displacement is %i [nm].\nThe corresponding frequency is %.4e.\n" %(self.mjd_max, self.mjd_frequency_max)
