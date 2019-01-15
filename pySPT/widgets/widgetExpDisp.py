@@ -2,10 +2,8 @@
 """
 Created on Mon Jan 14 15:40:08 2019
 
-@author: pcoffice37
-
-Research group Heilemann
-Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
+@author: Johanna Rahm, Research Group Heilemann
+Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt am Main.
 """
 
 import os
@@ -22,8 +20,8 @@ class WidgetExpDisp():
         self.file_name_text = self.create_text_str()
         self.file_dialog_button = self.create_file_dialog()
         
-    def create_text_str(self, val = "path", desc = "complete path"):
-        style = {'description_width': 'initial'}
+    def create_text_str(self, val = "path", desc = "Complete path"):  # val = in box, desc = infront of box
+        style = {'description_width': 'initial'}  # display too long desc
         text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
         return text
     
@@ -32,33 +30,30 @@ class WidgetExpDisp():
                 description='browse',
                 disabled=False,
                 button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='browse for file',
-                icon='check')
+                tooltip='browse for file')
+                #icon='check')
         return button
     
     def print_file_name(self):
         #print(self.file_name_text.value)
-        display(self.file_name_text.value)
-    
-    def on_button_clicked(self, b):
-        print("Button clicked.")
+        display(self.file_name_text.value)  # testing purposes, rather display than print
         
-    def open_file(self,b):
+    def open_file(self, b):  # b = ???
         root = tk.Tk()  # window class
         root.withdraw()  # close the window 
         root.update()  # close the window
-        root.name = askopenfilename(title="Import tracked.seg file", filetypes=(("textfiles", "*.txt"),("all files", "*.*")))
+        root.name = askopenfilename(title="Import tracked.seg file", filetypes=(("text files", "*.txt"),("all files", "*.*")))
         self.file_name = root.name
-        self.folder_name = os.path.dirname(self.file_name)
-        self.base_name = os.path.basename(self.file_name)[:-4]
+        self.folder_name = os.path.dirname(self.file_name)  # returns the head of path /foo/bar/item the directory name of path = item -> return /foo/bar
+        self.base_name = os.path.basename(self.file_name)[:-4] # returns the tail of path -> item, [:-4] delete the ending .txt 
         root.update()
         root.destroy()
-        
         self.file_name_text.value=self.file_name
         
     def create_folder(self, directory):
         if not os.path.exists(directory):
             os.makedirs(directory)
+        
         
 def main():
     widget_exp_disp = WidgetExpDisp()
@@ -68,3 +63,5 @@ def main():
     
 if __name__ == "__main__":
     main()
+    
+    
