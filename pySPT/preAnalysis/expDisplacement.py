@@ -6,13 +6,15 @@ Created on Fri Jan 11 13:26:16 2019
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt am Main.
 """
 
+import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 
 class ExpDisplacement():
     def __init__(self):
         self.mjd = []
-        #self.file_name = ""
+        self.file_name = ""
+        self.base_name = ""
         self.mjd_histogram = []
         #self.mjd_frequency_max = 0#
         #self.mjd_max_index = 0#
@@ -57,11 +59,18 @@ class ExpDisplacement():
         mjd_no_zeros = np.ma.masked_array(self.mjd[:,0], self.mjd[:,0] == 0)
         self.average_mjd = mjd_no_zeros.mean()
 
-    def save_mjd_frequencies(self, file_name):
+    def save_mjd_frequencies(self, directory, base_name):
         """
         Create a mjd_frequencies.txt file with exp displacement in header, col0 = mjd, col1 = frequencies.
         """
-        out_file_name = file_name[:-4] + "mjd_frequencies.txt"
+        now = datetime.datetime.now()
+        year = str(now.year)
+        year = year[2:]
+        month = str(now.month)
+        if len(month) == 1:
+            month = str(0) + month
+        day = str(now.day)
+        out_file_name = directory + "\ " + year + month + day + "_" + base_name[:-19] + "mjd_frequencies.txt"  # Betriebssystemunabhängig?!?!?!
         #header = "The expected displacement is %i [nm].\nThe corresponding frequency is %.4e.\n" %(self.mjd_max, self.mjd_frequency_max)
         header = "The expected displacement is %.3f [nm].\n" %(self.average_mjd)
         header += "mjd [nm]\t fraction\t"
@@ -70,8 +79,15 @@ class ExpDisplacement():
                    fmt = ("%i","%.4e"),
                    header = header)
         
-    def plot_mjd_frequencies(self, file_name):
-        out_file_name = file_name[:-4] + "mjd_frequencies.pdf"
+    def plot_mjd_frequencies(self, directory, base_name):
+        now = datetime.datetime.now()
+        year = str(now.year)
+        year = year[2:]
+        month = str(now.month)
+        if len(month) == 1:
+            month = str(0) + month
+        day = str(now.day)
+        out_file_name = directory + "\ " + year + month + day + "_" + base_name[:-19] + "mjd_frequencies.pdf"
         fig = plt.figure()
         sp = fig.add_subplot(1, 1, 1)  # only 1 plot
         sp.bar(self.mjd_histogram [:,0], self.mjd_histogram [:,1], 
