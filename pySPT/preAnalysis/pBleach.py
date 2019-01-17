@@ -22,18 +22,12 @@ class PBleach():
         self.kcov = 0
         self.p_bleach = 0.0
         
-    def load_seg_file(self):
-        if not (self.file_name == ""):
-            self.mjds = np.loadtxt(self.file_name, usecols = (1, 2)) # col0 = mjd, col1 = mjd_n
-            print(self.mjds)
+    def load_seg_file(self, file_name):
+        if not (file_name == ""):
+            self.mjds = np.loadtxt(file_name, usecols = (1, 2)) # col0 = mjd, col1 = mjd_n
+            #print(self.mjds)
         else:
             print("Insert a file name.")
-            
-    def normalized_mjd_ns(self):
-        """
-        Create normalized mjd_ns for histogram -> the sum equals 1.
-        """
-        self.mjd_n_histogram[:,1] = self.mjd_n_histogram[:,1]/np.sum(self.mjd_n_histogram[:,1])
     
     def count_mjd_n_frequencies(self):
         """
@@ -49,6 +43,12 @@ class PBleach():
         self.mjd_n_histogram [:,0] = hist[1][:-1]  # col0 = bins
         self.mjd_n_histogram [:,1] = hist[0][:]  # col1 = frequencies
         self.normalized_mjd_ns()  # normalize the histogram by the sum
+        
+    def normalized_mjd_ns(self):
+        """
+        Create normalized mjd_ns for histogram -> the sum equals 1.
+        """
+        self.mjd_n_histogram[:,1] = self.mjd_n_histogram[:,1]/np.sum(self.mjd_n_histogram[:,1])    
         
     def exp_decay_func(self, t, k):
         return k*np.exp(-t*k)
@@ -78,7 +78,7 @@ class PBleach():
         self.mjd_n_histogram [:,2] = self.exp_decay_func(self.mjd_n_histogram[:,0], self.k)
         self.mjd_n_histogram [:,3] = self.mjd_n_histogram [:,1] - self.mjd_n_histogram [:,2]
     
-    def save_mjd_n_frequencies(self):
+    def save_mjd_n_frequencies(self, directory, base_name):
         out_file_name = self.file_name[:-4] + "mjd_n_frequencies.txt"
         header = "mjd_n\t fraction\t exponential fit\t residues\t"
         np.savetxt(out_file_name, 

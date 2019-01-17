@@ -13,14 +13,13 @@ import matplotlib.pyplot as plt
 class ExpDisplacement():
     def __init__(self):
         self.mjd = []
-        self.file_name = ""
-        self.base_name = ""
         self.mjd_histogram = []
+        self.average_mjd = 0
+        self.fig = []
         #self.mjd_frequency_max = 0#
         #self.mjd_max_index = 0#
         #self.mjd_max = 0
-        self.average_mjd = 0
-         
+
     def load_seg_file(self, file_name):
         """
         If True Create self.mjd (numpy.ndarray) col0 = mjd, col1 = mjd_n else raise error.
@@ -58,6 +57,10 @@ class ExpDisplacement():
         #print("The expected displacement is %i [nm].\nThe corresponding frequency is %.4e." %(self.mjd_max, self.mjd_frequency_max))
         mjd_no_zeros = np.ma.masked_array(self.mjd[:,0], self.mjd[:,0] == 0)
         self.average_mjd = mjd_no_zeros.mean()
+        print("The expected displacement is %.3f nm." %(self.average_mjd)) 
+
+    def test(self):
+        print("Hello from exp Displacement")
 
     def save_mjd_frequencies(self, directory, base_name):
         """
@@ -79,17 +82,9 @@ class ExpDisplacement():
                    fmt = ("%i","%.4e"),
                    header = header)
         
-    def plot_mjd_frequencies(self, directory, base_name):
-        now = datetime.datetime.now()
-        year = str(now.year)
-        year = year[2:]
-        month = str(now.month)
-        if len(month) == 1:
-            month = str(0) + month
-        day = str(now.day)
-        out_file_name = directory + "\ " + year + month + day + "_" + base_name[:-19] + "mjd_frequencies.pdf"
-        fig = plt.figure()
-        sp = fig.add_subplot(1, 1, 1)  # only 1 plot
+    def plot_mjd_frequencies(self):
+        self.fig = plt.figure()
+        sp = self.fig.add_subplot(1, 1, 1)  # only 1 plot
         sp.bar(self.mjd_histogram [:,0], self.mjd_histogram [:,1], 
                align = "center",
                width = 20,  # width = bin size
@@ -98,9 +93,32 @@ class ExpDisplacement():
         sp.set_title("PDF of Mean Jump Distance")
         sp.set_xlabel("Mean Jump Distance [nm]")
         sp.set_ylabel("Fraction")
-        plt.savefig(out_file_name)
+        #plt.savefig(out_file_name)
         plt.show()  # print the graph
-        print("The expected displacement is %.3f nm." %(self.average_mjd)) 
+        #return fig
+        
+    def save_plot_mjd_frequencies(self, directory, base_name):
+        now = datetime.datetime.now()
+        year = str(now.year)
+        year = year[2:]
+        month = str(now.month)
+        if len(month) == 1:
+            month = str(0) + month
+        day = str(now.day)
+        out_file_name = directory + "\ " + year + month + day + "_" + base_name[:-19] + "mjd_frequencies.pdf"
+        #fig = plot
+        #sp = fig.add_subplot(1, 1, 1)  # only 1 plot
+        #sp.bar(self.mjd_histogram [:,0], self.mjd_histogram [:,1], 
+        #       align = "center",
+        #       width = 20,  # width = bin size
+        #       color = "gray",
+        #       edgecolor = "black")
+        #sp.set_title("PDF of Mean Jump Distance")
+        #sp.set_xlabel("Mean Jump Distance [nm]")
+        #sp.set_ylabel("Fraction")
+        plt.savefig(out_file_name)
+        #plt.show()  # print the graph
+
         
     
 def main():

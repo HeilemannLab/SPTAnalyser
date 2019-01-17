@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jan 14 15:40:08 2019
+Created on Thu Jan 17 17:14:19 2019
 
-@author: Johanna Rahm, Research Group Heilemann
-Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt am Main.
+@author: pcoffice37
+
+Research group Heilemann
+Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 """
 
 import os
@@ -12,10 +14,8 @@ from tkinter.filedialog import askopenfilename
 from ipywidgets import widgets
 from IPython.display import display
 from IPython.display import clear_output
-#from ..preAnalysis import expDisplacement
 
-
-class WidgetExpDisp():
+class WidgetPBleach():
     def __init__(self):
         self.file_name = ""
         self.folder_name = ""
@@ -24,15 +24,20 @@ class WidgetExpDisp():
         self.file_dialog_button = self.create_file_dialog()
         self.run_button = self.create_run_button()
         self.save_button = self.create_save_button()
+        self.clear_output = self.create_clear_output()
+        
         
     def create_text_str(self, val = "path", desc = "Complete path"):  # val = in box, desc = infront of box
+        """
+        Box for inserting the path with description.
+        """
         style = {'description_width': 'initial'}  # display too long desc
         text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
         return text
     
     def create_file_dialog(self):
         """
-        Loading button
+        Loading button.
         """
         button = widgets.Button(
                 description='browse',
@@ -42,10 +47,6 @@ class WidgetExpDisp():
                 #icon='check')
         return button
     
-    def print_file_name(self):
-        #print(self.file_name_text.value)
-        display(self.file_name_text.value)  # testing purposes, rather display than print
-        
     def open_file(self, b):  # b = ???
         root = tk.Tk()  # window class
         root.withdraw()  # close the window 
@@ -56,8 +57,8 @@ class WidgetExpDisp():
         self.base_name = os.path.basename(self.file_name)[:-4]  # returns the tail of path -> item, [:-4] delete the ending .txt 
         root.update()
         root.destroy()
-        self.file_name_text.value=self.file_name
-    # run button    
+        self.file_name_text.value=self.file_name  # inserts path in box for inserting the path
+        
     def create_run_button(self):
         button = widgets.Button(
                 description='run',
@@ -65,29 +66,20 @@ class WidgetExpDisp():
                 button_style='', # 'success', 'info', 'warning', 'danger' or ''
                 tooltip='run the analysis')
                 #icon='check')
-        return button
+        return button        
+    
+    def create_clear_output(self):
+        clear_output()
     
     def create_save_button(self):
-        button = widgets.Button(
-                description='save',
-                disabled=False,
-                button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='save the results')
-                #icon='check')
-        return button
+        pass
+    
 
-    def create_clear_output(self):
-        """
-        Clear the output of a button.
-        """
-        clear_output()
+        
         
 def main():
-    widget_exp_disp = WidgetExpDisp()
-    widget_exp_disp.open_file()
-    print(widget_exp_disp.file_name, widget_exp_disp.folder_name, widget_exp_disp.base_name, sep="\n")
-    
-    
+    pass
+        
 if __name__ == "__main__":
     main()
     
