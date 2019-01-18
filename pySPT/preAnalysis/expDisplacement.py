@@ -59,9 +59,6 @@ class ExpDisplacement():
         self.average_mjd = mjd_no_zeros.mean()
         print("The expected displacement is %.3f nm." %(self.average_mjd)) 
 
-    def test(self):
-        print("Hello from exp Displacement")
-
     def save_mjd_frequencies(self, directory, base_name):
         """
         Create a mjd_frequencies.txt file with exp displacement in header, col0 = mjd, col1 = frequencies.
@@ -73,7 +70,7 @@ class ExpDisplacement():
         if len(month) == 1:
             month = str(0) + month
         day = str(now.day)
-        out_file_name = directory + "\ " + year + month + day + "_" + base_name[:-19] + "mjd_frequencies.txt"  # Betriebssystemunabhängig?!?!?!
+        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_mjd_frequencies.txt"  # Betriebssystemunabhängig?!?!?!
         #header = "The expected displacement is %i [nm].\nThe corresponding frequency is %.4e.\n" %(self.mjd_max, self.mjd_frequency_max)
         header = "The expected displacement is %.3f [nm].\n" %(self.average_mjd)
         header += "mjd [nm]\t fraction\t"
@@ -96,31 +93,8 @@ class ExpDisplacement():
         #plt.savefig(out_file_name)
         plt.show()  # print the graph
         #return fig
-        
-    def save_plot_mjd_frequencies(self, directory, base_name):
-        now = datetime.datetime.now()
-        year = str(now.year)
-        year = year[2:]
-        month = str(now.month)
-        if len(month) == 1:
-            month = str(0) + month
-        day = str(now.day)
-        out_file_name = directory + "\ " + year + month + day + "_" + base_name[:-19] + "mjd_frequencies.pdf"
-        #fig = plot
-        #sp = fig.add_subplot(1, 1, 1)  # only 1 plot
-        #sp.bar(self.mjd_histogram [:,0], self.mjd_histogram [:,1], 
-        #       align = "center",
-        #       width = 20,  # width = bin size
-        #       color = "gray",
-        #       edgecolor = "black")
-        #sp.set_title("PDF of Mean Jump Distance")
-        #sp.set_xlabel("Mean Jump Distance [nm]")
-        #sp.set_ylabel("Fraction")
-        plt.savefig(out_file_name)
-        #plt.show()  # print the graph
 
-        
-    
+
 def main():
     exp_displacement = ExpDisplacement()
     #exp_displacement.file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\cell_1_MMStack_Pos0.ome.tif.tracked.seg.txt"

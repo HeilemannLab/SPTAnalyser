@@ -7,17 +7,16 @@ Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt am
 """
 
 import numpy as np
+import datetime
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from scipy.optimize import curve_fit
 
 class PBleach():
     def __init__(self):
-        self.file_name = ""
         self.mjds = []
-        self.mjd_n_histogram = []
-        self.p_bleach_results = []
-        self.init_k = 0.01
+        self.mjd_n_histogram = []  # mjd_n, frequencies, exp fit, resudie
+        self.p_bleach_results = []  # p_bleach, k, kv
         self.k = 0.01
         self.kcov = 0
         self.p_bleach = 0.0
@@ -25,13 +24,12 @@ class PBleach():
     def load_seg_file(self, file_name):
         if not (file_name == ""):
             self.mjds = np.loadtxt(file_name, usecols = (1, 2)) # col0 = mjd, col1 = mjd_n
-            #print(self.mjds)
         else:
             print("Insert a file name.")
     
     def count_mjd_n_frequencies(self):
         """
-        Create histogram with bins = mjd_n and frequencies as np.ndarray
+        Create histogram with bins = mjd_n and frequencies as np.ndarray.
         """
         max_bin = self.mjds[:,1].max()  # max mjd_n value
         bin_size = int(max_bin)  # divides the bin range in sizes -> desired bin = max_bin/bin_size
@@ -61,14 +59,16 @@ class PBleach():
         """
         return 1-np.exp(-t*k)
     
-    def calc_k_bleach(self):
+    def calc_k_bleach(self, init_k):
         """
         p_bleach = bleaching probability per particle and frame in the range of 0.0-1.0
         (1) The initial k value is needed to determine a k with its covarianz matrix.
         (2) Calculate the cumulative distribution function -> equals p_bleach.
         """
-        self.k, self.kcov = curve_fit(self.exp_decay_func, self.mjd_n_histogram[:,0], self.mjd_n_histogram[:,1], p0 = self.init_k, method = "lm")
+        init_k = float(init_k)
+        self.k, self.kcov = curve_fit(self.exp_decay_func, self.mjd_n_histogram[:,0], self.mjd_n_histogram[:,1], p0 = init_k, method = "lm") #func, x, y, 
         self.p_bleach = self.cum_exp_decay_func(1, self.k)
+        print("Results: p_bleach = %.3f, k = %.4e, kv = %.4e" %(self.p_bleach, self.k, self.kcov))  # Output for Jupyter Notebook File
         
     def calc_decay(self):
         """
@@ -78,28 +78,8 @@ class PBleach():
         self.mjd_n_histogram [:,2] = self.exp_decay_func(self.mjd_n_histogram[:,0], self.k)
         self.mjd_n_histogram [:,3] = self.mjd_n_histogram [:,1] - self.mjd_n_histogram [:,2]
     
-    def save_mjd_n_frequencies(self, directory, base_name):
-        out_file_name = self.file_name[:-4] + "mjd_n_frequencies.txt"
-        header = "mjd_n\t fraction\t exponential fit\t residues\t"
-        np.savetxt(out_file_name, 
-                   X=self.mjd_n_histogram,
-                   fmt = ("%i","%.4e","%.4e","%.4e"),
-                   header = header)    
-    
-    def save_fit_results(self):
-        out_file_name = self.file_name[:-4] + "p_bleach.txt"
-        self.p_bleach_results = np.zeros(3) # a np.array is like a column
-        self.p_bleach_results[0], self.p_bleach_results[1], self.p_bleach_results[2] = self.p_bleach, self.k, self.kcov # fill it with values
-        self.p_bleach_results = np.matrix(self.p_bleach_results) # convert it to a matrix to be able to plot results in a horizontal line
-        header = "p_bleach\t k\t variance of k\t"
-        np.savetxt(out_file_name,
-                   X=self.p_bleach_results,
-                   fmt = ("%.4e","%.4e","%.4e"),
-                   header = header)
-        
     def plot_mjd_frequencies(self):
-        out_file_name = self.file_name[:-4] + "mjd_n_frequencies.pdf"
-        fig = plt.figure()
+        #fig = plt.figure()
         gridspec.GridSpec(4,4)  # set up supbplot grid 
         sp_1 = plt.subplot2grid((4,4), (0,0), colspan=4, rowspan=3)  # start left top = (0,0) = (row,column)
         sp_1.tick_params(axis='x',  # changes apply to the x-axis
@@ -118,25 +98,59 @@ class PBleach():
         sp_1.set_ylabel("Fraction")
         sp_2 = plt.subplot2grid((4,4), (3,0), colspan=4, rowspan=1)
         #sp_2 = fig.add_subplot(2, 1, 2) 
-        sp_2.plot(self.mjd_n_histogram [:,0], self.mjd_n_histogram [:,3], "--")
+        sp_2.plot(self.mjd_n_histogram [:,0], self.mjd_n_histogram [:,3], "*")
         sp_2.set_ylabel("Residue")
         sp_2.set_xlabel("Number of MJDs per track")  # Number of data points used in MJD calculation
-        plt.savefig(out_file_name)
-        plt.show()
-     
+        plt.show() 
+        
+    def save_mjd_n_frequencies(self, directory, base_name):
+        now = datetime.datetime.now()
+        year = str(now.year)
+        year = year[2:]
+        month = str(now.month)
+        if len(month) == 1:
+            month = str(0) + month
+        day = str(now.day)
+        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_mjd_n_frequencies.txt" # System independent?
+        header = "mjd_n\t fraction\t exponential fit\t residues\t"
+        np.savetxt(out_file_name, 
+                   X=self.mjd_n_histogram,
+                   fmt = ("%i","%.4e","%.4e","%.4e"),
+                   header = header)   
+            
+    def save_fit_results(self, directory, base_name):
+        now = datetime.datetime.now()
+        year = str(now.year)
+        year = year[2:]
+        month = str(now.month)
+        if len(month) == 1:
+            month = str(0) + month
+        day = str(now.day)
+        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_p_bleach.txt"
+        self.p_bleach_results = np.zeros(3) # a np.array is like a column
+        self.p_bleach_results[0], self.p_bleach_results[1], self.p_bleach_results[2] = self.p_bleach, self.k, self.kcov # fill it with values
+        self.p_bleach_results = np.matrix(self.p_bleach_results) # convert it to a matrix to be able to plot results in a horizontal line
+        header = "p_bleach\t k\t variance of k\t"
+        np.savetxt(out_file_name,
+                   X=self.p_bleach_results,
+                   fmt = ("%.4e","%.4e","%.4e"),
+                   header = header)
+       
         
 def main():
+    file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\cell_1_MMStack_Pos0.ome.tif.tracked.seg.txt"
     p_bleach = PBleach()
     p_bleach.file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\cell_1_MMStack_Pos0.ome.tif.tracked.seg.txt"
-    p_bleach.load_seg_file()
+    p_bleach.load_seg_file(file_name)
     p_bleach.count_mjd_n_frequencies()
     p_bleach.calc_k_bleach()
     p_bleach.calc_decay()
-    p_bleach.save_mjd_n_frequencies()
-    p_bleach.save_fit_results()
+    p_bleach.save_mjd_n_frequencies(file_name)
+    p_bleach.save_fit_results(file_name)
     p_bleach.plot_mjd_frequencies()
+    p_bleach.save_plot_mjd_frequencies(file_name)
     
 if __name__ == "__main__":
     main()
-    
+        
     
