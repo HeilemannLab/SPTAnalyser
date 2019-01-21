@@ -17,9 +17,11 @@ class PBleach():
         self.mjds = []
         self.mjd_n_histogram = []  # mjd_n, frequencies, exp fit, resudie
         self.p_bleach_results = []  # p_bleach, k, kv
+        self.a = 0.01
         self.k = 0.01
         self.kcov = 0
         self.p_bleach = 0.0
+        self.dt = 0.02  # integration time in s
         
     def load_seg_file(self, file_name):
         if not (file_name == ""):
@@ -38,7 +40,7 @@ class PBleach():
                             bins = bin_size,
                             density = True)
         self.mjd_n_histogram = np.zeros([np.size(hist[0]),4])
-        self.mjd_n_histogram [:,0] = hist[1][:-1]  # col0 = bins
+        self.mjd_n_histogram [:,0] = hist[1][:-1]*self.dt  # col0 = bins
         self.mjd_n_histogram [:,1] = hist[0][:]  # col1 = frequencies
         self.normalized_mjd_ns()  # normalize the histogram by the sum
         
@@ -48,8 +50,8 @@ class PBleach():
         """
         self.mjd_n_histogram[:,1] = self.mjd_n_histogram[:,1]/np.sum(self.mjd_n_histogram[:,1])    
         
-    def exp_decay_func(self, t, k):
-        return k*np.exp(-t*k)
+    def exp_decay_func(self, t, a,  k):
+        return a*np.exp(-t*k)
     
     def cum_exp_decay_func(self, t, k):
         """
@@ -66,27 +68,34 @@ class PBleach():
         (2) Calculate the cumulative distribution function -> equals p_bleach.
         """
         init_k = float(init_k)
-        self.k, self.kcov = curve_fit(self.exp_decay_func, self.mjd_n_histogram[:,0], self.mjd_n_histogram[:,1], p0 = init_k, method = "lm") #func, x, y, 
-        self.p_bleach = self.cum_exp_decay_func(1, self.k)
-        print("Results: p_bleach = %.3f, k = %.4e, kv = %.4e" %(self.p_bleach, self.k, self.kcov))  # Output for Jupyter Notebook File
+        init_a = self.mjd_n_histogram[0,1]
+        [self.a, self.k], self.kcov = curve_fit(self.exp_decay_func, self.mjd_n_histogram[:,0], self.mjd_n_histogram[:,1], p0 = (init_a, init_k), method = "lm") #func, x, y, 
+        self.p_bleach = self.cum_exp_decay_func(self.dt, self.k)
+        
+        print("Results: p_bleach = %.3f, k = %.4e, kv = %.4e" %(self.p_bleach, self.k, self.kcov[1,1]))  # Output for Jupyter Notebook File
         
     def calc_decay(self):
         """
         col2 = exp decay func, with bins and calculated k value.
         col3 = residues of fit -> (values - fit).
         """
-        self.mjd_n_histogram [:,2] = self.exp_decay_func(self.mjd_n_histogram[:,0], self.k)
+        self.mjd_n_histogram [:,2] = self.exp_decay_func(self.mjd_n_histogram[:,0], self.a, self.k)
         self.mjd_n_histogram [:,3] = self.mjd_n_histogram [:,1] - self.mjd_n_histogram [:,2]
     
     def plot_mjd_frequencies(self):
+        x1, x2 = 0, 25
+        sp1_y1 = 0
+        sp1_y2 = self.mjd_n_histogram[:,1].max()
+        sp2_y1 = self.mjd_n_histogram[:,3].min()
+        sp2_y2 = self.mjd_n_histogram[:,3].max()
         #fig = plt.figure()
         gridspec.GridSpec(4,4)  # set up supbplot grid 
         sp_1 = plt.subplot2grid((4,4), (0,0), colspan=4, rowspan=3)  # start left top = (0,0) = (row,column)
         sp_1.tick_params(axis='x',  # changes apply to the x-axis
                         which='both',  # both major and minor ticks are affected
-                        bottom='off',  # ticks along the bottom edge are off
-                        top='off',  # ticks along the top edge are off
-                        labelbottom='off') # labels along the bottom edge are off
+                        bottom=False,  # ticks along the bottom edge are off
+                        top=False,  # ticks along the top edge are off
+                        labelbottom=False) # labels along the bottom edge are off
         #sp_1 = fig.add_subplot(2, 1, 1)  # (row, column, index)
         sp_1.bar(self.mjd_n_histogram [:,0], self.mjd_n_histogram [:,1], 
                align = "center",
@@ -96,11 +105,14 @@ class PBleach():
         sp_1.set_title("PDF of number of data points used in MJD calculation")
         #sp_1.set_xlabel("Number of data points used in MJD calculation")
         sp_1.set_ylabel("Fraction")
+        sp_1.axis((x1, x2, sp1_y1, sp1_y2))
         sp_2 = plt.subplot2grid((4,4), (3,0), colspan=4, rowspan=1)
         #sp_2 = fig.add_subplot(2, 1, 2) 
         sp_2.plot(self.mjd_n_histogram [:,0], self.mjd_n_histogram [:,3], "*")
         sp_2.set_ylabel("Residue")
         sp_2.set_xlabel("Number of MJDs per track")  # Number of data points used in MJD calculation
+        sp_2.axis((x1, x2, sp2_y1, sp2_y2))
+        
         plt.show() 
         
     def save_mjd_n_frequencies(self, directory, base_name):
@@ -128,7 +140,7 @@ class PBleach():
         day = str(now.day)
         out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_p_bleach.txt"
         self.p_bleach_results = np.zeros(3) # a np.array is like a column
-        self.p_bleach_results[0], self.p_bleach_results[1], self.p_bleach_results[2] = self.p_bleach, self.k, self.kcov # fill it with values
+        self.p_bleach_results[0], self.p_bleach_results[1], self.p_bleach_results[2] = self.p_bleach, self.k, self.kcov[1,1] # fill it with values
         self.p_bleach_results = np.matrix(self.p_bleach_results) # convert it to a matrix to be able to plot results in a horizontal line
         header = "p_bleach\t k\t variance of k\t"
         np.savetxt(out_file_name,

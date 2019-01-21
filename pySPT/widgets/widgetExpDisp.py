@@ -58,6 +58,9 @@ class WidgetExpDisp():
         text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
         return text
     
+    def change_file_box(self, change):
+        self.file_name = self.file_text_box.value  
+    
     def create_run_button(self):
         """
         Button for running the analysis, has an on click event.
