@@ -17,11 +17,13 @@ class PBleach():
         self.mjds = []
         self.mjd_n_histogram = []  # mjd_n, frequencies, exp fit, resudie
         self.p_bleach_results = []  # p_bleach, k, kv
+        self.dt = 0.02  # integration time in s
+        self.p_bleach = 0.0
         self.a = 0.01
         self.k = 0.01
         self.kcov = 0
-        self.p_bleach = 0.0
-        self.dt = 0.02  # integration time in s
+        #self.valid_length = 100  # trajectories > 100 are often 0 -> maybe not good for fitting
+        #  made no difference for one data set
         
     def load_seg_file(self, file_name):
         if not (file_name == ""):
@@ -32,6 +34,7 @@ class PBleach():
     def count_mjd_n_frequencies(self):
         """
         Create histogram with bins = mjd_n and frequencies as np.ndarray.
+        Multiply the bins with camera integration time -> [s].
         """
         max_bin = self.mjds[:,1].max()  # max mjd_n value
         bin_size = int(max_bin)  # divides the bin range in sizes -> desired bin = max_bin/bin_size
@@ -39,18 +42,24 @@ class PBleach():
                             range = (0, max_bin),
                             bins = bin_size,
                             density = True)
-        self.mjd_n_histogram = np.zeros([np.size(hist[0]),4])
-        self.mjd_n_histogram [:,0] = hist[1][:-1]*self.dt  # col0 = bins
-        self.mjd_n_histogram [:,1] = hist[0][:]  # col1 = frequencies
+        self.mjd_n_histogram = np.zeros([np.size(hist[0]),5])
+        self.mjd_n_histogram [:,0] = hist[1][:-1] # col0 = frames
+        np.multiply(self.mjd_n_histogram[:,0], float(self.dt), self.mjd_n_histogram [:,1])
+        #self.mjd_n_histogram [:,1] = self.mjd_n_histogram[:,0]*self.dt  # col1 = s
+        self.mjd_n_histogram [:,2] = hist[0][:]  # col2 = frequencies
         self.normalized_mjd_ns()  # normalize the histogram by the sum
         
     def normalized_mjd_ns(self):
         """
-        Create normalized mjd_ns for histogram -> the sum equals 1.
+        Create normalized frequencies for histogram -> the sum equals 1.
         """
-        self.mjd_n_histogram[:,1] = self.mjd_n_histogram[:,1]/np.sum(self.mjd_n_histogram[:,1])    
+        self.mjd_n_histogram[:,2] = self.mjd_n_histogram[:,2]/np.sum(self.mjd_n_histogram[:,2])    
         
-    def exp_decay_func(self, t, a,  k):
+    def exp_decay_func(self, t, a, k):
+        """
+        Describing the exp decay for the histogram of tracking lengths. a = k, if the lengths would be infinit,
+        if not it has to be a free parameter for fitting.
+        """
         return a*np.exp(-t*k)
     
     def cum_exp_decay_func(self, t, k):
@@ -69,25 +78,24 @@ class PBleach():
         """
         init_k = float(init_k)
         init_a = self.mjd_n_histogram[0,1]
-        [self.a, self.k], self.kcov = curve_fit(self.exp_decay_func, self.mjd_n_histogram[:,0], self.mjd_n_histogram[:,1], p0 = (init_a, init_k), method = "lm") #func, x, y, 
+        #  if one would like to neglect trajectories > valid_length for fitting a and k because most of them are 0 for one data set
+        #[self.a, self.k], self.kcov = curve_fit(self.exp_decay_func, self.mjd_n_histogram[:self.valid_length,0], self.mjd_n_histogram[:self.valid_length,1], p0 = (init_a, init_k), method = "lm") #func, x, y, 
+        [self.a, self.k], self.kcov = curve_fit(self.exp_decay_func, self.mjd_n_histogram[:,1], self.mjd_n_histogram[:,2], p0 = (init_a, init_k), method = "lm") #func, x, y, 
         self.p_bleach = self.cum_exp_decay_func(self.dt, self.k)
-        
         print("Results: p_bleach = %.3f, k = %.4e, kv = %.4e" %(self.p_bleach, self.k, self.kcov[1,1]))  # Output for Jupyter Notebook File
         
     def calc_decay(self):
         """
-        col2 = exp decay func, with bins and calculated k value.
-        col3 = residues of fit -> (values - fit).
+        col3 = exp decay func, with bins and calculated k value.
+        col4 = residues of fit -> (values - fit).
         """
-        self.mjd_n_histogram [:,2] = self.exp_decay_func(self.mjd_n_histogram[:,0], self.a, self.k)
-        self.mjd_n_histogram [:,3] = self.mjd_n_histogram [:,1] - self.mjd_n_histogram [:,2]
+        self.mjd_n_histogram [:,3] = self.exp_decay_func(self.mjd_n_histogram[:,0], self.a, self.k)
+        self.mjd_n_histogram [:,4] = self.mjd_n_histogram [:,2] - self.mjd_n_histogram [:,3]
     
     def plot_mjd_frequencies(self):
-        x1, x2 = 0, 25
-        sp1_y1 = 0
-        sp1_y2 = self.mjd_n_histogram[:,1].max()
-        sp2_y1 = self.mjd_n_histogram[:,3].min()
-        sp2_y2 = self.mjd_n_histogram[:,3].max()
+        x1, x2 = 0, self.mjd_n_histogram[:,1].max()  # x1 = min, x2 = max
+        sp1_y1, sp1_y2 = 0, self.mjd_n_histogram[:,2].max()
+        sp2_y1, sp2_y2 = self.mjd_n_histogram[:,4].min(), self.mjd_n_histogram[:,4].max()
         #fig = plt.figure()
         gridspec.GridSpec(4,4)  # set up supbplot grid 
         sp_1 = plt.subplot2grid((4,4), (0,0), colspan=4, rowspan=3)  # start left top = (0,0) = (row,column)
@@ -97,25 +105,32 @@ class PBleach():
                         top=False,  # ticks along the top edge are off
                         labelbottom=False) # labels along the bottom edge are off
         #sp_1 = fig.add_subplot(2, 1, 1)  # (row, column, index)
-        sp_1.bar(self.mjd_n_histogram [:,0], self.mjd_n_histogram [:,1], 
+        sp_1.bar(self.mjd_n_histogram [:,1], self.mjd_n_histogram [:,2], 
                align = "center",
-               width = 1,
+               width = self.dt,
                color = "gray")  # (x, height of the bars, width of bars)
-        sp_1.plot(self.mjd_n_histogram [:,0], self.mjd_n_histogram [:,2], "--")  # "b--" change colour, line style "m-" ...
-        sp_1.set_title("PDF of number of data points used in MJD calculation")
+        sp_1.plot(self.mjd_n_histogram [:,1], self.mjd_n_histogram [:,3], "--")  # "b--" change colour, line style "m-" ...
+        sp_1.set_title("PDF of particle duration")
         #sp_1.set_xlabel("Number of data points used in MJD calculation")
         sp_1.set_ylabel("Fraction")
         sp_1.axis((x1, x2, sp1_y1, sp1_y2))
         sp_2 = plt.subplot2grid((4,4), (3,0), colspan=4, rowspan=1)
         #sp_2 = fig.add_subplot(2, 1, 2) 
-        sp_2.plot(self.mjd_n_histogram [:,0], self.mjd_n_histogram [:,3], "*")
+        sp_2.plot(self.mjd_n_histogram [:,1], self.mjd_n_histogram [:,4], "*")
         sp_2.set_ylabel("Residue")
-        sp_2.set_xlabel("Number of MJDs per track")  # Number of data points used in MJD calculation
+        sp_2.set_xlabel("Duration of tracks [s]")  # Number of data points used in MJD calculation
         sp_2.axis((x1, x2, sp2_y1, sp2_y2))
-        
         plt.show() 
         
     def save_mjd_n_frequencies(self, directory, base_name):
+        """
+        Output file with cols:
+        col0 = mjd_n
+        col1 = mjd_n*dt -> in s
+        col2 = fraction
+        col3 = exp decay func, with bins and calculated k value.
+        col4 = residues of fit -> (values - fit).
+        """
         now = datetime.datetime.now()
         year = str(now.year)
         year = year[2:]
@@ -124,13 +139,16 @@ class PBleach():
             month = str(0) + month
         day = str(now.day)
         out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_mjd_n_frequencies.txt" # System independent?
-        header = "mjd_n\t fraction\t exponential fit\t residues\t"
+        header = "frames [count]\t duration [s]\t fraction\t exponential fit\t residues\t"
         np.savetxt(out_file_name, 
                    X=self.mjd_n_histogram,
-                   fmt = ("%i","%.4e","%.4e","%.4e"),
+                   fmt = ("%i","%.4e","%.4e","%.4e", "%.4e"),
                    header = header)   
             
     def save_fit_results(self, directory, base_name):
+        """
+        Output file with p_bleach, k, kv.
+        """
         now = datetime.datetime.now()
         year = str(now.year)
         year = year[2:]
@@ -139,14 +157,23 @@ class PBleach():
             month = str(0) + month
         day = str(now.day)
         out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_p_bleach.txt"
-        self.p_bleach_results = np.zeros(3) # a np.array is like a column
-        self.p_bleach_results[0], self.p_bleach_results[1], self.p_bleach_results[2] = self.p_bleach, self.k, self.kcov[1,1] # fill it with values
-        self.p_bleach_results = np.matrix(self.p_bleach_results) # convert it to a matrix to be able to plot results in a horizontal line
-        header = "p_bleach\t k\t variance of k\t"
-        np.savetxt(out_file_name,
-                   X=self.p_bleach_results,
-                   fmt = ("%.4e","%.4e","%.4e"),
-                   header = header)
+# =============================================================================
+#         self.p_bleach_results = np.zeros(3) # a np.array is like a column
+#         self.p_bleach_results[0], self.p_bleach_results[1], self.p_bleach_results[2] = self.p_bleach, self.k, self.kcov[1,1] # fill it with values
+#         self.p_bleach_results = np.matrix(self.p_bleach_results) # convert it to a matrix to be able to plot results in a horizontal line
+#         header = "p_bleach\t k\t variance of k\t"
+#         np.savetxt(out_file_name,
+#                    X=self.p_bleach_results,
+#                    fmt = ("%.4e","%.4e","%.4e"),
+#                    header = header)
+# =============================================================================
+        file = open(out_file_name, 'w')
+        if not (file.closed):
+            file.write("p_bleach\t k [1/s]\t variance of k [1/s\u00b2]\n")
+            file.write("%.4e\t%.4e\t%.4e" %(self.p_bleach, self.k, self.kcov[1,1]))
+            file.close()
+        else:
+            print("error: could not open file %s. Make sure the folder does exist" %(out_file_name))
        
         
 def main():
@@ -162,7 +189,7 @@ def main():
     p_bleach.plot_mjd_frequencies()
     p_bleach.save_plot_mjd_frequencies(file_name)
     
+    
 if __name__ == "__main__":
     main()
-        
     

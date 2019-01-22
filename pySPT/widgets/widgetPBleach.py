@@ -25,6 +25,7 @@ class WidgetPBleach():
         self.save_button = self.create_save_button()
         self.clear_output = self.create_clear_output()
         self.init_k = self.create_init_k_box()
+        self.integration_time = self.create_init_integration_time_box()
         
     def create_file_button(self):
         """
@@ -60,6 +61,10 @@ class WidgetPBleach():
         text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
         return text
     
+    def change_file_box(self, change):
+        self.file_name = self.file_text_box.value  
+        self.got_file_name = True
+        
     def create_init_k_box(self, val = "0.01", desc = "Initial k"): 
         """
         Box for inserting the initial k.
@@ -69,6 +74,14 @@ class WidgetPBleach():
         #self.file_name = text.value
         #self.got_file_name = True
         return text
+    
+    def create_init_integration_time_box(self, val = "0.02", desc = "Camera integration time [s]"):  # val = in box, desc = infront of box
+        """
+        Box for inserting the integration time in s.
+        """
+        style = {'description_width': 'initial'}  # display too long desc
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text    
         
     def create_run_button(self):
         """
@@ -101,7 +114,7 @@ class WidgetPBleach():
 def main():
     pass
         
+
 if __name__ == "__main__":
     main()
-    
     
