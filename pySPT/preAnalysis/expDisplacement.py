@@ -16,9 +16,39 @@ class ExpDisplacement():
         self.mjd_histogram = []
         self.average_mjd = 0
         self.fig = []
-        #self.mjd_frequency_max = 0#
-        #self.mjd_max_index = 0#
-        #self.mjd_max = 0
+        self.header = ""
+        self.identifier = "identifier"  # identifier
+        self.number_columns = 0
+        self.significant_words = ["track_id", "mjd", "mjd_n"]
+        self.sub_headers = []  # index in list = index of column in file
+        self.column_order = {}
+        
+    def load_header(self, file_name):
+        file = open(file_name)
+        self.header = file.readline()  # get the header as first line
+        
+    def sub_header(self):
+        cut_header = self.header
+        while cut_header.find(self.identifier) != -1:
+            # find returns the index of the first character of identifier
+            slice_index = cut_header.find(self.identifier)
+            sub_header = cut_header[:slice_index+len(self.identifier)]
+            self.sub_headers.append(sub_header)
+            cut_header = cut_header[slice_index+len(self.identifier):]
+        # the last cut_header will not have idenfitier but the significant word in it, append it
+        self.sub_headers.append(cut_header)
+        # the first item will have only the idenfitier but not the sig word -> delete it
+        self.sub_headers.pop(0)
+        self.number_columns = len(self.sub_headers)
+        print("sub_headers", self.sub_headers)
+        
+    def column_index(self):
+        for sub_header in self.sub_headers:
+            for word in self.significant_words:
+                if word in sub_header and word not in self.column_order:
+                    #append word (value) and index of sub_head (key) to dictionary
+                    self.column_order[self.sub_headers.index(sub_header)] = word
+        print("Dict", self.column_order)
 
     def load_seg_file(self, file_name):
         """
@@ -26,8 +56,12 @@ class ExpDisplacement():
         
         :param file_name: Name of the inserted file by widgetExpDisp. 
         """
+        # get the key for a certain value
         if not (file_name == ""):
-            self.mjd = np.loadtxt(file_name, usecols = (1, 2)) # col0 = mjd, col1 = mjd_n
+            mjd_index = list(self.column_order.keys())[list(self.column_order.values()).index("mjd")]
+            mjd_n_index = list(self.column_order.keys())[list(self.column_order.values()).index("mjd_n")]
+            print(mjd_index, mjd_n_index)
+            self.mjd = np.loadtxt(file_name, usecols = (mjd_index, mjd_n_index)) # col0 = mjd, col1 = mjd_n
         else:
             print("Insert a file name.")
         
