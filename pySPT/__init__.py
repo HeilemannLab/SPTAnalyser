@@ -2,7 +2,11 @@
 """
 Created on Fri Jan 11 13:21:02 2019
 
-@author: pcoffice37
+@author: Johanna Rahm
+
+Research Group Heilemann
+Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt am Main.
 """
 
 from .preAnalysis import *
+from .Analysis import *

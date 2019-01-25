@@ -16,9 +16,10 @@ import datetime
 
 
 class Precision():
-    
     def __init__(self):
-        self.position_uncertainties = []
+        self.file_name = ""
+        self.column_order = {}
+        self.position_uncertainties = []  # uncertainties of x and y
         self.position_uncertainties_log = []  # log uncertainties of x and y
         self.position_uncertainties_hist_x = []  # x freq 
         self.position_uncertainties_hist_y = []  # x freq
@@ -30,16 +31,16 @@ class Precision():
         self.init_mu = 0.
         self.init_sigma = 0.
         
-    def load_localization_file(self, file_name):
+    def load_localization_file(self):
         """
         Insert position uncertainties of x and y.
         position_uncertainties col0 = x
         position_uncertainties col1 = y
         """
-        if not (file_name == ""):
-            #x_uncertainty_index = list(self.column_order.keys())[list(self.column_order.values()).index('"Position-0-0-uncertainty"')]
-            #y_uncertainty_index = list(self.column_order.keys())[list(self.column_order.values()).index('"Position-1-0-uncertainty"')]
-            self.position_uncertainties = np.loadtxt(file_name, usecols = (1, 3)) # col0 = x uncertainty, col1 = y uncertainty
+        if not (self.file_name == ""):
+            x_uncertainty_index = list(self.column_order.keys())[list(self.column_order.values()).index('"Position-0-0-uncertainty"')]
+            y_uncertainty_index = list(self.column_order.keys())[list(self.column_order.values()).index('"Position-1-0-uncertainty"')]
+            self.position_uncertainties = np.loadtxt(self.file_name, usecols = (x_uncertainty_index, y_uncertainty_index)) # col0 = x uncertainty, col1 = y uncertainty
         else:
             print("Insert a file name.")
             
@@ -179,7 +180,7 @@ class Precision():
                width = 0.05,  # width = bin size
                color = "gray")
         sp.plot(self.position_uncertainties_hist_log_y[:,0], self.position_uncertainties_hist_log_y[:,2], "m--")  # "b--" change colour, line style "m-" ...
-        sp.set_title("Histogram of ln position uncertainties in x direction")
+        sp.set_title("Histogram of ln position uncertainties in y direction")
         sp.set_xlabel("ln(position uncertainty)")
         sp.set_ylabel("Fraction")
         #plt.savefig(out_file_name)
@@ -211,14 +212,11 @@ class Precision():
         #plt.savefig(out_file_name)
         plt.show()  # print the graph
         
-    def save_mjd_n_frequencies(self, directory, base_name):
+    def save_x_hist(self, directory, base_name):
         """
         Output file with cols:
-        col0 = mjd_n
-        col1 = mjd_n*dt -> in s
-        col2 = fraction
-        col3 = exp decay func, with bins and calculated k value.
-        col4 = residues of fit -> (values - fit).
+        col0 = Position uncertainty in nm
+        col1 = Frequency
         """
         now = datetime.datetime.now()
         year = str(now.year)
@@ -227,13 +225,73 @@ class Precision():
         if len(month) == 1:
             month = str(0) + month
         day = str(now.day)
-        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_mjd_n_frequencies.txt" # System independent?
-        header = "frames [count]\t duration [s]\t fraction\t exponential fit\t residues\t"
+        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_uncertainty_x_frequencies.txt" # System independent?
+        header = "Position uncertainty [nm]\t fraction\t"
         np.savetxt(out_file_name, 
-                   X=self.mjd_n_histogram,
-                   fmt = ("%i","%.4e","%.4e","%.4e", "%.4e"),
+                   X=self.position_uncertainties_hist_x,
+                   fmt = ("%.1f","%.4e"),
                    header = header)   
-            
+
+    def save_y_hist(self, directory, base_name):
+        """
+        Output file with cols:
+        col0 = Position uncertainty in nm
+        col1 = Frequency
+        """
+        now = datetime.datetime.now()
+        year = str(now.year)
+        year = year[2:]
+        month = str(now.month)
+        if len(month) == 1:
+            month = str(0) + month
+        day = str(now.day)
+        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_uncertainty_y_frequencies.txt" # System independent?
+        header = "Position uncertainty [nm]\t fraction\t"
+        np.savetxt(out_file_name, 
+                   X=self.position_uncertainties_hist_y,
+                   fmt = ("%.1f","%.4e"),
+                   header = header) 
+        
+    def save_x_hist_log(self, directory, base_name):
+        """
+        Output file with cols:
+        col0 = Position uncertainty in nm
+        col1 = Frequency
+        """
+        now = datetime.datetime.now()
+        year = str(now.year)
+        year = year[2:]
+        month = str(now.month)
+        if len(month) == 1:
+            month = str(0) + month
+        day = str(now.day)
+        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_ln_uncertainty_x_frequencies.txt" # System independent?
+        header = "ln(position uncertainty) \t fraction\t eponential fit\t residues\t"
+        np.savetxt(out_file_name, 
+                   X=self.position_uncertainties_hist_log_x,
+                   fmt = ("%.2f","%.4e","%.4e","%.4e"),
+                   header = header) 
+        
+    def save_y_hist_log(self, directory, base_name):
+        """
+        Output file with cols:
+        col0 = Position uncertainty in nm
+        col1 = Frequency
+        """
+        now = datetime.datetime.now()
+        year = str(now.year)
+        year = year[2:]
+        month = str(now.month)
+        if len(month) == 1:
+            month = str(0) + month
+        day = str(now.day)
+        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_ln_uncertainty_y_frequencies.txt" # System independent?
+        header = "ln(position uncertainty) \t fraction\t exponential fit\t residues\t "
+        np.savetxt(out_file_name, 
+                   X=self.position_uncertainties_hist_log_y,
+                   fmt = ("%.2f","%.4e","%.4e","%.4e"),
+                   header = header) 
+        
     def save_fit_results(self, directory, base_name):
         """
         Output file with p_bleach, k, kv.
@@ -245,41 +303,43 @@ class Precision():
         if len(month) == 1:
             month = str(0) + month
         day = str(now.day)
-        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_p_bleach.txt"
-# =============================================================================
-#         self.p_bleach_results = np.zeros(3) # a np.array is like a column
-#         self.p_bleach_results[0], self.p_bleach_results[1], self.p_bleach_results[2] = self.p_bleach, self.k, self.kcov[1,1] # fill it with values
-#         self.p_bleach_results = np.matrix(self.p_bleach_results) # convert it to a matrix to be able to plot results in a horizontal line
-#         header = "p_bleach\t k\t variance of k\t"
-#         np.savetxt(out_file_name,
-#                    X=self.p_bleach_results,
-#                    fmt = ("%.4e","%.4e","%.4e"),
-#                    header = header)
-# =============================================================================
+        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty.txt"
         file = open(out_file_name, 'w')
         if not (file.closed):
-            file.write("p_bleach\t k [1/s]\t variance of k [1/s\u00b2]\n")
-            file.write("%.4e\t%.4e\t%.4e" %(self.p_bleach, self.k, self.kcov[1,1]))
+            file.write("localization_uncertainty x in nm\t localization_uncertainty y in nm\n")
+            file.write("%.4e\t%.4e\n" %(self.mean_x, self.mean_y))
             file.close()
         else:
             print("error: could not open file %s. Make sure the folder does exist" %(out_file_name))
-       
-           
+            
+    def run_precision(self):
+        self.load_localization_file()
+        self.log_columns()
+        self.hist_x()
+        self.hist_x_log()
+        self.hist_y()
+        self.hist_y_log()
+        self.gauss_fit()
+        self.plot_hist_x()
+        self.plot_hist_y()
+        self.plot_hist_log_x()
+        self.plot_hist_log_y()
+        
+    def save_precision(self, directory, base_name):
+        #directory = directory
+        #base_name = base_name
+        self.save_x_hist(directory, base_name)
+        self.save_y_hist(directory, base_name)
+        self.save_x_hist_log(directory, base_name)
+        self.save_y_hist_log(directory, base_name)
+        self.save_fit_results(directory, base_name)
+
 
 def main():
     file_name = "C:\\Users\\pcoffice37\\Documents\\rapidStorm_loc\\cell_17_MMStack_Pos0.ome.txt"  # testing file name
-    precision = Precision()
-    precision.load_localization_file(file_name)
-    precision.log_columns()
-    precision.hist_x()
-    precision.hist_x_log()
-    precision.hist_y()
-    precision.hist_y_log()
-    precision.gauss_fit()
-    precision.plot_hist_log_x()
-    precision.plot_hist_log_y()
-    precision.plot_hist_x()
-    precision.plot_hist_y()
+    column_order = {1: '"Position-0-0-uncertainty"', 3: '"Position-1-0-uncertainty"'}
+    precision = Precision(file_name, column_order)
+    precision.run_precision()
 
     
 if __name__ == "__main__":

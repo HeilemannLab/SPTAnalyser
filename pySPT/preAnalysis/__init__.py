@@ -2,8 +2,11 @@
 """
 Created on Fri Jan 11 13:23:47 2019
 
-@author: pcoffice37
+@author: Johanna Rahm
+
+Research Group Heilemann
+Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt am Main.
 """
 
-__all__ = ["expDisplacement", "pBleach", "precision", "columnSort"]
 
+__all__ = ["expDisplacement", "pBleach", "precision"]

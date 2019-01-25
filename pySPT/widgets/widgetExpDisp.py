@@ -2,11 +2,13 @@
 """
 Created on Mon Jan 14 15:40:08 2019
 
-@author: Johanna Rahm, Research Group Heilemann
+@author: Johanna Rahm
+
+Research Group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt am Main.
 """
 
-import os
+
 import tkinter as tk 
 from tkinter.filedialog import askopenfilename
 from ipywidgets import widgets

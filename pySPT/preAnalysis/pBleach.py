@@ -2,7 +2,9 @@
 """
 Created on Mon Jan 14 15:40:08 2019
 
-@author: Johanna Rahm, Research Group Heilemann
+@author: Johanna Rahm
+
+Research Group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt am Main.
 """
 
@@ -212,7 +214,7 @@ class PBleach():
         file = open(out_file_name, 'w')
         if not (file.closed):
             file.write("p_bleach\t k [1/s]\t variance of k [1/s\u00b2]\n")
-            file.write("%.4e\t%.4e\t%.4e" %(self.p_bleach, self.k, self.kcov[1,1]))
+            file.write("%.4e\t%.4e\t%.4e\n" %(self.p_bleach, self.k, self.kcov[1,1]))
             file.close()
         else:
             print("error: could not open file %s. Make sure the folder does exist" %(out_file_name))
