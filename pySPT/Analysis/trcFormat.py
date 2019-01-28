@@ -34,13 +34,10 @@ class TrcFormat():
         col3 = y
         col4 = intensity
         """
-        if not (self.file_name == ""):
-            self.loaded_file = np.loadtxt(self.file_name, usecols = (10, 4, 0, 2, 5)) 
+        seg_id_index = list(self.column_order.keys())[list(self.column_order.values()).index('"seg_id"')]
+        self.loaded_file = np.loadtxt(self.file_name, usecols = (10, 4, 0, 2, 5)) 
 
-            
-        else:
-            print("Insert a file name.")
-        #print(self.loaded_file)
+
             
     def create_trc_file(self):
         self.trc_file = np.zeros([np.size(self.loaded_file[:,0]),6])

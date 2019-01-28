@@ -37,12 +37,9 @@ class Precision():
         position_uncertainties col0 = x
         position_uncertainties col1 = y
         """
-        if not (self.file_name == ""):
-            x_uncertainty_index = list(self.column_order.keys())[list(self.column_order.values()).index('"Position-0-0-uncertainty"')]
-            y_uncertainty_index = list(self.column_order.keys())[list(self.column_order.values()).index('"Position-1-0-uncertainty"')]
-            self.position_uncertainties = np.loadtxt(self.file_name, usecols = (x_uncertainty_index, y_uncertainty_index)) # col0 = x uncertainty, col1 = y uncertainty
-        else:
-            print("Insert a file name.")
+        x_uncertainty_index = list(self.column_order.keys())[list(self.column_order.values()).index('"Position-0-0-uncertainty"')]
+        y_uncertainty_index = list(self.column_order.keys())[list(self.column_order.values()).index('"Position-1-0-uncertainty"')]
+        self.position_uncertainties = np.loadtxt(self.file_name, usecols = (x_uncertainty_index, y_uncertainty_index)) # col0 = x uncertainty, col1 = y uncertainty
             
     def log_columns(self):
         """
@@ -158,54 +155,15 @@ class Precision():
         self.mean_y = np.exp(coeff_y[1])
         print("The mean position uncertainty is %.3f nm in x and %.3f nm in y direction." %(self.mean_x, self.mean_y))
         
-    def plot_hist_log_x(self):
+    def plot_hist(self, x_axis, y_axis, width, fit=False, fit_data=[], colour="gray", fit_style="--"):
         fig = plt.figure()
         sp = fig.add_subplot(1, 1, 1)  # only 1 plot
-        sp.bar(self.position_uncertainties_hist_log_x[:,0], self.position_uncertainties_hist_log_x[:,1], 
+        sp.bar(x_axis, y_axis, 
                align = "center",
-               width = 0.05,  # width = bin size
-               color = "gray")
-        sp.plot(self.position_uncertainties_hist_log_x[:,0], self.position_uncertainties_hist_log_x[:,2], "m--")  # "b--" change colour, line style "m-" ...
-        sp.set_title("Histogram of ln position uncertainties in x direction")
-        sp.set_xlabel("ln(position uncertainty)")
-        sp.set_ylabel("Fraction")
-        #plt.savefig(out_file_name)
-        plt.show()  # print the graph
-        
-    def plot_hist_log_y(self):
-        fig = plt.figure()
-        sp = fig.add_subplot(1, 1, 1)  # only 1 plot
-        sp.bar(self.position_uncertainties_hist_log_y[:,0], self.position_uncertainties_hist_log_y[:,1], 
-               align = "center",
-               width = 0.05,  # width = bin size
-               color = "gray")
-        sp.plot(self.position_uncertainties_hist_log_y[:,0], self.position_uncertainties_hist_log_y[:,2], "m--")  # "b--" change colour, line style "m-" ...
-        sp.set_title("Histogram of ln position uncertainties in y direction")
-        sp.set_xlabel("ln(position uncertainty)")
-        sp.set_ylabel("Fraction")
-        #plt.savefig(out_file_name)
-        plt.show()  # print the graph
-        
-    def plot_hist_x(self):
-        fig = plt.figure()
-        sp = fig.add_subplot(1, 1, 1)  # only 1 plot
-        sp.bar(self.position_uncertainties_hist_x[:,0], self.position_uncertainties_hist_x[:,1], 
-               align = "center",
-               width = 0.5,  # width = bin size
-               color = "gray")
-        sp.set_title("Histogram of position uncertainties in x direction")
-        sp.set_xlabel("Position uncertainty [nm]")
-        sp.set_ylabel("Fraction")
-        #plt.savefig(out_file_name)
-        plt.show()  # print the graph
-        
-    def plot_hist_y(self):
-        fig = plt.figure()
-        sp = fig.add_subplot(1, 1, 1)  # only 1 plot
-        sp.bar(self.position_uncertainties_hist_y[:,0], self.position_uncertainties_hist_y[:,1], 
-               align = "center",
-               width = 0.5,  # width = bin size
-               color = "gray")
+               width = width,  # width = bin size
+               color = colour)
+        if fit:
+            sp.plot(x_axis, fit_data, fit_style)  # "b--" change colour, line style "m-" ...
         sp.set_title("Histogram of position uncertainties in y direction")
         sp.set_xlabel("Position uncertainty [nm]")
         sp.set_ylabel("Fraction")
@@ -225,7 +183,7 @@ class Precision():
         if len(month) == 1:
             month = str(0) + month
         day = str(now.day)
-        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_uncertainty_x_frequencies.txt" # System independent?
+        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_x_frequencies.txt" # System independent?
         header = "Position uncertainty [nm]\t fraction\t"
         np.savetxt(out_file_name, 
                    X=self.position_uncertainties_hist_x,
@@ -245,7 +203,7 @@ class Precision():
         if len(month) == 1:
             month = str(0) + month
         day = str(now.day)
-        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_uncertainty_y_frequencies.txt" # System independent?
+        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_y_frequencies.txt" # System independent?
         header = "Position uncertainty [nm]\t fraction\t"
         np.savetxt(out_file_name, 
                    X=self.position_uncertainties_hist_y,
@@ -265,7 +223,7 @@ class Precision():
         if len(month) == 1:
             month = str(0) + month
         day = str(now.day)
-        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_ln_uncertainty_x_frequencies.txt" # System independent?
+        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_ln_x_frequencies.txt" # System independent?
         header = "ln(position uncertainty) \t fraction\t eponential fit\t residues\t"
         np.savetxt(out_file_name, 
                    X=self.position_uncertainties_hist_log_x,
@@ -285,7 +243,7 @@ class Precision():
         if len(month) == 1:
             month = str(0) + month
         day = str(now.day)
-        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_ln_uncertainty_y_frequencies.txt" # System independent?
+        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_ln_y_frequencies.txt" # System independent?
         header = "ln(position uncertainty) \t fraction\t exponential fit\t residues\t "
         np.savetxt(out_file_name, 
                    X=self.position_uncertainties_hist_log_y,
@@ -311,7 +269,7 @@ class Precision():
             file.close()
         else:
             print("error: could not open file %s. Make sure the folder does exist" %(out_file_name))
-            
+
     def run_precision(self):
         self.load_localization_file()
         self.log_columns()
@@ -320,10 +278,12 @@ class Precision():
         self.hist_y()
         self.hist_y_log()
         self.gauss_fit()
-        self.plot_hist_x()
-        self.plot_hist_y()
-        self.plot_hist_log_x()
-        self.plot_hist_log_y()
+        self.plot_hist(self.position_uncertainties_hist_x[:,0], self.position_uncertainties_hist_x[:,1], 0.5)
+        self.plot_hist(self.position_uncertainties_hist_y[:,0], self.position_uncertainties_hist_y[:,1], 0.5)
+        self.plot_hist(self.position_uncertainties_hist_log_x[:,0], self.position_uncertainties_hist_log_x[:,1], 0.05, 
+                       fit=True, fit_data = self.position_uncertainties_hist_log_x[:,2])     
+        self.plot_hist(self.position_uncertainties_hist_log_y[:,0], self.position_uncertainties_hist_log_y[:,1], 0.05, 
+                       fit=True, fit_data = self.position_uncertainties_hist_log_y[:,2])
         
     def save_precision(self, directory, base_name):
         #directory = directory

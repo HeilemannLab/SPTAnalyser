@@ -24,11 +24,23 @@ class WidgetColumnSort():
         self.number_columns = 0
         self.sub_headers = [] # index in list = index of column in file
         self.target_words= []  # raw target words in double quotes
-        self.column_order = {}    
+        self.column_order = {}   
+        self.correct_header = False
         
-    def load_file(self):
+    def check_header(self):
+        """
+        Open header & check if significant words are in header, if they
+        appear count will go up 1, if word appears multible times it does not
+        matter, count will still go up only once.
+        """
         file = open(self.file_name)
         self.header = file.readline()  # get the header as first line
+        count = 0
+        for i in self.significant_words:
+            if i in self.header:
+                count += 1
+        if count == len(self.significant_words):
+            self.correct_header = True
 
     def testing_header(self):
         """
@@ -68,11 +80,10 @@ class WidgetColumnSort():
                         self.column_order[self.target_words.index(target_word)] = word
         
     def run_column_sort(self):
-        self.load_file()
         self.sub_header()
         self.get_words()
         self.column_index()
-
+        
         
 def main():
     file_name = "F:/Marburg/single_colour_tracking/resting/160404_CS5_Cell1/cell_1_MMStack_Pos0.ome.tif.txt"

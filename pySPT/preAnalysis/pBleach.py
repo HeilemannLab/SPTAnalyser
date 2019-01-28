@@ -16,65 +16,25 @@ from scipy.optimize import curve_fit
 
 class PBleach():
     def __init__(self):
+        self.file_name = ""
+        self.column_order = {}  # ["track_id", "mjd_n", "mjd"]
         self.mjds = []
         self.mjd_n_histogram = []  # mjd_n, frequencies, exp fit, resudie
         self.p_bleach_results = []  # p_bleach, k, kv
         self.dt = 0.02  # integration time in s
+        self.init_k = 0.01
         self.p_bleach = 0.0
         self.a = 0.01
         self.k = 0.01
         self.kcov = 0
-        self.header = ""
-        self.identifier = "identifier"  # identifier
-        self.number_columns = 0
-        self.significant_words = ["track_id", "mjd_n", "mjd"]
-        self.sub_headers = []  # index in list = index of column in file
-        self.column_order = {}
         #self.valid_length = 100  # trajectories > 100 are often 0 -> maybe not good for fitting
         #  made no difference for one data set
-
-    def load_header(self, file_name):
-        file = open(file_name)
-        self.header = file.readline()  # get the header as first line
-        
-    def sub_header(self):
-        cut_header = self.header
-        while cut_header.find(self.identifier) != -1:
-            # find returns the index of the first character of identifier
-            slice_index = cut_header.find(self.identifier)
-            sub_header = cut_header[:slice_index+len(self.identifier)]
-            self.sub_headers.append(sub_header)
-            cut_header = cut_header[slice_index+len(self.identifier):]
-        # the last cut_header will not have idenfitier but the significant word in it, append it
-        self.sub_headers.append(cut_header)
-        # the first item will have only the idenfitier but not the sig word -> delete it
-        self.sub_headers.pop(0)
-        self.number_columns = len(self.sub_headers)
-        print("sub_headers", self.sub_headers)
-        
-    def column_index(self):
-        for sub_header in self.sub_headers:
-            for word in self.significant_words:
-                if word in sub_header and word not in self.column_order:
-                    #append word (value) and index of sub_head (key) to dictionary
-                    self.column_order[self.sub_headers.index(sub_header)] = word
-        print("Dict", self.column_order)
-
-    def load_seg_file_index_check(self, file_name):
-        if not (file_name == ""):
-            mjd_index = list(self.column_order.keys())[list(self.column_order.values()).index("mjd")]
-            mjd_n_index = list(self.column_order.keys())[list(self.column_order.values()).index("mjd_n")]
-            print(mjd_index, mjd_n_index)
-            self.mjd = np.loadtxt(file_name, usecols = (mjd_index, mjd_n_index)) # col0 = mjd, col1 = mjd_n
-        else:
-            print("Insert a file name.")
             
-    def load_seg_file(self, file_name):
-        if not (file_name == ""):
-            self.mjds = np.loadtxt(file_name, usecols = (1, 2)) # col0 = mjd, col1 = mjd_n
-        else:
-            print("Insert a file name.")
-    
+    def load_seg_file(self):
+        mjd_index = list(self.column_order.keys())[list(self.column_order.values()).index('"mjd"')]
+        mjd_n_index = list(self.column_order.keys())[list(self.column_order.values()).index('"mjd_n"')]
+        self.mjds = np.loadtxt(self.file_name, usecols = (mjd_index, mjd_n_index)) # col0 = mjd, col1 = mjd_n
+
     def count_mjd_n_frequencies(self):
         """
         Create histogram with bins = mjd_n and frequencies as np.ndarray.
@@ -114,17 +74,17 @@ class PBleach():
         """
         return 1-np.exp(-t*k)
     
-    def calc_k_bleach(self, init_k):
+    def calc_k_bleach(self):
         """
         p_bleach = bleaching probability per particle and frame in the range of 0.0-1.0
         (1) The initial k value is needed to determine a k with its covarianz matrix.
         (2) Calculate the cumulative distribution function -> equals p_bleach.
         """
-        init_k = float(init_k)
+        #init_k = float(init_k)
         init_a = self.mjd_n_histogram[0,1]
         #  if one would like to neglect trajectories > valid_length for fitting a and k because most of them are 0 for one data set
         #[self.a, self.k], self.kcov = curve_fit(self.exp_decay_func, self.mjd_n_histogram[:self.valid_length,0], self.mjd_n_histogram[:self.valid_length,1], p0 = (init_a, init_k), method = "lm") #func, x, y, 
-        [self.a, self.k], self.kcov = curve_fit(self.exp_decay_func, self.mjd_n_histogram[:,1], self.mjd_n_histogram[:,2], p0 = (init_a, init_k), method = "lm") #func, x, y, 
+        [self.a, self.k], self.kcov = curve_fit(self.exp_decay_func, self.mjd_n_histogram[:,1], self.mjd_n_histogram[:,2], p0 = (init_a, self.init_k), method = "lm") #func, x, y, 
         self.p_bleach = self.cum_exp_decay_func(self.dt, self.k)
         print("Results: p_bleach = %.3f, k = %.4e, kv = %.4e" %(self.p_bleach, self.k, self.kcov[1,1]))  # Output for Jupyter Notebook File
         
@@ -154,7 +114,7 @@ class PBleach():
                width = self.dt,
                color = "gray")  # (x, height of the bars, width of bars)
         sp_1.plot(self.mjd_n_histogram [:,1], self.mjd_n_histogram [:,3], "--")  # "b--" change colour, line style "m-" ...
-        sp_1.set_title("PDF of particle duration")
+        sp_1.set_title("Distribution of particle duration")
         #sp_1.set_xlabel("Number of data points used in MJD calculation")
         sp_1.set_ylabel("Fraction")
         sp_1.axis((x1, x2, sp1_y1, sp1_y2))
@@ -182,7 +142,7 @@ class PBleach():
         if len(month) == 1:
             month = str(0) + month
         day = str(now.day)
-        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_mjd_n_frequencies.txt" # System independent?
+        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_p_bleach" + "_mjd_n_frequencies.txt" # System independent?
         header = "frames [count]\t duration [s]\t fraction\t exponential fit\t residues\t"
         np.savetxt(out_file_name, 
                    X=self.mjd_n_histogram,
@@ -201,6 +161,7 @@ class PBleach():
             month = str(0) + month
         day = str(now.day)
         out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_p_bleach.txt"
+# old attempt
 # =============================================================================
 #         self.p_bleach_results = np.zeros(3) # a np.array is like a column
 #         self.p_bleach_results[0], self.p_bleach_results[1], self.p_bleach_results[2] = self.p_bleach, self.k, self.kcov[1,1] # fill it with values
@@ -218,6 +179,14 @@ class PBleach():
             file.close()
         else:
             print("error: could not open file %s. Make sure the folder does exist" %(out_file_name))
+            
+    def run_p_bleach(self):
+        self.load_seg_file()
+        self.count_mjd_n_frequencies()
+        self.calc_k_bleach()
+        self.calc_decay()
+        self.plot_mjd_frequencies()
+
        
         
 def main():

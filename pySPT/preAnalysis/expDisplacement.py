@@ -15,17 +15,11 @@ import matplotlib.pyplot as plt
 class ExpDisplacement():
     def __init__(self):
         self.file_name = ""
-        self.column_order = {}
+        self.column_order = {}  # ["track_id", "mjd", "mjd_n"]
         self.mjd = []
         self.mjd_histogram = []
         self.average_mjd = 0
         self.fig = []
-        self.header = ""
-        self.identifier = "identifier"  # identifier
-        self.number_columns = 0
-        #self.significant_words = ["track_id", "mjd", "mjd_n"]
-        self.sub_headers = []  # index in list = index of column in file
-        self.column_order = {}
 
     def load_seg_file(self):
         """
@@ -34,27 +28,9 @@ class ExpDisplacement():
         :param file_name: Name of the inserted file by widgetExpDisp. 
         """
         # get the key for a certain value
-        if not (self.file_name == ""):
-            mjd_index = list(self.column_order.keys())[list(self.column_order.values()).index('"mjd"')]
-            mjd_n_index = list(self.column_order.keys())[list(self.column_order.values()).index('"mjd_n"')]
-            self.mjd = np.loadtxt(self.file_name, usecols = (mjd_index, mjd_n_index)) # col0 = mjd, col1 = mjd_n
-        else:
-            print("Insert a file name.")
-            
-    def load_seg_file2(self):
-        """
-        If True Create self.mjd (numpy.ndarray) col0 = mjd, col1 = mjd_n else raise error.
-        
-        :param file_name: Name of the inserted file by widgetExpDisp. 
-        """
-        # get the key for a certain value
-        try:
-            mjd_index = list(self.column_order.keys())[list(self.column_order.values()).index('"mjd"')]
-            mjd_n_index = list(self.column_order.keys())[list(self.column_order.values()).index('"mjd_n"')]
-            self.mjd = np.loadtxt(self.file_name, usecols = (mjd_index, mjd_n_index)) # col0 = mjd, col1 = mjd_n
-            break
-        else:
-            print("Insert a file name.")
+        mjd_index = list(self.column_order.keys())[list(self.column_order.values()).index('"mjd"')]
+        mjd_n_index = list(self.column_order.keys())[list(self.column_order.values()).index('"mjd_n"')]
+        self.mjd = np.loadtxt(self.file_name, usecols = (mjd_index, mjd_n_index)) # col0 = mjd, col1 = mjd_n
         
     def count_mjd_frequencies(self):
         """
@@ -95,7 +71,7 @@ class ExpDisplacement():
         if len(month) == 1:
             month = str(0) + month
         day = str(now.day)
-        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_mjd_frequencies.txt"  # Betriebssystemunabhängig?!?!?!
+        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_exp_displacement" + "_mjd_frequencies.txt"  # Betriebssystemunabhängig?!?!?!
         #header = "The expected displacement is %i [nm].\nThe corresponding frequency is %.4e.\n" %(self.mjd_max, self.mjd_frequency_max)
         header = "The expected displacement is %.3f [nm].\n" %(self.average_mjd)
         header += "mjd [nm]\t fraction\t"
