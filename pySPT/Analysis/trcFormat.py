@@ -10,13 +10,11 @@ Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.
 Convert a tracked rapidSTORM file into .trc format (PALMTracer)
 """
 
-
 import numpy as np
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 import datetime
-
 
 class TrcFormat():
     def __init__(self):
@@ -34,11 +32,9 @@ class TrcFormat():
         col3 = y
         col4 = intensity
         """
-        seg_id_index = list(self.column_order.keys())[list(self.column_order.values()).index('"seg_id"')]
+        #seg_id_index = list(self.column_order.keys())[list(self.column_order.values()).index('"seg_id"')]
         self.loaded_file = np.loadtxt(self.file_name, usecols = (10, 4, 0, 2, 5)) 
 
-
-            
     def create_trc_file(self):
         self.trc_file = np.zeros([np.size(self.loaded_file[:,0]),6])
         
