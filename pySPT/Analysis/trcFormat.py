@@ -50,7 +50,6 @@ class TrcFormat():
         self.trc_file[:,2] = position_x
         self.trc_file[:,3] = position_y
         self.trc_file[:,5] = intensity
-        print(self.trc_file)
         
     def sort_trc_file(self):
         dtype = [("seg_id", int), ("frame", int), ("position_x", float), ("position_y", float), ("0", int), ("intensity", float)]
@@ -58,12 +57,27 @@ class TrcFormat():
         structured_array = np.array(values, dtype=dtype)  # create structured array
         self.trc_file_sorted = np.sort(structured_array, order=["seg_id", "frame"])  # sort by dtype name
         
-    def save_trc_file(self):
-        out_file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\pySPT_cell_1_MMStack_Pos0\\preAnalysis\\sorted.txt"
+    def save_trc_file(self, directory, base_name):
+        now = datetime.datetime.now()
+        year = str(now.year)
+        year = year[2:]
+        month = str(now.month)
+        if len(month) == 1:
+            month = str(0) + month
+        day = str(now.day)
+        #out_file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\pySPT_cell_1_MMStack_Pos0\\preAnalysis\\sorted.txt"
+        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_trc_format.swifttrc"
+        header = "seg_id\t frame\t x [nm]\t y [nm]\t intensity"
         np.savetxt(out_file_name, 
                    X=self.trc_file_sorted,
-                   fmt = ("%i","%i", "%.3f", "%.3f", "%i", "%.3f"))
-
+                   fmt = ("%i","%i", "%.3f", "%.3f", "%i", "%.3f"),
+                   header = header)
+    
+    def run_trc_format(self):
+        self.load_localization_file()
+        self.create_trc_file()
+        self.sort_trc_file()
+        
         
 def main():
     trc_format= TrcFormat()

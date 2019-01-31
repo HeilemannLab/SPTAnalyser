@@ -16,6 +16,7 @@ class WidgetDirStructure():
         self.folder_name = ""
         self.base_name = ""
         self.pre_analysis_dir = ""
+        self.analysis_dir = ""
         self.raw_base_name = ""
         
     def name_handling(self, file_name):
@@ -30,6 +31,20 @@ class WidgetDirStructure():
         self.pre_analysis_dir = self.pySPT_dir + "\preAnalysis"
         if not os.path.exists(self.pre_analysis_dir):
             os.makedirs(self.pre_analysis_dir)
+            
+# =============================================================================
+#     def create_folder(self, folder):
+#         self.pySPT_dir = self.folder_name + "\pySPT_" + self.raw_base_name
+#         if not os.path.exists(self.pySPT_dir):
+#             os.makedirs(self.pySPT_dir)
+#             
+#         if folder == "preAnalysis":
+#             
+#             
+#         self.pre_analysis_dir = self.pySPT_dir + "\preAnalysis"
+#         if not os.path.exists(self.pre_analysis_dir):
+#             os.makedirs(self.pre_analysis_dir)
+# =============================================================================
             
     def create_raw_base_name(self):
         self.raw_base_name = ""

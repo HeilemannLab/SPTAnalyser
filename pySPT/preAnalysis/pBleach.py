@@ -112,15 +112,20 @@ class PBleach():
         sp_1.bar(self.mjd_n_histogram [:,1], self.mjd_n_histogram [:,2], 
                align = "center",
                width = self.dt,
-               color = "gray")  # (x, height of the bars, width of bars)
-        sp_1.plot(self.mjd_n_histogram [:,1], self.mjd_n_histogram [:,3], "--")  # "b--" change colour, line style "m-" ...
+               color = "gray",
+               label = "fraction")  # (x, height of the bars, width of bars)
+        sp_1.plot(self.mjd_n_histogram [:,1], self.mjd_n_histogram [:,3], "--c", label = "exp fit")  # "b--" change colour, line style "m-" ...
+        sp_1.legend()
         sp_1.set_title("Distribution of particle duration")
         #sp_1.set_xlabel("Number of data points used in MJD calculation")
         sp_1.set_ylabel("Fraction")
         sp_1.axis((x1, x2, sp1_y1, sp1_y2))
         sp_2 = plt.subplot2grid((4,4), (3,0), colspan=4, rowspan=1)
         #sp_2 = fig.add_subplot(2, 1, 2) 
-        sp_2.plot(self.mjd_n_histogram [:,1], self.mjd_n_histogram [:,4], "*")
+        residue_line = np.zeros(len(self.mjd_n_histogram [:,1]))
+        sp_2.plot(self.mjd_n_histogram[:,1], residue_line, ":", color = "0.75")        
+        sp_2.plot(self.mjd_n_histogram [:,1], self.mjd_n_histogram [:,4], "*", color = "0.5", label= "residues")
+        sp_2.legend()
         sp_2.set_ylabel("Residue")
         sp_2.set_xlabel("Duration of tracks [s]")  # Number of data points used in MJD calculation
         sp_2.axis((x1, x2, sp2_y1, sp2_y2))
