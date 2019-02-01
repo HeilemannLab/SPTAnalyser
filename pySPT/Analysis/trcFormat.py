@@ -37,11 +37,8 @@ class TrcFormat():
 
     def create_trc_file(self):
         self.trc_file = np.zeros([np.size(self.loaded_file[:,0]),6])
-        
-        print(self.loaded_file[:,0])
-        #print(self.trc_file, len(self.trc_file[0]))
-        seg_id = self.loaded_file[:,0]
-        frame = self.loaded_file[:,1]
+        seg_id = np.add(self.loaded_file[:,0],1)  # trc count starts at 1
+        frame = np.add(self.loaded_file[:,1],1)
         position_x = self.loaded_file[:,2]
         position_y = self.loaded_file[:,3]
         intensity = self.loaded_file[:,4]
@@ -62,11 +59,14 @@ class TrcFormat():
         year = str(now.year)
         year = year[2:]
         month = str(now.month)
+        day = str(now.day)
         if len(month) == 1:
             month = str(0) + month
-        day = str(now.day)
+        if len(day) == 1:
+            day = str(0) + day
+
         #out_file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\pySPT_cell_1_MMStack_Pos0\\preAnalysis\\sorted.txt"
-        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_trc_format.swifttrc"
+        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_trc_format.swfttrc"
         header = "seg_id\t frame\t x [nm]\t y [nm]\t intensity"
         np.savetxt(out_file_name, 
                    X=self.trc_file_sorted,

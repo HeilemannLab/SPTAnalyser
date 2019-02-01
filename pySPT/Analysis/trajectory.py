@@ -25,16 +25,19 @@ from scipy.stats import chisquare
 from scipy.optimize import curve_fit
 import matplotlib.gridspec as gridspec
 
-class Molecule():
-    def __init__(self):
+class Trajectory():
+    def __init__(self, locs):
+        #self.trajectory_number = trajectory_number  # number of trajectory
+        #self.len_all_trajectories = len_all_trajectories  # sum of length of all trajectories
+        #self.all_trajectories = all_trajectories  # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = intensity
         self.MSDs = []  # stores all MSD values
         self.times = []  # stores all time steps for MSD values
         self.MSD_fit = []  # stores values of fit area of times, MSDs, fit and residues
         self.MSD_D = []  # stores first 4 values for diffusion calc, times MSD, fit residues
-        self.localizations = []  # list with tuples of localizations (x1,y1), (x2,y2) ...
-        self.sorted_molecules = [] # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = intensity
+        self.localizations = locs  # list with tuples of localizations (x1,y1), (x2,y2) ...
+        #self.sorted_molecules = [] # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = intensity
         self.dt = 0.02  # camera integration time in s
-        self.pixel_size = 158  # [nm] multiply with palmtracer, swift = 1 -> in nm -> *10^-3 micrometer!
+        #self.pixel_size = 158  # [nm] multiply with palmtracer, swift = 1 -> in nm -> *10^-3 micrometer!
         self.dof = 4  # degree of freedom 
         self.D_min = 0.0065  # [micrometer^2/s]
         self.length_MSD = 0
@@ -56,29 +59,32 @@ class Molecule():
         self.immobility = False
         self.confined = True  # if confinded false -> free true
         self.analyse_succesfull = True
-        self.molecule_number = 248
         
-    def load_file(self):
-        #file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\sorted.txt"
-        file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\cell_1_MMStack_Pos0.ome.MIA\\tracking\\cell_1_MMStack_Pos0.ome_MIA.trc"
-        self.sorted_molecules = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 5)) # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = intensity
-        self.sorted_molecules[:,2] = self.sorted_molecules[:,2] * self.pixel_size *10**-3
-        self.sorted_molecules[:,3] = self.sorted_molecules[:,3] * self.pixel_size *10**-3
-        #print(self.sorted_molecules)
+# =============================================================================
+#     def load_file(self):
+#         #file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\sorted.txt"
+#         file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\cell_1_MMStack_Pos0.ome.MIA\\tracking\\cell_1_MMStack_Pos0.ome_MIA.trc"
+#         self.sorted_molecules = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 5)) # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = intensity
+#         self.sorted_molecules[:,2] = self.sorted_molecules[:,2] * self.pixel_size *10**-3
+#         self.sorted_molecules[:,3] = self.sorted_molecules[:,3] * self.pixel_size *10**-3
+#         #print(self.sorted_molecules)
+# =============================================================================
         
-    def get_localization(self):
-        # get localizations for first molecule as xy tuples in list
-        self.localizations = []  # (x1, y1), (x2, y2) ...
-        #print(self.sorted_molecules[20,0])
-        for i in range(0, len(self.sorted_molecules[:,0])):
-            if self.sorted_molecules[i,0] == self.molecule_number:
-                self.localizations.append((self.sorted_molecules[i,2], self.sorted_molecules[i,3]))
+# =============================================================================
+#     def get_localization(self):       
+#         for i in range(0, self.len_all_trajectories):
+#             if self.all_trajectories[i,0] == self.trajectory_number:
+#                 self.localizations.append((self.all_trajectories[i,2], self.all_trajectories[i,3]))
+# =============================================================================
+# =============================================================================
+#         print(self.localizations)
+# =============================================================================
         
     def calc_length_trajectory(self):
-        self.length_trajectory = len(self.localizations)
+        self.length_trajectory = np.shape(self.localizations)[0]
         
     def calc_length_MSD(self):
-        self.length_MSD = len(self.localizations) - 1
+        self.length_MSD = np.shape(self.localizations)[0] - 1
         
     def calc_MSD(self):
         """
@@ -90,7 +96,7 @@ class Molecule():
         for time in range(1, self.length_trajectory):
             MSD_time = np.zeros(self.length_trajectory - time)
             for i in range(0, self.length_trajectory - time):
-                MSD = (self.localizations[i+time][0] - self.localizations[i][0])**2 + (self.localizations[i+time][1] - self.localizations[i][1])**2
+                MSD = (self.localizations[i+time,2] - self.localizations[i,2])**2 + (self.localizations[i+time,3] - self.localizations[i,3])**2
                 MSD_time[i] = MSD
             self.MSDs[time-1] = MSD_time.mean()
         self.times = np.arange(1, self.length_MSD+1, 1.0)
@@ -176,8 +182,10 @@ class Molecule():
         self.MSD_60 = np.zeros([len(times),2])
         self.MSD_fit[:,0] = times
         self.MSD_fit[:,1] = MSDs
-        print("Full length MSD:", self.length_MSD)
-        print("Fitted length MSD (60 %):", len(MSDs))
+# =============================================================================
+#         print("Full length MSD:", self.length_MSD)
+#         print("Fitted length MSD (60 %):", len(MSDs))
+# =============================================================================
         try:
             [self.r, self.tau], self.cov = curve_fit(self.function_full_MSD, times, MSDs, p0 = (self.r, self.tau), method = "lm")
         except:
@@ -190,9 +198,11 @@ class Molecule():
             self.dtau = self.cov[1,1]
             self.MSD_fit[:,2] = self.function_full_MSD(times, self.r, self.tau)
             self.MSD_fit[:,3] = self.MSD_fit[:,1] - self.MSD_fit[:,2]
-            print(self.MSD_fit)
-            #[chisq, p] = chisquare(MSDs, fit_fn(times))
-        print("Analysis succes?", self.analyse_succesfull)        
+# =============================================================================
+#             print(self.MSD_fit)
+#             #[chisq, p] = chisquare(MSDs, fit_fn(times))
+#         print("Analysis succes?", self.analyse_succesfull)        
+# =============================================================================
         
     def plot_full_MSD(self):
         x1, x2 = 0, self.MSD_fit[:,0].max()  # x1 = min, x2 = max
@@ -234,6 +244,9 @@ class Molecule():
         if not (self.immobility):
             self.fit_full_MSD()
             self.check_confined()
+            
+    def print_particle(self):
+        print("\nnew particle:")
         print("Type immobile:", self.immobility)
         print("Type confined:", self.confined)
         print("D_conf:", self.D_conf)
@@ -241,6 +254,7 @@ class Molecule():
         print("tau:", self.tau)
         print("tau threshold:", self.tau_threshold)
         print("chi2:", self.chi_MSD_fit)
+
         
     def plot_particle(self):
         self.plot_full_MSD()
@@ -257,11 +271,9 @@ class Molecule():
     
    
 def main():
-    molecule = Molecule()
-    molecule.load_file()
-    molecule.get_localization()
-    molecule.analyse_particle()
-    molecule.plot_particle()
+    trajectory = Trajectory()
+    trajectory.analyse_particle()
+    trajectory.plot_particle()
         
     
 if __name__ == "__main__":

@@ -144,9 +144,11 @@ class PBleach():
         year = str(now.year)
         year = year[2:]
         month = str(now.month)
+        day = str(now.day)
         if len(month) == 1:
             month = str(0) + month
-        day = str(now.day)
+        if len(day) == 1:
+            day = str(0) + day
         out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_p_bleach" + "_mjd_n_frequencies.txt" # System independent?
         header = "frames [count]\t duration [s]\t fraction\t exponential fit\t residues\t"
         np.savetxt(out_file_name, 
@@ -162,9 +164,11 @@ class PBleach():
         year = str(now.year)
         year = year[2:]
         month = str(now.month)
+        day = str(now.day)
         if len(month) == 1:
             month = str(0) + month
-        day = str(now.day)
+        if len(day) == 1:
+            day = str(0) + day
         out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_p_bleach.txt"
 # old attempt
 # =============================================================================

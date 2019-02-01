@@ -68,9 +68,11 @@ class ExpDisplacement():
         year = str(now.year)
         year = year[2:]
         month = str(now.month)
+        day = str(now.day)
         if len(month) == 1:
             month = str(0) + month
-        day = str(now.day)
+        if len(day) == 1:
+            day = str(0) + day
         out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_exp_displacement" + "_mjd_frequencies.txt"  # Betriebssystemunabhängig?!?!?!
         #header = "The expected displacement is %i [nm].\nThe corresponding frequency is %.4e.\n" %(self.mjd_max, self.mjd_frequency_max)
         header = "The expected displacement is %.3f [nm].\n" %(self.average_mjd)

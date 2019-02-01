@@ -180,9 +180,11 @@ class Precision():
         year = str(now.year)
         year = year[2:]
         month = str(now.month)
+        day = str(now.day)
         if len(month) == 1:
             month = str(0) + month
-        day = str(now.day)
+        if len(day) == 1:
+            day = str(0) + day
         out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_x_frequencies.txt" # System independent?
         header = "Position uncertainty [nm]\t fraction\t"
         np.savetxt(out_file_name, 
@@ -200,9 +202,11 @@ class Precision():
         year = str(now.year)
         year = year[2:]
         month = str(now.month)
+        day = str(now.day)
         if len(month) == 1:
             month = str(0) + month
-        day = str(now.day)
+        if len(day) == 1:
+            day = str(0) + day
         out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_y_frequencies.txt" # System independent?
         header = "Position uncertainty [nm]\t fraction\t"
         np.savetxt(out_file_name, 
@@ -220,9 +224,11 @@ class Precision():
         year = str(now.year)
         year = year[2:]
         month = str(now.month)
+        day = str(now.day)
         if len(month) == 1:
             month = str(0) + month
-        day = str(now.day)
+        if len(day) == 1:
+            day = str(0) + day
         out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_ln_x_frequencies.txt" # System independent?
         header = "ln(position uncertainty) \t fraction\t eponential fit\t residues\t"
         np.savetxt(out_file_name, 
@@ -240,9 +246,11 @@ class Precision():
         year = str(now.year)
         year = year[2:]
         month = str(now.month)
+        day = str(now.day)
         if len(month) == 1:
             month = str(0) + month
-        day = str(now.day)
+        if len(day) == 1:
+            day = str(0) + day
         out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_ln_y_frequencies.txt" # System independent?
         header = "ln(position uncertainty) \t fraction\t exponential fit\t residues\t "
         np.savetxt(out_file_name, 
@@ -258,9 +266,11 @@ class Precision():
         year = str(now.year)
         year = year[2:]
         month = str(now.month)
+        day = str(now.day)
         if len(month) == 1:
             month = str(0) + month
-        day = str(now.day)
+        if len(day) == 1:
+            day = str(0) + day
         out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty.txt"
         file = open(out_file_name, 'w')
         if not (file.closed):
