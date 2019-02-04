@@ -10,7 +10,7 @@ Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.
 
 import numpy as np
 from . import trajectory
-
+from multiprocessing import Pool
 #from .analysis import trajectory
 #from pySPT.analysis import trajectory
 import time
@@ -18,10 +18,59 @@ import time
 class Cell():
     def __init__(self):
         #self.all_trajectories = []  # col0 = trajectory, col1 = frames, col2 = x, col3 = y, col4 = intensity ~ trc file
-        self.pixel_size = 158  # [nm] multiply with palmtracer, swift = 1 -> in nm -> *10^-3 micrometer!
+        self.pixel_size = 158  # [nm] multiply with palmtracer in nm -> *10^-3 micrometer!
         self.trajectories = []  # contains trajectory objects
+        self.analysed_trajectories = []  # contains analysed trajectory objects
         self.D = []
         self.states = np.zeros([3,1])
+        
+    def analyse_trajectory(self, trajectory):
+        """
+        Multiprocessing job: analyse 1 trajectory object.
+        """
+        trajectory.analyse_particle()
+        return trajectory      
+     
+    def run_processes(self):
+        """
+        Target: analyse trajectory,
+        arg: one trajectory out of the self.trajectories list
+        """
+        with Pool(None) as p:
+            self.analysed_trajectories = p.map(self.analyse_trajectory, self.trajectories)
+            print(self.analysed_trajectories)
+            return self.analysed_trajectories
+
+    def load_file(self):
+        """
+        Load file & create list with trajectory objects, xy localizations for each object are initialized. 
+        """
+        file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\cell_1_MMStack_Pos0.ome.MIA\\tracking\\cell_1_MMStack_Pos0.ome_MIA.trc"
+        all_trajectories = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 5)) # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = intensity
+        all_trajectories[:,2] = np.multiply(all_trajectories[:,2], int(self.pixel_size)*10**(-3))
+        all_trajectories[:,3] = np.multiply(all_trajectories[:,3], int(self.pixel_size)*10**(-3))
+        print(all_trajectories[:,2])
+        print(all_trajectories[:,3])
+        for trajectory_number in range(int(all_trajectories[:,0].min()), int(all_trajectories[:,0].max())+1):    
+            idx = all_trajectories[:,0] == trajectory_number
+            localizations = all_trajectories[idx,:]
+            if not (localizations.size==0):
+                self.trajectories.append(trajectory.Trajectory(localizations))
+
+    def analyse_trajectories(self):
+        """
+        Analyse trajectories without multiprocessing
+        """
+        list(map(lambda x: x.analyse_particle(), self.trajectories))
+        self.analysed_trajectories = self.trajectories
+        #print(self.analysed_trajectories)
+        #print(self.trajectories)
+        #for i in self.trajectories:
+        #    print("Diff", i.D)
+
+        
+#    def plot_trajectorie(self, trajectory_number):
+#        self.trajectories[trajectory_number-1].plot_particle()
         
 # =============================================================================
 #     def load_file(self):
@@ -48,29 +97,6 @@ class Cell():
 #             if self.all_trajectories[i,0] == self.trajectory_number:
 #                 self.localizations.append((self.all_trajectories[i,2], self.all_trajectories[i,3]))
 # =============================================================================
-                
-    def load_file(self):
-        file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\cell_1_MMStack_Pos0.ome.MIA\\tracking\\cell_1_MMStack_Pos0.ome_MIA.trc"
-        all_trajectories = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 5)) # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = intensity
-        #for trajectory_number in range(int(all_trajectories[:,0].min()), int(all_trajectories[:,0].max())+1):
-        for trajectory_number in range(int(all_trajectories[:,0].min()), int(all_trajectories[:,0].max())+1):    
-            #localizations = []
-            idx = all_trajectories[:,0] == trajectory_number
-            #print (idx)
-            localizations = all_trajectories[idx,:]
-            if not (localizations.size==0):
-                #temp_trc = trajectory.Trajectory(localizations)
-                self.trajectories.append(trajectory.Trajectory(localizations))
-                
-    def analyse_trajectories(self):
-        #for i in self.trajectories:
-        #    i.analyse_particle()
-        #    i.print_particle()
-        list(map(lambda x: x.analyse_particle(), self.trajectories))
-        #list(map(lambda x: x.print_particle(), self.trajectories))
-        
-#    def plot_trajectorie(self, trajectory_number):
-#        self.trajectories[trajectory_number-1].plot_particle()
 
             
             #localizations = all_trajectories[idx,:]
@@ -108,8 +134,10 @@ class Cell():
 #     #print("Evalutation took {} seconds".format(end-start))
 #     #cell.plot_trajectorie(1)
 #     
-#     
+# =============================================================================
+# #     
 # if __name__ == "__main__":
 #     main()
-#     
+# #     
+# =============================================================================
 # =============================================================================

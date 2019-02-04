@@ -14,7 +14,6 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 import datetime
 
-
 class Precision():
     def __init__(self):
         self.file_name = ""
@@ -155,15 +154,17 @@ class Precision():
         self.mean_y = np.exp(coeff_y[1])
         print("The mean position uncertainty is %.3f nm in x and %.3f nm in y direction." %(self.mean_x, self.mean_y))
         
-    def plot_hist(self, x_axis, y_axis, width, fit=False, fit_data=[], colour="gray", fit_style="--"):
+    def plot_hist(self, x_axis, y_axis, width, fit=False, fit_data=[], colour="gray", fit_style="--c"):
         fig = plt.figure()
         sp = fig.add_subplot(1, 1, 1)  # only 1 plot
         sp.bar(x_axis, y_axis, 
                align = "center",
                width = width,  # width = bin size
-               color = colour)
+               color = colour,
+               label = "fraction")
         if fit:
-            sp.plot(x_axis, fit_data, fit_style)  # "b--" change colour, line style "m-" ...
+            sp.plot(x_axis, fit_data, fit_style, label = "gauss fit")  # "b--" change colour, line style "m-" ...
+        sp.legend()
         sp.set_title("Histogram of position uncertainties in y direction")
         sp.set_xlabel("Position uncertainty [nm]")
         sp.set_ylabel("Fraction")
@@ -230,7 +231,7 @@ class Precision():
         if len(day) == 1:
             day = str(0) + day
         out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_ln_x_frequencies.txt" # System independent?
-        header = "ln(position uncertainty) \t fraction\t eponential fit\t residues\t"
+        header = "ln(position uncertainty) \t fraction\t exponential fit\t residues\t"
         np.savetxt(out_file_name, 
                    X=self.position_uncertainties_hist_log_x,
                    fmt = ("%.2f","%.4e","%.4e","%.4e"),

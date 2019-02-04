@@ -22,6 +22,7 @@ class WidgetTrcFormat():
         self.got_file_name = False
         self.file_text_box = self.create_file_box()
         self.file_button = self.create_file_button()
+        self.pixel_size_box = self.create_pixel_size_box()
         self.run_button = self.create_run_button()
         self.save_button = self.create_save_button()
         self.clear_output = self.create_clear_output()
@@ -63,6 +64,14 @@ class WidgetTrcFormat():
     def change_file_box(self, change):
         self.file_name = self.file_text_box.value  
         self.got_file_name = True
+        
+    def create_pixel_size_box(self, val = "158", desc = "pixel size in nm"): 
+        """
+        Box for inserting the pixel size in nm.
+        """
+        style = {'description_width': 'initial'}  # display too long desc
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text
     
     def create_run_button(self):
         """

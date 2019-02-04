@@ -60,6 +60,23 @@ class ExpDisplacement():
         self.average_mjd = mjd_no_zeros.mean()
         print("The expected displacement is %.3f nm." %(self.average_mjd)) 
 
+    def plot_mjd_frequencies(self):
+        self.fig = plt.figure()
+        sp = self.fig.add_subplot(1, 1, 1)  # only 1 plot
+        sp.bar(self.mjd_histogram [:,0], self.mjd_histogram [:,1], 
+               align = "center",
+               width = 20,  # width = bin size
+               color = "gray",
+               edgecolor = "black",
+               label = "fraction")
+        sp.set_title("PDF of Mean Jump Distance")
+        sp.set_xlabel("Mean Jump Distance [nm]")
+        sp.set_ylabel("Fraction")
+        sp.legend()
+        #plt.savefig(out_file_name)
+        plt.show()  # print the graph
+        #return fig
+
     def save_mjd_frequencies(self, directory, base_name):
         """
         Create a mjd_frequencies.txt file with exp displacement in header, col0 = mjd, col1 = frequencies.
@@ -75,27 +92,34 @@ class ExpDisplacement():
             day = str(0) + day
         out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_exp_displacement" + "_mjd_frequencies.txt"  # Betriebssystemunabhängig?!?!?!
         #header = "The expected displacement is %i [nm].\nThe corresponding frequency is %.4e.\n" %(self.mjd_max, self.mjd_frequency_max)
-        header = "The expected displacement is %.3f [nm].\n" %(self.average_mjd)
-        header += "mjd [nm]\t fraction\t"
+        #header = "The expected displacement is %.3f [nm].\n" %(self.average_mjd)
+        header = "mjd [nm]\t fraction\t"
         np.savetxt(out_file_name, 
                    X=self.mjd_histogram,
                    fmt = ("%i","%.4e"),
                    header = header)
         
-    def plot_mjd_frequencies(self):
-        self.fig = plt.figure()
-        sp = self.fig.add_subplot(1, 1, 1)  # only 1 plot
-        sp.bar(self.mjd_histogram [:,0], self.mjd_histogram [:,1], 
-               align = "center",
-               width = 20,  # width = bin size
-               color = "gray",
-               edgecolor = "black")
-        sp.set_title("PDF of Mean Jump Distance")
-        sp.set_xlabel("Mean Jump Distance [nm]")
-        sp.set_ylabel("Fraction")
-        #plt.savefig(out_file_name)
-        plt.show()  # print the graph
-        #return fig
+    def save_exp_disp(self, directory, base_name):
+        """
+        Create a mjd_frequencies.txt file with exp displacement in header, col0 = mjd, col1 = frequencies.
+        """
+        now = datetime.datetime.now()
+        year = str(now.year)
+        year = year[2:]
+        month = str(now.month)
+        day = str(now.day)
+        if len(month) == 1:
+            month = str(0) + month
+        if len(day) == 1:
+            day = str(0) + day
+        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_exp_displacement.txt"  # Betriebssystemunabhängig?!?!?!
+        file = open(out_file_name, 'w')
+        if not (file.closed):
+            file.write("exp_displacement [nm]\n")
+            file.write("%.3f" %self.average_mjd)
+            file.close()
+        else:
+            print("error: could not open file %s. Make sure the folder does exist" %(out_file_name))
         
     def run_exp_displacement(self):
         self.load_seg_file()
@@ -103,7 +127,10 @@ class ExpDisplacement():
         self.calc_exp_displacement()
         self.plot_mjd_frequencies()
         
-
+    def save_exp_displacement(self, directory, base_name):
+        self.save_exp_disp(directory, base_name)
+        self.save_mjd_frequencies(directory, base_name)
+        
 
 def main():
     exp_displacement = ExpDisplacement()
@@ -113,8 +140,8 @@ def main():
     exp_displacement.calc_exp_displacement()
     exp_displacement.save_mjd_frequencies()
     exp_displacement.plot_mjd_frequencies()
+
     
 if __name__ == "__main__":
     main()
- 
-    
+     
