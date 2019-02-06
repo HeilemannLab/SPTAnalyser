@@ -18,6 +18,7 @@ import time
 class Cell():
     def __init__(self):
         #self.all_trajectories = []  # col0 = trajectory, col1 = frames, col2 = x, col3 = y, col4 = intensity ~ trc file
+        self.trc_file = []
         self.pixel_size = 158  # [nm] multiply with palmtracer in nm -> *10^-3 micrometer!
         self.trajectories = []  # contains trajectory objects
         self.analysed_trajectories = []  # contains analysed trajectory objects
@@ -41,19 +42,33 @@ class Cell():
             print(self.analysed_trajectories)
             return self.analysed_trajectories
 
-    def load_file(self):
+# =============================================================================
+#     def load_file(self):
+#         """
+#         Load file & create list with trajectory objects, xy localizations for each object are initialized. 
+#         """
+#         file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\cell_1_MMStack_Pos0.ome.MIA\\tracking\\cell_1_MMStack_Pos0.ome_MIA.trc"
+#         all_trajectories = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 5)) # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = intensity
+#         all_trajectories[:,2] = np.multiply(all_trajectories[:,2], int(self.pixel_size)*10**(-3))
+#         all_trajectories[:,3] = np.multiply(all_trajectories[:,3], int(self.pixel_size)*10**(-3))
+#         print(all_trajectories[:,2])
+#         print(all_trajectories[:,3])
+#         for trajectory_number in range(int(all_trajectories[:,0].min()), int(all_trajectories[:,0].max())+1):    
+#             idx = all_trajectories[:,0] == trajectory_number
+#             localizations = all_trajectories[idx,:]
+#             if not (localizations.size==0):
+#                 self.trajectories.append(trajectory.Trajectory(localizations))
+# =============================================================================
+                
+    def create_trajectories(self):
         """
-        Load file & create list with trajectory objects, xy localizations for each object are initialized. 
+        Create list with trajectory objects from a trc file.
         """
-        file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\cell_1_MMStack_Pos0.ome.MIA\\tracking\\cell_1_MMStack_Pos0.ome_MIA.trc"
-        all_trajectories = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 5)) # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = intensity
-        all_trajectories[:,2] = np.multiply(all_trajectories[:,2], int(self.pixel_size)*10**(-3))
-        all_trajectories[:,3] = np.multiply(all_trajectories[:,3], int(self.pixel_size)*10**(-3))
-        print(all_trajectories[:,2])
-        print(all_trajectories[:,3])
-        for trajectory_number in range(int(all_trajectories[:,0].min()), int(all_trajectories[:,0].max())+1):    
-            idx = all_trajectories[:,0] == trajectory_number
-            localizations = all_trajectories[idx,:]
+        self.trc_file[:,2] = np.multiply(self.trc_file[:,2], int(self.pixel_size)*10**(-3))
+        self.trc_file[:,3] = np.multiply(self.trc_file[:,3], int(self.pixel_size)*10**(-3))
+        for trajectory_number in range(int(self.trc_file[:,0].min()), int(self.trc_file[:,0].max())+1):    
+            idx = self.trc_file[:,0] == trajectory_number
+            localizations = self.trc_file[idx,:]
             if not (localizations.size==0):
                 self.trajectories.append(trajectory.Trajectory(localizations))
 
