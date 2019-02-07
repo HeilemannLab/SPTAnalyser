@@ -2,20 +2,12 @@
 """
 Created on Thu Jan 31 16:14:28 2019
 
-@author: pcoffice37
+@author: Johanna Rahm
 
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
-"""
 
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Jan 29 11:03:55 2019
-
-@author: pcoffice37
-
-Research group Heilemann
-Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
+Create a trajectory object with informations of diffusion, diffusion type, length of trajectory, visualizations ...
 """
 
 import numpy as np
@@ -24,26 +16,18 @@ from scipy.stats import linregress
 from scipy.stats import chisquare
 from scipy.optimize import curve_fit
 import matplotlib.gridspec as gridspec
-#from matplotlib import rc
 
 class Trajectory():
     def __init__(self, locs):
-        #self.trajectory_number = trajectory_number  # number of trajectory
-        #self.len_all_trajectories = len_all_trajectories  # sum of length of all trajectories
-        #self.all_trajectories = all_trajectories  # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = intensity
-        self.cell_number = 0  
         self.trajectory_number = 0  # equals first column of localization
         self.MSDs = []  # stores all MSD values
         self.times = []  # stores all time steps for MSD values
         self.MSD_fit = []  # stores values of fit area of times, MSDs, fit and residues
-
         self.MSD_D = []  # stores first 4 values for diffusion calc, times MSD, fit residues
         self.localizations = locs  # np.array with col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = intensity
-        #self.sorted_molecules = [] # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = intensity
         self.dt = 0.02  # camera integration time in s
-        #self.pixel_size = 158  # [nm] multiply with palmtracer, swift = 1 -> in nm -> *10^-3 micrometer!
-        self.dof = 4  # degree of freedom 
-        self.D_min = 0.0065  # [micrometer^2/s]
+        self.dof = 4  # degree of freedom (to determin D)
+        self.D_min = 0.0065  # minimum of diffusion coeff to be detected [micrometer^2/s]
         self.length_MSD = 0
         self.length_trajectory = 0
         self.D = 0.0  # diffusion coefficient
@@ -59,35 +43,16 @@ class Trajectory():
         self.dD_conf = 0.0
         self.r = 0.01  # confinement radius
         self.dr = 0.0
-        self.tau_threshold = 0.12  # check if free or confined
+        self.tau_threshold = 0.12  # check if free or confined: tau > tau_thr -> free, tau < tau_thr -> confined
         self.immobility = False
         self.confined = True  # if confinded false -> free true
         self.analyse_successful = True
-        
+        # only to compare with ML origin results
         self.MSD_fit_ML= []  # comparing with origin fit
         self.D_conf_ML = 0.0
         self.tau_ML = 0.0
         self.r_ML = 0.0
         
-# =============================================================================
-#     def load_file(self):
-#         #file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\sorted.txt"
-#         file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\cell_1_MMStack_Pos0.ome.MIA\\tracking\\cell_1_MMStack_Pos0.ome_MIA.trc"
-#         self.sorted_molecules = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 5)) # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = intensity
-#         self.sorted_molecules[:,2] = self.sorted_molecules[:,2] * self.pixel_size *10**-3
-#         self.sorted_molecules[:,3] = self.sorted_molecules[:,3] * self.pixel_size *10**-3
-#         #print(self.sorted_molecules)
-# =============================================================================
-        
-# =============================================================================
-#     def get_localization(self):       
-#         for i in range(0, self.len_all_trajectories):
-#             if self.all_trajectories[i,0] == self.trajectory_number:
-#                 self.localizations.append((self.all_trajectories[i,2], self.all_trajectories[i,3]))
-# =============================================================================
-# =============================================================================
-#         print(self.localizations)
-# =============================================================================
     def calc_trajectory_number(self):
         self.trajectory_number = self.localizations[0,0]   
         
@@ -138,9 +103,9 @@ class Trajectory():
         return times*slope + intercept    
         
     def plot_diffusion(self):
-        x1, x2 = self.MSD_D[:,0].min(), self.MSD_D[:,0].max()  # x1 = min, x2 = max
-        sp1_y1, sp1_y2 = self.MSD_D[:,1].min(), self.MSD_D[:,1].max()
-        sp2_y1, sp2_y2 = self.MSD_D[:,3].min(), self.MSD_D[:,3].max()
+        #x1, x2 = self.MSD_D[:,0].min(), self.MSD_D[:,0].max()  # x1 = min, x2 = max
+        #sp1_y1, sp1_y2 = self.MSD_D[:,1].min(), self.MSD_D[:,1].max()
+        #sp2_y1, sp2_y2 = self.MSD_D[:,3].min(), self.MSD_D[:,3].max()
         #fig = plt.figure()
         gridspec.GridSpec(4,4)  # set up supbplot grid 
         sp_1 = plt.subplot2grid((4,4), (0,0), colspan=4, rowspan=3)  # start left top = (0,0) = (row,column)
@@ -156,7 +121,7 @@ class Trajectory():
         sp_1.set_title("MSD-Plot: Diffusion")
         #sp_1.set_xlabel("Number of data points used in MJD calculation")
         sp_1.set_ylabel("MSD")
-        sp_1.axis((x1, x2, sp1_y1, sp1_y2))
+        #sp_1.axis((x1, x2, sp1_y1, sp1_y2))
         sp_2 = plt.subplot2grid((4,4), (3,0), colspan=4, rowspan=1)
         #sp_2 = fig.add_subplot(2, 1, 2) 
         residue_line = np.zeros(len(self.MSD_D[:,0]))
@@ -165,7 +130,7 @@ class Trajectory():
         sp_2.legend()
         sp_2.set_ylabel("Residue")
         sp_2.set_xlabel("Time step [s]")  # Number of data points used in MJD calculation
-        sp_2.axis((x1, x2, sp2_y1, sp2_y2))
+        #sp_2.axis((x1, x2, sp2_y1, sp2_y2))
         plt.show() 
         
     def check_immobility(self):
@@ -216,14 +181,14 @@ class Trajectory():
         self.MSD_60 = np.zeros([len(times),2])
         self.MSD_fit[:,0] = times
         self.MSD_fit[:,1] = MSDs
-        x1, x2 = 0, self.MSD_fit[:,0].max()  # x1 = min, x2 = max
-        y1, y2 = 0, self.MSD_fit[:,1].max()
+        #x1, x2 = 0, self.MSD_fit[:,0].max()  # x1 = min, x2 = max
+        #y1, y2 = 0, self.MSD_fit[:,1].max()
         plt.plot(self.MSD_fit[:,0], self.MSD_fit[:,1], "o", color = "0.5", label="MSD values")
         plt.legend()
         plt.title("MSD-Plot")
         plt.xlabel("Time step [s]")
         plt.ylabel("MSD")
-        plt.axis((x1,x2,y1,y2))
+        #plt.axis((x1,x2,y1,y2))
         
     def fit_full_MSD(self):
         max_times = np.rint(self.length_MSD*self.fit_area)      
@@ -234,10 +199,6 @@ class Trajectory():
         self.MSD_60 = np.zeros([len(times),2])
         self.MSD_fit[:,0] = times
         self.MSD_fit[:,1] = MSDs
-# =============================================================================
-#         print("Full length MSD:", self.length_MSD)
-#         print("Fitted length MSD (60 %):", len(MSDs))
-# =============================================================================
         try:
             [self.r, self.tau], self.cov = curve_fit(self.function_full_MSD, times, MSDs, p0 = (self.r, self.tau), method = "lm")
         except:
@@ -250,16 +211,11 @@ class Trajectory():
             self.dtau = self.cov[1,1]
             self.MSD_fit[:,2] = self.function_full_MSD(times, self.r, self.tau)
             self.MSD_fit[:,3] = self.MSD_fit[:,1] - self.MSD_fit[:,2]
-# =============================================================================
-#             print(self.MSD_fit)
-#             #[chisq, p] = chisquare(MSDs, fit_fn(times))
-#         print("Analysis succes?", self.analyse_succesfull)        
-# =============================================================================
         
     def plot_full_MSD(self):
-        x1, x2 = 0, self.MSD_fit[:,0].max()  # x1 = min, x2 = max
-        sp1_y1, sp1_y2 = 0, self.MSD_fit[:,1].max()
-        sp2_y1, sp2_y2 = self.MSD_fit[:,3].min(), self.MSD_fit[:,3].max()
+        #x1, x2 = 0, self.MSD_fit[:,0].max()  # x1 = min, x2 = max
+        #sp1_y1, sp1_y2 = 0, self.MSD_fit[:,1].max()
+        #sp2_y1, sp2_y2 = self.MSD_fit[:,3].min(), self.MSD_fit[:,3].max()
         #fig = plt.figure()
         gridspec.GridSpec(4,4)  # set up supbplot grid 
         sp_1 = plt.subplot2grid((4,4), (0,0), colspan=4, rowspan=3)  # start left top = (0,0) = (row,column)
@@ -276,7 +232,7 @@ class Trajectory():
         sp_1.set_title("MSD-Plot: Type")
         #sp_1.set_xlabel("Number of data points used in MJD calculation")
         sp_1.set_ylabel("MSD")
-        sp_1.axis((x1, x2, sp1_y1, sp1_y2))
+        #sp_1.axis((x1, x2, sp1_y1, sp1_y2))
         sp_2 = plt.subplot2grid((4,4), (3,0), colspan=4, rowspan=1)
         #sp_2 = fig.add_subplot(2, 1, 2) 
         residue_line = np.zeros(len(self.MSD_fit[:,0]))
@@ -285,7 +241,7 @@ class Trajectory():
         sp_2.legend()
         sp_2.set_ylabel("Residue")
         sp_2.set_xlabel("Time step [s]")  # Number of data points used in MJD calculation
-        sp_2.axis((x1, x2, sp2_y1, sp2_y2))
+        #sp_2.axis((x1, x2, sp2_y1, sp2_y2))
         plt.show() 
         
     def show_trajectory(self):
@@ -317,12 +273,12 @@ class Trajectory():
         print("Type immobile:", self.immobility)
         if not self.immobility:
             print("Analyse successful?", self.analyse_successful)
+            print("chi2 rossier fit:", self.chi_MSD_fit)
             print("Type confined:", self.confined)
             print("D_conf:", self.D_conf)
             print("r_conf:", self.r)
             print("tau:", self.tau)
             print("tau threshold:", self.tau_threshold)
-            print("chi2 rossier fit:", self.chi_MSD_fit)
 
     def plot_particle(self):
         self.show_trajectory()

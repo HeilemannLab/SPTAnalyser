@@ -2,7 +2,7 @@
 """
 Created on Mon Feb  4 11:45:55 2019
 
-@author: pcoffice37
+@author: Johanna Rahm
 
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
@@ -41,6 +41,7 @@ class TrajectoryStatistics():
             for trajectory in range(0, len(self.cell_trajectories[cell])):
                 i.append(trajectory+1)  # trajectory numbering starts with 1
             self.cell_trajectories_index.append(i)
+        
         
     def plot_trajectory(self, cell, number):
         cell = int(cell) - 1
