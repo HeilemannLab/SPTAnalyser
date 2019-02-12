@@ -108,6 +108,12 @@ class WidgetPBleach():
         
     def create_clear_output(self):
         clear_output()
+        
+    def warning_file(self):
+        print("No file was loaded.")
+        
+    def warning_columns(self):
+        print("A file with false columns was loaded.")
     
     
 def main():

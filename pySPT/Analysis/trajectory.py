@@ -23,7 +23,7 @@ class Trajectory():
         self.MSDs = []  # stores all MSD values
         self.times = []  # stores all time steps for MSD values
         self.MSD_fit = []  # stores values of fit area of times, MSDs, fit and residues
-        self.MSD_D = []  # stores first 4 values for diffusion calc, times MSD, fit residues
+        self.MSD_D = []  # col0 = times, col1 = MSD vals, col2 = fit, col3= res for the first 4 values
         self.localizations = locs  # np.array with col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = intensity
         self.dt = 0.02  # camera integration time in s
         self.dof = 4  # degree of freedom (to determin D)
@@ -40,7 +40,7 @@ class Trajectory():
         self.tau = 0.01  # fit for free confined
         self.dtau = 10.0
         self.D_conf = 0.01  # confinded diffusion
-        self.dD_conf = 0.0
+        self.dD_conf = 0.0# never determined
         self.r = 0.01  # confinement radius
         self.dr = 0.0
         self.tau_threshold = 0.12  # check if free or confined: tau > tau_thr -> free, tau < tau_thr -> confined
@@ -268,17 +268,17 @@ class Trajectory():
             self.check_confined()
 
     def print_particle(self):
-        print("Diffusion coefficient:", self.D)
-        print("chi2 linear fit:", self.chi_D)
+        print("Diffusion coefficient: {} \u03BCm\u00b2/s".format(self.D))
+        print("chi\u00b2 linear fit: {} \u03BCm\u2074".format(self.chi_D))
         print("Type immobile:", self.immobility)
         if not self.immobility:
             print("Analyse successful?", self.analyse_successful)
-            print("chi2 rossier fit:", self.chi_MSD_fit)
+            print("chi\u00b2 rossier fit: {} \u03BCm\u2074".format(self.chi_MSD_fit))
             print("Type confined:", self.confined)
-            print("D_conf:", self.D_conf)
-            print("r_conf:", self.r)
-            print("tau:", self.tau)
-            print("tau threshold:", self.tau_threshold)
+            print("D_conf: {} \u03BCm\u00b2/s".format(self.D_conf))
+            print("r_conf: {} \u03BCm".format(self.r))
+            print("tau: {} s".format(self.tau))
+            print("tau threshold: {} s".format(self.tau_threshold))
 
     def plot_particle(self):
         self.show_trajectory()

@@ -176,15 +176,32 @@ class TrajectoryStatistics():
         Create list with log10(D) for each trajectory in each cell of list.
         """
         self.cell_trajectories_log = []
-        for cell in range(0, len(self.cell_trajectories)):
+        print(type(self.cell_trajectories_log))
+        for cell in range(0, len(self.cell_trajectories_filtered)):
             i = []
-            for trajectory in range(0, len(self.cell_trajectories[cell])):
-                i.append(np.log10(self.cell_trajectories[cell][trajectory].D))
+            for trajectory in range(0, len(self.cell_trajectories_filtered[cell])):
+                i.append(np.log10(self.cell_trajectories_filtered[cell][trajectory].D))
             self.cell_trajectories_log.append(i)
         #print(self.cell_trajectories_log)
         
     def frequency_count(self):
-        pass
+        max_bin = int(np.ceil(self.cell_trajectories_log.max()/0.05)*0.05)
+        bin_size = int(np.ceil(self.cell_trajectories_log.max()/0.05))
+        hist = np.histogram(self.cell_trajectories_log,
+                            range = (0, max_bin),
+                            bins = bin_size,
+                            density = True)
+        self.log_histogram = np.zeros([np.size(hist[0]),2])
+        self.log_histogram[:,0] = hist[1][:-1]  # log(D)
+        self.log_histogram[:,1] = hist[0][:]  # frequencies
+        self.log_histogram[:,1] = self.normalize_hist(self.log_histogram[:,1])
+        
+    def normalize_hist(self, normalized_col):
+        """
+        Normalize a column and return it.
+        """
+        normalized_col = normalized_col / np.sum(normalized_col)
+        return normalized_col
         
  
     

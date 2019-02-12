@@ -35,7 +35,6 @@ class ExpDisplacement():
     def count_mjd_frequencies(self):
         """
         Create histogram with col0 = bins = mjd and col1 = frequencies as np.ndarray.
-        
         """
         max_bin = int(np.ceil(self.mjd[:,0].max()/20)*20)  # max mjd ceiled and divisible by 20
         bin_size = int(np.ceil(self.mjd[:,0].max()/20))  # divides the bin range in sizes -> desired bin = max_bin/bin_size

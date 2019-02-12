@@ -27,6 +27,8 @@ class CoverSlip():
         self.background_log = []
         self.cells = []
         self.cell_trajectories = []
+        self.roi_file = []
+        self.cell_files = []
         
     def log_transform(self):
         """
@@ -58,9 +60,12 @@ class CoverSlip():
 #         #self.normalized_mjd_ns()  # normalize the histogram by the sum
 # =============================================================================
 
-    def create_cells(self, file_names):
-        # create list with file names for cells
-        for file_name in file_names:
+    def create_cells(self):
+        start = time.time()
+        self.cell_trajectories = []  # contains trajectories for each cell in separate lists
+        self.cells = []  # contains cell objects
+        roi_file = np.genfromtxt(self.roi_file, dtype=None, delimiter=",", skip_header=3, encoding=None)
+        for file_name in self.cell_files:
             one_cell = cell.Cell()  # create cell object for each file
             base_name = os.path.basename(file_name)
             raw_base_name = ""
@@ -77,12 +82,22 @@ class CoverSlip():
             one_cell.trc_file = trc_file
             one_cell.create_trajectories()
             one_cell.analyse_trajectories()
-            print("size", one_cell.size)
-            cell_trajectories.append(one_cell.analysed_trajectories)
-            cells.append(one_cell)
-        for i in cells:
-            print(i.name, i.size)
-            i.plot_trajectory(4)
+            #print("size", one_cell.size)
+            self.cell_trajectories.append(one_cell.analysed_trajectories)
+            self.cells.append(one_cell)
+        print("Analysis took {} s".format(time.time()-start))
+        
+    def plot_trajectory(self, cell_name, trajectory):
+        """
+        Plot a trajectory.
+        :param cell_name: name of cell, index will be created to cell name.
+        :param trajectory: number of trajectory -> index-1.
+        """
+        for cell in self.cells:
+            if cell.name == cell_name:
+                cell_index = self.cells.index(cell)
+        self.cell_trajectories[cell_index][int(trajectory)-1].plot_particle()
+
         
 
 def main():

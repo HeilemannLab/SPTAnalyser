@@ -29,6 +29,14 @@ class WidgetTrackAnalysis():
         self.roi_button = self.create_roi_button()
         self.got_dir = False
         self.got_roi = False
+        self.run_button = self.create_run_button()
+        self.chosen_cell = ""
+        self.cell_options = []
+        self.trajectory_options = []
+        self.drop_down_cells = self.create_drop_down_cells()
+        self.drop_down_trajectories = self.create_drop_down_trajectories()
+        self.plot_button = self.create_plot_button()
+        self.save_button = self.create_save_button()
         
     def searchSubFolders(self, dirName):
         if (dirName):
@@ -64,7 +72,7 @@ class WidgetTrackAnalysis():
         self.dir_box.value=self.dir_name
         self.got_dir = True
         
-    def create_dir_box(self, val = "directory to be searched in", desc = "directory"):  # val = in box, desc = infront of box
+    def create_dir_box(self, val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search", desc = "directory"):  # val = in box, desc = infront of box; val = "directory to be searched in"
         """
         Box for inserting the directory with description, alternative for dir loading button.
         """
@@ -76,7 +84,7 @@ class WidgetTrackAnalysis():
         self.dir_name = self.dir_box.value  
         self.got_dir = True
 
-    def create_roi_box(self, val = "path of roi", desc = "roi"):
+    def create_roi_box(self, val = "F:\\Marburg\\single_colour_tracking\\resting\\roi.log", desc = "roi"):  # val = "path of roi"
         """
         Box for inserting the roi file, alternative for roi loading button.
         """
@@ -108,12 +116,96 @@ class WidgetTrackAnalysis():
         root.update()
         root.destroy()
         self.roi_name = root.name
-        self.roi_box.value=self.dir_name
+        self.roi_box.value=self.roi_name
         self.got_roi = True      
       
+    def create_run_button(self):
+        """
+        Button to load a roi file for cell size.
+        """
+        button = widgets.Button(
+                description='run',
+                disabled=False,
+                button_style='', # 'success', 'info', 'warning', 'danger' or ''
+                tooltip='run the analysis')
+                #icon='check')
+        return button             
+        
     def printFileNames(self):
         for name in self.fileNames:
             print("Found .trc file: %s" %(name))
+            
+    def float_progress(self):
+        float_progress = widgets.FloatProgress(
+                value=7.5,
+                min=0,
+                max=10.0,
+                step=0.1,
+                description='Loading:',
+                bar_style='info',
+                orientation='horizontal')
+        return float_progress
+    
+    def create_drop_down_cells(self):
+        drop_down_cells = widgets.Dropdown(
+                options=self.cell_options,
+                description='Number:',
+                disabled=False)
+        return drop_down_cells
+    
+    def create_drop_down_trajectories(self):
+        drop_down_trajectories = widgets.Dropdown(
+                options=self.trajectory_options,
+                description='Number:',
+                disabled=False)
+        return drop_down_trajectories
+    
+    def get_trajectory_numbers(self, cell, cell_trajectories):
+        trajectory_numbers = []
+        for trajectory in cell_trajectories[cell]:
+            trajectory_numbers.append(trajectory)
+        self.drop_down_trajectories.options = trajectory_numbers
+        return trajectory_numbers
+    
+    def get_cell_names(self, cells):
+        cell_names = []
+        for cell in cells:
+            cell_names.append(cell.name)
+        self.drop_down_cells.options = cell_names
+        return cell_names
+    
+    def create_plot_button(self):
+        button = widgets.Button(
+                description="plot",
+                disabled=False,
+                button_style="",
+                tooltip = "plot chosen trajectory")
+        return button
+
+    def create_clear_output(self):
+        clear_output()
+        
+    def warning_file(self):
+        print("No file was loaded.")
+        
+    def create_plot_diff_button(self):
+        button = widgets.Button(
+                description="plot",
+                disabled=False,
+                button_style="",
+                tooltip = "plot diffusion histogram")
+        return button
+        
+    def create_save_button(self):
+        button = widgets.Button(
+                description="save",
+                disabled=False,
+                button_style="",
+                tooltip = "save entire analysis")
+        return button
+
+
+        
             
 def main():
     communicator = Mol2Judi()
