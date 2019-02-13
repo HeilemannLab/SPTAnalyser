@@ -13,6 +13,7 @@ Create a cell object which creats trajectory objects. Cell contains informations
 import numpy as np
 from . import trajectory
 from multiprocessing import Pool
+from tqdm import tqdm_notebook as tqdm
 #from .analysis import trajectory
 #from pySPT.analysis import trajectory
 
@@ -27,6 +28,7 @@ class Cell():
         self.size = 0.0  # size from roi [pixel]
         self.name = ""  # name of cell file
         
+    @staticmethod
     def analyse_trajectory(self, trajectory):
         """
         Multiprocessing job: analyse 1 trajectory object.
@@ -60,7 +62,13 @@ class Cell():
         """
         Analyse trajectories without multiprocessing
         """
-        list(map(lambda x: x.analyse_particle(), self.trajectories))
+# =============================================================================
+#         list(map(lambda x: x.analyse_particle(), self.trajectories))
+#         self.analysed_trajectories = self.trajectories
+# =============================================================================
+        
+        for trajectory in tqdm(self.trajectories):
+            trajectory.analyse_particle()
         self.analysed_trajectories = self.trajectories
         
         

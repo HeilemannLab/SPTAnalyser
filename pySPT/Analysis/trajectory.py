@@ -155,14 +155,7 @@ class Trajectory():
         return (4.0*r**2.0)/3.0*(1.0-np.exp(-t/tau))
     
     def fit_full_MSD_ML(self):
-        max_times = np.rint(self.length_MSD*self.fit_area)      
-        times = np.arange(1, max_times+1, 1.0)
-        times[:] = times[:] * self.dt
-        MSDs = self.MSDs[:int(max_times)]
-        self.MSD_fit_ML = np.zeros([len(times),4])
-        self.MSD_60 = np.zeros([len(times),2])
-        self.MSD_fit_ML[:,0] = times
-        self.MSD_fit_ML[:,1] = MSDs
+        self.create_MSD_values()
         self.r_ML = 0.16891
         self.tau_ML = 0.01178
         self.D_conf_ML = 3*self.tau_ML/self.r_ML**2  # used wrong formular
@@ -173,14 +166,7 @@ class Trajectory():
         """
         Plot 60% of MSD if molecule is immob without rossier fit.
         """
-        max_times = np.rint(self.length_MSD*self.fit_area)      
-        times = np.arange(1, max_times+1, 1.0)
-        times[:] = times[:] * self.dt
-        MSDs = self.MSDs[:int(max_times)]
-        self.MSD_fit = np.zeros([len(times),4])
-        self.MSD_60 = np.zeros([len(times),2])
-        self.MSD_fit[:,0] = times
-        self.MSD_fit[:,1] = MSDs
+        self.create_MSD_values()
         #x1, x2 = 0, self.MSD_fit[:,0].max()  # x1 = min, x2 = max
         #y1, y2 = 0, self.MSD_fit[:,1].max()
         plt.plot(self.MSD_fit[:,0], self.MSD_fit[:,1], "o", color = "0.5", label="MSD values")
@@ -189,6 +175,16 @@ class Trajectory():
         plt.xlabel("Time step [s]")
         plt.ylabel("MSD")
         #plt.axis((x1,x2,y1,y2))
+        
+    def create_MSD_values(self):
+        max_times = np.rint(self.length_MSD*self.fit_area)      
+        times = np.arange(1, max_times+1, 1.0)
+        times[:] = times[:] * self.dt
+        MSDs = self.MSDs[:int(max_times)]
+        self.MSD_fit = np.zeros([len(times),4])
+        self.MSD_60 = np.zeros([len(times),2])
+        self.MSD_fit[:,0] = times
+        self.MSD_fit[:,1] = MSDs        
         
     def fit_full_MSD(self):
         max_times = np.rint(self.length_MSD*self.fit_area)      
@@ -263,6 +259,7 @@ class Trajectory():
         self.calc_MSD()
         self.calc_diffusion()
         self.check_immobility()
+        self.create_MSD_values()
         if not (self.immobility):
             self.fit_full_MSD()
             self.check_confined()
@@ -275,6 +272,7 @@ class Trajectory():
             print("Analyse successful?", self.analyse_successful)
             print("chi\u00b2 rossier fit: {} \u03BCm\u2074".format(self.chi_MSD_fit))
             print("Type confined:", self.confined)
+            print("Type free:", not self.confined)
             print("D_conf: {} \u03BCm\u00b2/s".format(self.D_conf))
             print("r_conf: {} \u03BCm".format(self.r))
             print("tau: {} s".format(self.tau))

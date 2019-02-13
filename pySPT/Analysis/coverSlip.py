@@ -13,6 +13,7 @@ from . import trajectory
 from . import cell
 import time
 import os
+from tqdm import tqdm_notebook as tqdm
 
 # =============================================================================
 # from pySPT.analysis import cell
@@ -29,6 +30,9 @@ class CoverSlip():
         self.cell_trajectories = []
         self.roi_file = []
         self.cell_files = []
+        self.trc_file= []
+        self.count = 0
+        self.max_count = 0
         
     def log_transform(self):
         """
@@ -60,12 +64,18 @@ class CoverSlip():
 #         #self.normalized_mjd_ns()  # normalize the histogram by the sum
 # =============================================================================
 
+
     def create_cells(self):
+        """
+        Initialize cell analysis, also load roi file for cell size. Cell & trajectory
+        objects from e.g. CoverSlip Class.
+        """
         start = time.time()
+        self.count = 0
         self.cell_trajectories = []  # contains trajectories for each cell in separate lists
         self.cells = []  # contains cell objects
         roi_file = np.genfromtxt(self.roi_file, dtype=None, delimiter=",", skip_header=3, encoding=None)
-        for file_name in self.cell_files:
+        for file_name in tqdm(self.cell_files):
             one_cell = cell.Cell()  # create cell object for each file
             base_name = os.path.basename(file_name)
             raw_base_name = ""
@@ -79,12 +89,15 @@ class CoverSlip():
                 if raw_base_name in file[0]:
                     one_cell.size = file[1]            
             trc_file = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 5)) # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = intensity
+            self.trc_file = trc_file
             one_cell.trc_file = trc_file
             one_cell.create_trajectories()
             one_cell.analyse_trajectories()
+            
             #print("size", one_cell.size)
             self.cell_trajectories.append(one_cell.analysed_trajectories)
             self.cells.append(one_cell)
+            self.count += 1
         print("Analysis took {} s".format(time.time()-start))
         
     def plot_trajectory(self, cell_name, trajectory):

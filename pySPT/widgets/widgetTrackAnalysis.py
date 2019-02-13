@@ -37,7 +37,7 @@ class WidgetTrackAnalysis():
         self.drop_down_trajectories = self.create_drop_down_trajectories()
         self.plot_button = self.create_plot_button()
         self.save_button = self.create_save_button()
-        
+   
     def searchSubFolders(self, dirName):
         if (dirName):
             self.data_set_dir = dirName
@@ -72,7 +72,7 @@ class WidgetTrackAnalysis():
         self.dir_box.value=self.dir_name
         self.got_dir = True
         
-    def create_dir_box(self, val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search", desc = "directory"):  # val = in box, desc = infront of box; val = "directory to be searched in"
+    def create_dir_box(self, val = "directory to be searched in", desc = "directory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
         """
         Box for inserting the directory with description, alternative for dir loading button.
         """
@@ -84,7 +84,7 @@ class WidgetTrackAnalysis():
         self.dir_name = self.dir_box.value  
         self.got_dir = True
 
-    def create_roi_box(self, val = "F:\\Marburg\\single_colour_tracking\\resting\\roi.log", desc = "roi"):  # val = "path of roi"
+    def create_roi_box(self, val = "path of roi", desc = "roi"):  # val = "F:\\Marburg\\single_colour_tracking\\resting\\roi.log"
         """
         Box for inserting the roi file, alternative for roi loading button.
         """
