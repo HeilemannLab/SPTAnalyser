@@ -21,11 +21,12 @@ class Cell():
     def __init__(self):
         self.trc_file = []  # col0 = trajectory, col1 = frames, col2 = x, col3 = y, col4 = intensity ~ trc file
         self.pixel_size = 158  # [nm] multiply with palmtracer in nm -> *10^-3 micrometer!
+        self.pixel_amount = 65536 # amount of pixels of detector (256x256) 
         self.trajectories = []  # contains trajectory objects
         self.analysed_trajectories = []  # contains analysed trajectory objects
         #self.states = np.zeros([3,1])
         #self.background = []
-        self.size = 0.0  # size from roi [pixel]
+        self.size = 0.0  # size from roi [ym^2]
         self.name = ""  # name of cell file
         
     @staticmethod
@@ -57,6 +58,15 @@ class Cell():
             localizations = self.trc_file[idx,:]
             if not (localizations.size==0):
                 self.trajectories.append(trajectory.Trajectory(localizations))
+                
+    def cell_size(self):
+        """
+        If no Roi was loaded, cell size = amount of pixel^2 * pixelsize^2.
+        """
+        if self.size == 0:
+            self.size = self.pixel_amount * (self.pixel_size/1000)**2  # in micrometer
+        else:
+            self.size = self.size * (self.pixel_size/1000)**2
 
     def analyse_trajectories(self):
         """

@@ -88,10 +88,12 @@ class CoverSlip():
             for file in roi_file:
                 if raw_base_name in file[0]:
                     one_cell.size = file[1]            
-            trc_file = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 5)) # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = intensity
+            #trc_file = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 5)) # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = intensity
+            trc_file = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 4, 5))
             self.trc_file = trc_file
             one_cell.trc_file = trc_file
             one_cell.create_trajectories()
+            one_cell.cell_size()
             one_cell.analyse_trajectories()
             
             #print("size", one_cell.size)

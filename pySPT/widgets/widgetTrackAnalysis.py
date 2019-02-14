@@ -46,7 +46,8 @@ class WidgetTrackAnalysis():
                 
     def extendList(self, root, files):
         for name in files:
-            if name.endswith(self.suffix) and "background" not in name:
+            #if name.endswith(self.suffix) and "background" not in name:
+            if name.endswith(self.suffix):
                 self.file_names.append(os.path.join(root, name))
                 
     def create_dir_button(self):

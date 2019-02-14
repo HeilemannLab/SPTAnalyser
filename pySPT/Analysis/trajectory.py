@@ -24,7 +24,7 @@ class Trajectory():
         self.times = []  # stores all time steps for MSD values
         self.MSD_fit = []  # stores values of fit area of times, MSDs, fit and residues
         self.MSD_D = []  # col0 = times, col1 = MSD vals, col2 = fit, col3= res for the first 4 values
-        self.localizations = locs  # np.array with col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = intensity
+        self.localizations = locs  # np.array with col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = -1, col5 = intensity
         self.dt = 0.02  # camera integration time in s
         self.dof = 4  # degree of freedom (to determin D)
         self.D_min = 0.0065  # minimum of diffusion coeff to be detected [micrometer^2/s]
