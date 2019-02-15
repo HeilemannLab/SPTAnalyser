@@ -27,7 +27,7 @@ class Cell():
         #self.states = np.zeros([3,1])
         #self.background = []
         self.size = 0.0  # size from roi [ym^2]
-        self.name = ""  # name of cell file
+        self.name = ""  # name of cell file (raw base name)
         
     @staticmethod
     def analyse_trajectory(self, trajectory):

@@ -23,25 +23,25 @@ from tqdm import tqdm_notebook as tqdm
 
 class CoverSlip():
     def __init__(self):
-        self.background = []
-        self.background_name = [] 
-        self.background_log = []
-        self.cells = []
-        self.cell_trajectories = []
-        self.roi_file = []
-        self.cell_files = []
-        self.trc_file= []
-        self.count = 0
-        self.max_count = 0
+        #self.background = []
+        #self.background_name = [] 
+        #self.background_log = []
+        self.cells = []  # cell objects
+        self.cell_trajectories = []  # lists of trajectory object, 1 list = 1 cell
+        self.roi_file = []  # full path to roi file
+        self.cell_files = []  # list with full paths to cell files
+        #self.trc_file= []   # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = place holder (int), col 5 = intensity ??????
         
-    def log_transform(self):
-        """
-        Create list with log10(D) for each trajectory in each background of list.
-        """
-        for background in range(0, len(self.background)):
-            for trajectory in range(0, len(self.background[background])):
-                self.background_log.append(np.log10(self.background[background][trajectory].D))
-        print(self.background_log)
+# =============================================================================
+#     def log_transform(self):
+#         """
+#         Create list with log10(D) for each trajectory in each background of list.
+#         """
+#         for background in range(0, len(self.background)):
+#             for trajectory in range(0, len(self.background[background])):
+#                 self.background_log.append(np.log10(self.background[background][trajectory].D))
+#         print(self.background_log)
+# =============================================================================
         
 # =============================================================================
 #     def count_background(self):
@@ -71,7 +71,6 @@ class CoverSlip():
         objects from e.g. CoverSlip Class.
         """
         start = time.time()
-        self.count = 0
         self.cell_trajectories = []  # contains trajectories for each cell in separate lists
         self.cells = []  # contains cell objects
         roi_file = np.genfromtxt(self.roi_file, dtype=None, delimiter=",", skip_header=3, encoding=None)
@@ -88,18 +87,14 @@ class CoverSlip():
             for file in roi_file:
                 if raw_base_name in file[0]:
                     one_cell.size = file[1]            
-            #trc_file = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 5)) # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = intensity
-            trc_file = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 4, 5))
-            self.trc_file = trc_file
+            trc_file = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 4, 5))  # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = place holder (int), col 5 = intensity
+            #self.trc_file = trc_file ????????????
             one_cell.trc_file = trc_file
             one_cell.create_trajectories()
             one_cell.cell_size()
             one_cell.analyse_trajectories()
-            
-            #print("size", one_cell.size)
             self.cell_trajectories.append(one_cell.analysed_trajectories)
             self.cells.append(one_cell)
-            self.count += 1
         print("Analysis took {} s".format(time.time()-start))
         
     def plot_trajectory(self, cell_name, trajectory):

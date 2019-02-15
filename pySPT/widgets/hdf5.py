@@ -43,9 +43,9 @@ class Hdf5():
         self.grp00 = self.h5_file.create_group("trc")
         self.grp01 = self.h5_file.create_group("MSD")
         self.grp02 = self.h5_file.create_group("diffusion")
-        self.subgrp02 = self.grp02.create_group("diffusion plots")
+        self.subgrp02 = self.grp02.create_group("diffusionPlots")
         self.grp03 = self.h5_file.create_group("rossier")
-        self.subgrp03 = self.grp03.create_group("rossier plots")
+        self.subgrp03 = self.grp03.create_group("rossierPlots")
         self.grp04 = self.h5_file.create_group("settings")
         self.grp05 = self.h5_file.create_group("size")
         
@@ -66,7 +66,7 @@ class Hdf5():
         dset["\u0394 loc dyn [\u03BCm\u00b2/s]"] = dloc_dyn
         
     def data_diffusion_info(self, number, trajectory_id, diffusion_coeff, ddiffusion_coeff, MSD_0, chi2, length):
-        dset = self.grp02.create_dataset("diffusion infos", (number,), dtype = np.dtype([("trajectory id", int),
+        dset = self.grp02.create_dataset("diffusionInfos", (number,), dtype = np.dtype([("trajectory id", int),
                                                              ("diffusion coefficient [\u03BCm\u00b2/s]", float),
                                                              ("\u0394 diffusion coefficient [\u03BCm\u00b2/s]", float),
                                                              ("MSD(0) [\u03BCm\u00b2]", float),
@@ -84,7 +84,7 @@ class Hdf5():
         trajectory_number = str(int(trajectory_number))
         while len(trajectory_number) < 4:
             trajectory_number = "0" + trajectory_number        
-        dset = self.subgrp02.create_dataset("diffusion plot {}".format(trajectory_number), (4,), dtype = np.dtype([("dt [s]", float),
+        dset = self.subgrp02.create_dataset("diffusionPlot{}".format(trajectory_number), (4,), dtype = np.dtype([("dt [s]", float),
                                             ("MSD [\u03BCm\u00b2]", float),
                                             ("linear fit [\u03BCm\u00b2]", float),
                                             ("residues [\u03BCm\u00b2]", float)]))
@@ -98,7 +98,7 @@ class Hdf5():
         trajectory_number = str(int(trajectory_number))
         while len(trajectory_number) < 4:
             trajectory_number = "0" + trajectory_number        
-        dset = self.subgrp03.create_dataset("rossier plot {}".format(trajectory_number), (np.shape(dt)[0],), dtype = np.dtype([("dt [s]", float),
+        dset = self.subgrp03.create_dataset("rossierPlot{}".format(trajectory_number), (np.shape(dt)[0],), dtype = np.dtype([("dt [s]", float),
                                             ("MSD [\u03BCm\u00b2]", float),
                                             ("linear fit [\u03BCm\u00b2]", float),
                                             ("residues [\u03BCm\u00b2]", float)]))
@@ -108,7 +108,7 @@ class Hdf5():
         dset["residues [\u03BCm\u00b2]"] = residues
         
     def data_rossier_info(self, number, trajectory_id, type_immobile, type_confined, type_free, analyse_success, tau, dtau, r, dr, dconfined, chi2):
-        dset = self.grp03.create_dataset("rossier statistics", (number,), dtype = np.dtype([("trajectory id", int),
+        dset = self.grp03.create_dataset("rossierStatistics", (number,), dtype = np.dtype([("trajectory id", int),
                                                            ("type immobile", int),
                                                            ("type confined", int),("type free", int),
                                                            ("analyse succesful", int),
@@ -132,7 +132,7 @@ class Hdf5():
 
         
     def trc(self, shape, trajectory_id, frame, x, y, placeholder, intensity):
-        dset = self.grp00.create_dataset("trc file", (shape[0],), dtype = np.dtype([("trajectory id", int),
+        dset = self.grp00.create_dataset("trcFile", (shape[0],), dtype = np.dtype([("trajectory id", int),
                                                       ("frame", int),
                                                       ("x position [\u03BCm]", float),
                                                       ("y position [\u03BCm]", float),
@@ -149,7 +149,7 @@ class Hdf5():
         trajectory_number = str(int(trajectory_number))
         while len(trajectory_number) < 4:
             trajectory_number = "0" + trajectory_number     
-        dset = self.grp01.create_dataset("Trajectory {}".format(trajectory_number), (np.shape(dt)[0],), dtype = np.dtype([("dt [s]", float),("MSD [\u03BCm\u00b2]", float)]))
+        dset = self.grp01.create_dataset("Trajectory{}".format(trajectory_number), (np.shape(dt)[0],), dtype = np.dtype([("dt [s]", float),("MSD [\u03BCm\u00b2]", float)]))
         dset["dt [s]"] = dt
         dset["MSD [\u03BCm\u00b2]"] = MSD    
         
