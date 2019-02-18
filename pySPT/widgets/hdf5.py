@@ -100,11 +100,11 @@ class Hdf5():
             trajectory_number = "0" + trajectory_number        
         dset = self.subgrp03.create_dataset("rossierPlot{}".format(trajectory_number), (np.shape(dt)[0],), dtype = np.dtype([("dt [s]", float),
                                             ("MSD [\u03BCm\u00b2]", float),
-                                            ("linear fit [\u03BCm\u00b2]", float),
+                                            ("rossier fit [\u03BCm\u00b2]", float),
                                             ("residues [\u03BCm\u00b2]", float)]))
         dset["dt [s]"] = dt
         dset["MSD [\u03BCm\u00b2]"] = MSD
-        dset["linear fit [\u03BCm\u00b2]"] = fit
+        dset["rossier fit [\u03BCm\u00b2]"] = fit
         dset["residues [\u03BCm\u00b2]"] = residues
         
     def data_rossier_info(self, number, trajectory_id, type_immobile, type_confined, type_free, analyse_success, tau, dtau, r, dr, dconfined, chi2):
