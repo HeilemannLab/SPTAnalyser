@@ -248,6 +248,33 @@ class LoadHdf5():
         #print(self.cells_trajectories_type)
         #print(self.cells_trajectories_type[0])
         
+# =============================================================================
+#     def get_MSDs(self):
+#         """
+#         Handle full dt & MSD values.
+#         [[nparray, nparray][nparray]] each list is a cell, that contains np arrays
+#         of different lengh for each trajectory.
+#         """
+#         for h5 in self.hdf5:
+#             h5_index = self.hdf5.index(h5)
+#             max_trajectory_index = self.trajectory_numbers[h5_index]
+#             MSD_group = h5["MSD"]
+#             cell_trajectories_MSDs = []
+#             cell_trajectories_times = []
+#             for trajectory_index in range(0, max_trajectory_index):
+#                 trajectory_key = "Trajectory" + self.trajectory_number_set_digits(trajectory_index)
+#                 trajectory_data = MSD_group[trajectory_key].value
+#                 MSDs = self.create_np_array(len(trajectory_data))
+#                 times = self.create_np_array(len(trajectory_data))
+#                 for duration in range(0, len(trajectory_data)):
+#                     MSDs[duration] = trajectory_data[duration][1]  # MSDs
+#                     times[duration] = trajectory_data[duration][0]  # dt
+#                 cell_trajectories_MSDs.append(MSDs)
+#                 cell_trajectories_times.append(times)
+#             self.cells_trajectories_times.append(cell_trajectories_times)
+#             self.cells_trajectories_MSDs.append(cell_trajectories_MSDs)
+#         #print(self.cells_trajectories_times)
+# =============================================================================
     def get_MSDs(self):
         """
         Handle full dt & MSD values.
@@ -263,8 +290,8 @@ class LoadHdf5():
             for trajectory_index in range(0, max_trajectory_index):
                 trajectory_key = "Trajectory" + self.trajectory_number_set_digits(trajectory_index)
                 trajectory_data = MSD_group[trajectory_key].value
-                MSDs = self.create_np_array(len(trajectory_data))
-                times = self.create_np_array(len(trajectory_data))
+                MSDs = np.zeros(len(trajectory_data))
+                times = np.zeros(len(trajectory_data))
                 for duration in range(0, len(trajectory_data)):
                     MSDs[duration] = trajectory_data[duration][1]  # MSDs
                     times[duration] = trajectory_data[duration][0]  # dt
@@ -273,6 +300,7 @@ class LoadHdf5():
             self.cells_trajectories_times.append(cell_trajectories_times)
             self.cells_trajectories_MSDs.append(cell_trajectories_MSDs)
         #print(self.cells_trajectories_times)
+        
         
     def get_trcs(self):
         """

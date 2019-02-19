@@ -24,6 +24,27 @@ class TrajectoryStatistics():
         self.cell_trajectories_log = []
         self.roi_size = 0.0
         
+    #def run_statistics(self, min_length, max_length, min_D, max_D):
+    def run_statistics(self, min_length, max_length, min_D, max_D):
+        self.get_index()
+        self.create_init_filter_lst()
+        if max_length == "max length":
+            max_length = self.get_max_length()
+            print("max length:", max_length)
+        if min_length == "min length":
+            min_length = self.get_min_length()
+            print("min length:", min_length)
+        if max_D == "max value":
+            max_D = self.get_max_D()
+            print("max diffusion coefficient:", max_D)
+        if min_D == "min value":
+            min_D = self.get_min_D()
+            print("min diffusion coefficient:", min_D)
+        self.filter_length(int(min_length), int(max_length))
+        self.filter_D(float(min_D), float(max_D))
+        #self.filter_type()
+
+        
     def create_init_filter_lst(self):
         """
         Create copy of initial cell trajectories & index list.
@@ -72,19 +93,40 @@ class TrajectoryStatistics():
                     min_length = trajectory.length_trajectory
         return int(min_length)
                 
-    def filter_length(self, min_length=None, max_length=None): # max_length=default
+# =============================================================================
+#     def filter_length(self, min_length=None, max_length=None): # max_length=default
+#         """
+#         Filter by length of trajectory (PALMTracer min_length = 20). Trajectories in the range between
+#         min_length and max_length will be filtered -> min_length <= trajectory <= max_length.
+#         :param min_length: minimal length of trajectories to be considered.
+#         :param max_length: by default None -> None will be evaluated as the max length trajectory
+#         """
+#         if max_length == None or max_length == "":
+#             max_length = self.get_max_length()
+#             print("max_length", max_length)
+#         if min_length == None or min_length == "":
+#             min_length = self.get_min_length()
+#             print("min length", min_length)
+#         for cell in range(0, len(self.cell_trajectories_filtered)):
+#             for trajectory in self.cell_trajectories_filtered[cell]:
+#                 if trajectory.length_trajectory < int(min_length) or trajectory.length_trajectory > int(max_length):
+#                     self.crop_lst(cell, trajectory)
+#         # show selected trajectory objects & index
+#         #print(self.cell_trajectories_filtered_index) 
+#         # show selected trajectory lengths
+#         for cell in range(0, len(self.cell_trajectories_filtered)):
+#             for trajectory in self.cell_trajectories_filtered[cell]:
+#                 pass
+#                 #print(trajectory.length_trajectory)          
+# =============================================================================
+                
+    def filter_length(self, min_length, max_length): # max_length=default
         """
         Filter by length of trajectory (PALMTracer min_length = 20). Trajectories in the range between
         min_length and max_length will be filtered -> min_length <= trajectory <= max_length.
         :param min_length: minimal length of trajectories to be considered.
         :param max_length: by default None -> None will be evaluated as the max length trajectory
         """
-        if max_length == None:
-            max_length = self.get_max_length()
-            print("max_length", max_length)
-        if min_length == None:
-            min_length = self.get_min_length()
-            print("min length", min_length)
         for cell in range(0, len(self.cell_trajectories_filtered)):
             for trajectory in self.cell_trajectories_filtered[cell]:
                 if trajectory.length_trajectory < int(min_length) or trajectory.length_trajectory > int(max_length):
@@ -92,10 +134,10 @@ class TrajectoryStatistics():
         # show selected trajectory objects & index
         #print(self.cell_trajectories_filtered_index) 
         # show selected trajectory lengths
-        for cell in range(0, len(self.cell_trajectories_filtered)):
-            for trajectory in self.cell_trajectories_filtered[cell]:
-                pass
-                #print(trajectory.length_trajectory)                
+        #for cell in range(0, len(self.cell_trajectories_filtered)):
+        #    for trajectory in self.cell_trajectories_filtered[cell]:
+        #        pass
+                #print(trajectory.length_trajectory)     
 
     def crop_lst(self, cell, trajectory):
         """
@@ -153,23 +195,17 @@ class TrajectoryStatistics():
                     min_D = trajectory.D
         return float(min_D)
         
-    def filter_D(self, min_D=None, max_D=None):
-        if min_D == None:
-            min_D = self.get_min_D()
-            print("min_D", min_D)
-        if max_D == None:
-            max_D = self.get_max_D()
-            print("max_D", max_D)
+    def filter_D(self, min_D, max_D):
         for cell in range(0, len(self.cell_trajectories_filtered)):
             for trajectory in self.cell_trajectories_filtered[cell]:
                 if trajectory.D < min_D or trajectory.D > max_D:
                     self.crop_lst(cell, trajectory)
         # show selected trajectory objects & index
-        print(self.cell_trajectories_filtered_index) 
+        #print(self.cell_trajectories_filtered_index) 
         # show selected trajectory lengths
-        for cell in range(0, len(self.cell_trajectories_filtered)):
-            for trajectory in self.cell_trajectories_filtered[cell]:
-                print(trajectory.D, trajectory.length_trajectory)
+        #for cell in range(0, len(self.cell_trajectories_filtered)):
+        #    for trajectory in self.cell_trajectories_filtered[cell]:
+        #        print(trajectory.D, trajectory.length_trajectory)
         
     def background_frequencies(self):
         """

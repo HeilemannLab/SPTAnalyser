@@ -265,18 +265,22 @@ class Trajectory():
             self.check_confined()
 
     def print_particle(self):
+        print("Number:", self.trajectory_number)
         print("Diffusion coefficient: {} \u03BCm\u00b2/s".format(self.D))
+        print("MSD0: {} \u03BCm\u00b2".format(self.MSD_0))
         print("chi\u00b2 linear fit: {} \u03BCm\u2074".format(self.chi_D))
         print("Type immobile:", self.immobility)
+        print("Trajectory length:", self.length_trajectory)
         if not self.immobility:
             print("Analyse successful?", self.analyse_successful)
-            print("chi\u00b2 rossier fit: {} \u03BCm\u2074".format(self.chi_MSD_fit))
-            print("Type confined:", self.confined)
-            print("Type free:", not self.confined)
-            print("D_conf: {} \u03BCm\u00b2/s".format(self.D_conf))
-            print("r_conf: {} \u03BCm".format(self.r))
-            print("tau: {} s".format(self.tau))
-            print("tau threshold: {} s".format(self.tau_threshold))
+            if self.analyse_successful:
+                print("chi\u00b2 rossier fit: {} \u03BCm\u2074".format(self.chi_MSD_fit))
+                print("Type confined:", self.confined)
+                print("Type free:", not self.confined)
+                print("D_conf: {} \u03BCm\u00b2/s".format(self.D_conf))
+                print("r_conf: {} \u03BCm".format(self.r))
+                print("tau: {} s".format(self.tau))
+                print("tau threshold: {} s".format(self.tau_threshold))
 
     def plot_particle(self):
         self.show_trajectory()
