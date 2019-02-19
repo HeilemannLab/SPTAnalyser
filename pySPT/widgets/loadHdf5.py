@@ -16,11 +16,11 @@ import os
 
 class LoadHdf5():
     def __init__(self):
-        self.file_names = []  # coverslip.cell_files, list with file names in loading order
+        self.file_names = []  # coverslip.cell_files, list with full path file names in loading order
         self.names = []  # cell.name, raw base name of file, has to be distributed to indiv cells
         self.hdf5 = []  # list of xxx objects
         self.trajectory_numbers = []  # amount of trajectories per cell
-        self.cell_numbers = []  # amount of cells
+        self.cell_numbers = 0  # amount of cells
         self.sizes = []  # list of cell sizes -> cell.size
         self.pixel_sizes = []  # list of pixel sizes -> cell.pixel_size
         self.pixel_amounts = []  # list of amount of pixel of detector -> cell.pixel_amount
@@ -30,8 +30,8 @@ class LoadHdf5():
         self.dofs = []  # -> trajectory.dof
         self.D_mins = []  # -> trajectory.D_min
         # diffusion infos
-        self.cells_lengths_trajectories = []  # testing purpose as list
-        self.cells_lengths_MSDs = []  # testing purpose as list
+        self.cells_lengths_trajectories = []  # 
+        self.cells_lengths_MSDs = []  # 
         self.cells_trajectories_D = []  #trajectory.D
         self.cells_trajectories_dD = []  # trajectory.dD
         self.cells_trajectories_MSD0 = []  # trajectory.MSD_0
@@ -52,6 +52,7 @@ class LoadHdf5():
         self.cells_trajectories_MSDs = []  # trajectory.MSDs
         self.cells_trajectories_times = []  # trajectories.times
         self.trc_files = []  # cell.trc_file
+        self.locs = []  # 
         #
         self.cells = []  # list of cell objects ->cover_slip.cells -> needs entire list
         
@@ -74,7 +75,7 @@ class LoadHdf5():
             diffusion_group = h5["diffusion"]
             diffusion_infos_data = diffusion_group["diffusionInfos"].value
             self.trajectory_numbers.append(np.shape(diffusion_infos_data)[0])
-        print(self.trajectory_numbers)
+        #print(self.trajectory_numbers)
 
     def count_cells(self):
         """
@@ -95,7 +96,7 @@ class LoadHdf5():
                 else:
                     raw_base_name += i   
             self.names.append(raw_base_name)
-        print("names", self.names)
+        #print("names", self.names)
         
     def get_cell_size(self):
         """
@@ -106,7 +107,7 @@ class LoadHdf5():
             size_data = size_group["size"].value  # sizedata = [(396.80278,)]
             size = size_data[0][0]
             self.sizes.append(size)
-        print("size", self.sizes)        
+        #print("size", self.sizes)        
     
     def settings(self):
         """
@@ -122,7 +123,7 @@ class LoadHdf5():
             self.fit_areas.append(settings_data[0][0][4])
             self.dofs.append(settings_data[0][0][5])
             self.D_mins.append(settings_data[0][0][6])
-        print("settings", self.dts, self.pixel_sizes, self.pixel_amounts, self.tau_thresholds, self.fit_areas, self.dofs, self.D_mins)
+        #print("settings", self.dts, self.pixel_sizes, self.pixel_amounts, self.tau_thresholds, self.fit_areas, self.dofs, self.D_mins)
         
     def create_np_array(self, length, columns=1):
         """
@@ -150,9 +151,9 @@ class LoadHdf5():
                 length_MSDs[trajectory_index] = length_trajectory - 1
             self.cells_lengths_trajectories.append(length_trajectories)
             self.cells_lengths_MSDs.append(length_MSDs)
-        print(self.cells_lengths_trajectories)
+        #print(self.cells_lengths_trajectories)
         
-    def get_diffusion_infos2(self):     
+    def get_diffusion_infos(self):     
         """
         Handling length_MSD, length_trajectory, id, D, dD, MSD_0, chi2.
         
@@ -291,27 +292,9 @@ class LoadHdf5():
                 trc[i,4] = trc_group_data[i][4]  # place holder
                 trc[i,5] = trc_group_data[i][5]  # intensity
             self.trc_files.append(trc)
-        print(self.trc_files)
-                
-                
-# =============================================================================
-#             for trajectory_index in range(0, max_trajectory_index):
-#                 trajectory_key = "Trajectory" + self.trajectory_number_set_digits(trajectory_index)
-#                 trajectory_data = MSD_group[trajectory_key].value
-#                 MSDs = self.create_np_array(len(trajectory_data))
-#                 times = self.create_np_array(len(trajectory_data))
-#                 for duration in range(0, len(trajectory_data)):
-#                     MSDs[duration] = trajectory_data[duration][1]  # MSDs
-#                     times[duration] = trajectory_data[duration][0]  # dt
-#                 cell_trajectories_MSDs.append(MSDs)
-#                 cell_trajectories_times.append(times)
-#             self.cells_trajectories_times.append(cell_trajectories_times)
-#             self.cells_trajectories_MSDs.append(cell_trajectories_MSDs)
-# =============================================================================
-        #print(self.cells_trajectories_times)
-            
+        #print(self.trc_files)
         
-    def rossier_plots(self):
+    def get_rossier_plots(self):
         for h5 in self.hdf5:
             h5_index = self.hdf5.index(h5)
             max_trajectory_index = self.trajectory_numbers[h5_index]
@@ -331,10 +314,10 @@ class LoadHdf5():
             self.cells_trajectories_MSD_fit.append(cell_trajectories)
         #print(self.cells_trajectories_MSD_fit[0][0][:,1])
                     
-    def diffusion_plots(self):
-        for h in self.hdf5:
+    def get_diffusion_plots(self):
+        for h5 in self.hdf5:
             h5_index = self.hdf5.index(h5)
-            max_trajectory_index = self.trajectory_number[h5_index]
+            max_trajectory_index = self.trajectory_numbers[h5_index]
             diffusion_group = h5["diffusion"]
             diffusion_plots_group = diffusion_group["diffusionPlots"]
             cell_trajectories = []
@@ -360,131 +343,103 @@ class LoadHdf5():
         while len(trajectory_number) < number_of_digits:
             trajectory_number = "0" + trajectory_number 
         return trajectory_number  
-
-    def get_diffusion_infos(self):
-        """
-        Handling length_MSD, length_trajectory, id, D, dD, MSD_0, chi2.
-        
-        As lists. [[int, int], [int, int]]
-        """
-        for h5 in self.hdf5:
-            h5_index = self.hdf5.index(h5)
-            max_trajectory_index = self.trajectory_numbers[h5_index]
-            lengths_trajectories = []
-            lengths_MSDs = []
-            trajectories_number = []
-            trajectories_diffusion = []
-            trajectories_ddiffusion = []
-            trajectories_MSD_0 = []
-            trajectories_chi_D =[]
-            diffusion_group = h5["diffusion"]
-            diffusion_infos_data = diffusion_group["diffusionInfos"].value
-            for trajectory_index in range(0, max_trajectory_index):
-                length_trajectory = diffusion_infos_data[trajectory_index][5]
-                lengths_trajectories.append(length_trajectory)
-                length_MSD = length_trajectory - 1
-                lengths_MSDs.append(length_MSD)
-                diffusion = diffusion_infos_data[trajectory_index][1]
-                trajectories_diffusion.append(diffusion)
-                ddiffusion = diffusion_infos_data[trajectory_index][2]
-                trajectories_ddiffusion.append(ddiffusion)
-                MSD_0 = diffusion_infos_data[trajectory_index][3]
-                trajectories_MSD_0.append(MSD_0)
-                chi_D = diffusion_infos_data[trajectory_index][4]
-                trajectories_chi_D.append(chi_D)
-                number = diffusion_infos_data[trajectory_index][0]
-                trajectories_number.append(number)
-            self.cells_trajectories_chi2.append(trajectories_chi_D)
-            self.cells_trajectories_D.append(trajectories_diffusion)
-            self.cells_trajectories_dD.append(trajectories_ddiffusion)
-            self.cells_trajectories_number.append(trajectories_number)
-            self.cells_trajectories_MSD0.append(trajectories_MSD_0)
-            self.cells_lengths_trajectories2.append(lengths_trajectories)
-            self.cells_lengths_MSDs.append(lengths_MSDs)
-        #print(self.cells_lengths_trajectories2)
-        #print(self.cells_trajectories_chi2)
-        
-        
-        
-
-        
-
-            
-            
-            
-            
-            
-            
-            
-            
-# =============================================================================
-#             data_frame_size = h5.get("size/size")
-#             self.sizes.append(data_frame_size.values[0][0])  # cell size is stored as [[size]] -> acess float by [0][0]
-#         print(self.sizes)
-# =============================================================================
-        
-        
-            #print(h5.get("/size/size"))
-            #print(type(h5.get("/size/size")))
-
-
-            #df = h5.get("/size/size")
-            #print(df.columns)
-            
-            #df = h5.get("/diffusion/diffusion plots/diffusion plot 0001")
-            #print(df)
-            #print(df.keys())
-            #print(type(df.values))
-            
-            #data_frame_size = h5.get("size/size")
-            
-            #df.frame["size [\u03BCm\u00b2]"]
     
-
-        #print(self.hdf5[0].keys())
-# =============================================================================
-#         data_frame_trc = self.hdf5[0].get("trc/trc file")
-#         print(data_frame_trc)
-# =============================================================================
-        #for h5 in self.hdf5:
-        #    print(h5.keys())
-            #data_frame_pixelsize = h5.get("settings/settings")
-            #print(data_frame_pixelsize)
-# =============================================================================
-#             self.pixel_sizes.append(data_frame_pixelsize)
-#         print(self.pixel_sizes)
-# =============================================================================
-    
-
-            
-
+    def get_locs(self):
+        """
+        For each trajectory locs will be created (np.array with col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = -1, col5 = intensity)
+        Each cell equals a list. 
+        """
+        for trc_file in self.trc_files:
+            one_cell = []
+            for trajectory_number in range(int(trc_file[:,0].min()), int(trc_file[:,0].max())+1):
+                idx = trc_file[:,0] == trajectory_number
+                localizations = trc_file[idx,:]
+                if not (localizations.size == 0):
+                    one_cell.append(localizations)
+            self.locs.append(one_cell)
         
+
 # =============================================================================
+#     def get_diffusion_infos2(self):
+#         """
+#         Handling length_MSD, length_trajectory, id, D, dD, MSD_0, chi2.
 #         
-#         file = h5py.File(self.file_names[0], "r")
-#         print(file.keys())
-#         keys = [key for key in file.keys()]
-#         print(keys)
-#         group = file["rossier"]
-#         print(group)
-#         for key in group.keys():
-#             print(key)
-#             
-#             
-#         data = group["rossierStatistics"].value
-#         print(len(data))
-#         print(type(data))
-#         print(type(data[0]))
-#         print(data[0][10])
-#         #print(data)
+#         As lists. [[int, int], [int, int]]
+#         """
+#         for h5 in self.hdf5:
+#             h5_index = self.hdf5.index(h5)
+#             max_trajectory_index = self.trajectory_numbers[h5_index]
+#             lengths_trajectories = []
+#             lengths_MSDs = []
+#             trajectories_number = []
+#             trajectories_diffusion = []
+#             trajectories_ddiffusion = []
+#             trajectories_MSD_0 = []
+#             trajectories_chi_D =[]
+#             diffusion_group = h5["diffusion"]
+#             diffusion_infos_data = diffusion_group["diffusionInfos"].value
+#             for trajectory_index in range(0, max_trajectory_index):
+#                 length_trajectory = diffusion_infos_data[trajectory_index][5]
+#                 lengths_trajectories.append(length_trajectory)
+#                 length_MSD = length_trajectory - 1
+#                 lengths_MSDs.append(length_MSD)
+#                 diffusion = diffusion_infos_data[trajectory_index][1]
+#                 trajectories_diffusion.append(diffusion)
+#                 ddiffusion = diffusion_infos_data[trajectory_index][2]
+#                 trajectories_ddiffusion.append(ddiffusion)
+#                 MSD_0 = diffusion_infos_data[trajectory_index][3]
+#                 trajectories_MSD_0.append(MSD_0)
+#                 chi_D = diffusion_infos_data[trajectory_index][4]
+#                 trajectories_chi_D.append(chi_D)
+#                 number = diffusion_infos_data[trajectory_index][0]
+#                 trajectories_number.append(number)
+#             self.cells_trajectories_chi2.append(trajectories_chi_D)
+#             self.cells_trajectories_D.append(trajectories_diffusion)
+#             self.cells_trajectories_dD.append(trajectories_ddiffusion)
+#             self.cells_trajectories_number.append(trajectories_number)
+#             self.cells_trajectories_MSD0.append(trajectories_MSD_0)
+#             self.cells_lengths_trajectories2.append(lengths_trajectories)
+#             self.cells_lengths_MSDs.append(lengths_MSDs)
+#         #print(self.cells_lengths_trajectories2)
+#         #print(self.cells_trajectories_chi2)
 # =============================================================================
-
-        #data = list(file[key])
-
         
+    def run_load_hdf5(self):
+        self.read_h5()
+        self.get_cell_name()
+        self.count_trajectory_numbers()
+        self.count_cells()
+        self.get_cell_size()
+        self.settings()
+        self.get_diffusion_infos()
+        self.get_diffusion_plots()
+        self.get_rossier_statistics()
+        self.get_rossier_plots()
+        self.get_MSDs()
+        self.get_trcs()
+        self.get_locs()
         
+#file = h5py.File(self.file_names[0], "r")
+#print(file.keys())
+#keys = [key for key in file.keys()]
+#print(keys)
+#group = file["rossier"]
+#print(group)
+#for key in group.keys():
+#print(key)
         
-    
+#print(h5.get("/size/size"))
+#print(type(h5.get("/size/size")))
+#df = h5.get("/size/size")
+#print(df.columns)         
+#df = h5.get("/diffusion/diffusion plots/diffusion plot 0001")
+#print(df)
+#print(df.keys())
+#print(type(df.values))            
+#data_frame_size = h5.get("size/size")         
+#df.frame["size [\u03BCm\u00b2]"]
+#print(self.hdf5[0].keys())
+        
 
 def main():
     load_h5 = LoadHdf5()
@@ -501,12 +456,7 @@ def main():
     load_h5.rossier_plots()
     load_h5.get_MSDs()
     load_h5.get_trcs()
-# =============================================================================
-#     load_hdf5.load_pd()
-#     load_hdf5.get_cell_name()
-#     load_hdf5.get_cell_size()
-#     load_hdf5.settings_cell()
-# =============================================================================
+
 
 if __name__ == "__main__":
     main()
