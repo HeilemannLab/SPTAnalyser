@@ -7,7 +7,7 @@ Created on Tue Feb 19 09:14:39 2019
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
-Jupyter Notebook widget handling for loadHdf5 class & trackStatistics JNB.
+Handling widgets of trackStatistics JNB.
 """
 
 import tkinter as tk 
@@ -44,6 +44,7 @@ class WidgetLoadHdf5():
         self.free_type_check_box = self.create_free_type_check_box()
         self.analyse_successful_check_box = self.create_analyse_successful_check_box()
         self.analyse_not_successful_check_box = self.create_analyse_not_successful_check_box()
+        self.plot_diffusions_button = self.create_plot_diffusions_button()
         
     def search_sub_folders(self, dirName):
         if (dirName):
@@ -184,6 +185,9 @@ class WidgetLoadHdf5():
         return text
     
     def create_immob_type_check_box(self):
+        """
+        True -> check box is already selected; False -> check box is not selected.
+        """
         checkbox = widgets.Checkbox(value=True,
                          description='Immobile',
                          disabled=False)
@@ -213,4 +217,11 @@ class WidgetLoadHdf5():
                          disabled=False)
         return checkbox
     
+    def create_plot_diffusions_button(self):
+        button = widgets.Button(
+                description="plot",
+                disabled=False,
+                button_style="",
+                tooltip = "plot diffusion coefficients")
+        return button
     
