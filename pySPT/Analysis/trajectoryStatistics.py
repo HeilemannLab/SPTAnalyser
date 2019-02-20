@@ -25,25 +25,47 @@ class TrajectoryStatistics():
         self.roi_size = 0.0
         
     #def run_statistics(self, min_length, max_length, min_D, max_D):
-    def run_statistics(self, min_length, max_length, min_D, max_D):
+    def run_statistics(self, min_length, max_length, min_D, max_D, filter_immob, filter_confined,
+                       filter_free, filter_analyse_successful, filter_analyse_not_successful):
         self.get_index()
         self.create_init_filter_lst()
-        if max_length == "max length":
+        try:
+            max_length = int(max_length)
+            print("max trajectory length:", max_length)
+        except ValueError:
             max_length = self.get_max_length()
-            print("max length:", max_length)
-        if min_length == "min length":
+            print("max trajectory length:", max_length)
+        try:
+            min_length = int(min_length)
+            print("min trajectory length:", min_length)
+        except ValueError:
             min_length = self.get_min_length()
-            print("min length:", min_length)
-        if max_D == "max value":
+            print("min trajectory length:", min_length)
+        try:
+            max_D = float(max_D)
+            print("max diffusion coefficient: {} [\u03BCm\u00b2/s]".format(max_D))
+        except ValueError:
             max_D = self.get_max_D()
-            print("max diffusion coefficient:", max_D)
-        if min_D == "min value":
+            print("max diffusion coefficient: {} [\u03BCm\u00b2/s]".format(max_D))
+        try:
+            min_D = float(min_D)
+            print("min diffusion coefficient: {} [\u03BCm\u00b2/s]".format(min_D))
+        except ValueError:
             min_D = self.get_min_D()
-            print("min diffusion coefficient:", min_D)
-        self.filter_length(int(min_length), int(max_length))
-        self.filter_D(float(min_D), float(max_D))
-        #self.filter_type()
-
+            print("min diffusion coefficient: {} [\u03BCm\u00b2/s]".format(min_D))
+        self.filter_length(min_length, max_length)
+        self.filter_D(min_D, max_D)
+        self.filter_type(filter_immob, filter_confined, filter_free,
+                         filter_analyse_successful, filter_analyse_not_successful)
+        print("%.1f %% are immobile" %(self.plot_statistics()[0]))
+        print("%.1f %% are confined" %(self.plot_statistics()[1]))
+        print("%.1f %% are free" %(self.plot_statistics()[2]))
+# =============================================================================
+#         print(self.plot_statistics())
+#         
+#          print("Results: p_bleach = %.3f, k = %.4e, kv = %.4e" %(self.p_bleach, self.k, self.kcov[1,1]))
+# =============================================================================
+        
         
     def create_init_filter_lst(self):
         """
@@ -149,7 +171,40 @@ class TrajectoryStatistics():
         self.cell_trajectories_filtered_index[cell] = self.cell_trajectories_filtered_index[cell][0:trajectory_index] + \
         self.cell_trajectories_filtered_index[cell][trajectory_index+1:] 
         
-    def filter_type(self, trajectory_types):
+    def filter_type(self, filter_immob, filter_confined, filter_free,
+                    filter_analyse_successful, filter_analyse_not_successful):
+        """
+        :param filter_immob: if checked in JNB -> True -> filter data includes immob trajectories, else False -> will be neglected.
+        """
+        # if filter was not selected, value is False
+        if not filter_immob:
+            for cell in range(0, len(self.cell_trajectories_filtered)):
+                for trajectory in self.cell_trajectories_filtered[cell]:
+                    # meaning that one wants to get rid of all immobile particles -> crop them out of the lists.
+                    if trajectory.immobility:
+                        self.crop_lst(cell, trajectory)
+        if not filter_confined:
+            for cell in range(0, len(self.cell_trajectories_filtered)):
+                for trajectory in self.cell_trajectories_filtered[cell]:
+                    if trajectory.confined:
+                        self.crop_lst(cell, trajectory)
+        if not filter_free:
+            for cell in range(0, len(self.cell_trajectories_filtered)):
+                for trajectory in self.cell_trajectories_filtered[cell]:
+                    if not trajectory.confined:
+                        self.crop_lst(cell, trajectory)
+        if not filter_analyse_successful:
+            for cell in range(0, len(self.cell_trajectories_filtered)):
+                for trajectory in self.cell_trajectories_filtered[cell]:
+                    if trajectory.analyse_successful:
+                        self.crop_lst(cell, trajectory)
+        if not filter_analyse_not_successful:
+            for cell in range(0, len(self.cell_trajectories_filtered)):
+                for trajectory in self.cell_trajectories_filtered[cell]:
+                    if not trajectory.analyse_successful:
+                        self.crop_lst(cell, trajectory)
+        
+    def filter_type_old(self, trajectory_types):
         """
         Filter by trajectory type:
         Immobile, confined = True -> Confined, confined = False -> Free.
@@ -238,6 +293,30 @@ class TrajectoryStatistics():
         """
         normalized_col = normalized_col / np.sum(normalized_col)
         return normalized_col
+    
+    def plot_statistics(self):
+        # % immobile, % free, % confined
+        total_trajectories = 0
+        for cell_index in range(0, len(self.cell_trajectories_filtered)):
+            total_trajectories += len(self.cell_trajectories_filtered[cell_index])
+        count_immobile = 0
+        count_confined = 0
+        count_free = 0
+        for cell in self.cell_trajectories_filtered:
+            for trajectory in cell:
+                if trajectory.immobility:
+                    count_immobile += 1
+                if trajectory.confined:
+                    count_confined += 1
+                # has to be not confined AND not immobile (otherwise it will count the immobile particles as well)
+                if not trajectory.confined and not trajectory.immobility:
+                    count_free +=1
+        ratio_immobile = count_immobile/total_trajectories*100
+        ratio_confined = count_confined/total_trajectories*100
+        ratio_free = count_free/total_trajectories*100
+        return ratio_immobile, ratio_confined, ratio_free
+                    
+        
         
  
     

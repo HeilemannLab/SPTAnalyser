@@ -7,7 +7,7 @@ Created on Tue Feb 19 09:14:39 2019
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
-Jupyter Notebook widget handling for loadHdf5 class.
+Jupyter Notebook widget handling for loadHdf5 class & trackStatistics JNB.
 """
 
 import tkinter as tk 
@@ -17,6 +17,7 @@ import tkinter.filedialog as fd
 from ipywidgets import widgets
 from IPython.display import display
 from IPython.display import clear_output
+import math
 
 class WidgetLoadHdf5():
     def __init__(self):
@@ -27,7 +28,22 @@ class WidgetLoadHdf5():
         self.dir_box = self.create_dir_box()
         self.dir_name = ""
         self.init_button = self.create_init_button()
-        
+        self.chosen_cell = ""
+        self.cell_options = []
+        self.trajectory_options = []
+        self.drop_down_cells = self.create_drop_down_cells()
+        self.drop_down_trajectories = self.create_drop_down_trajectories()
+        self.plot_button = self.create_plot_button()
+        self.filter_button = self.create_filter_button()
+        self.min_length_box = self.create_min_length_box()
+        self.max_length_box = self.create_max_length_box()
+        self.min_D_box = self.create_min_D_box()
+        self.max_D_box = self.create_max_D_box()
+        self.immob_type_check_box = self.create_immob_type_check_box()
+        self.confined_type_check_box = self.create_confined_type_check_box()
+        self.free_type_check_box = self.create_free_type_check_box()
+        self.analyse_successful_check_box = self.create_analyse_successful_check_box()
+        self.analyse_not_successful_check_box = self.create_analyse_not_successful_check_box()
         
     def search_sub_folders(self, dirName):
         if (dirName):
@@ -87,3 +103,114 @@ class WidgetLoadHdf5():
                 tooltip='initialize objects')
                 #icon='check')
         return button    
+
+    def create_drop_down_cells(self):
+        drop_down_cells = widgets.Dropdown(
+                options=self.cell_options,
+                description='Number:',
+                disabled=False)
+        return drop_down_cells
+    
+    def create_drop_down_trajectories(self):
+        drop_down_trajectories = widgets.Dropdown(
+                options=self.trajectory_options,
+                description='Number:',
+                disabled=False)
+        return drop_down_trajectories
+    
+    def get_trajectory_numbers(self, cell, cell_trajectories):
+        trajectory_numbers = []
+        for trajectory in cell_trajectories[cell]:
+            trajectory_numbers.append(trajectory)
+        self.drop_down_trajectories.options = trajectory_numbers
+        return trajectory_numbers
+    
+    def get_cell_names(self, cells):
+        cell_names = []
+        for cell in cells:
+            cell_names.append(cell.name)
+        self.drop_down_cells.options = cell_names
+        return cell_names
+    
+    def create_plot_button(self):
+        button = widgets.Button(
+                description="plot",
+                disabled=False,
+                button_style="",
+                tooltip = "plot chosen trajectory")
+        return button
+    
+    def create_clear_output(self):
+        clear_output()
+    
+    def create_filter_button(self):
+        button = widgets.Button(
+                description="apply filter",
+                disabled=False,
+                button_style="",
+                tooltip = "apply filter")
+        return button
+    
+    def create_min_length_box(self, val = "min length" , desc = "Trajectory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+        """
+        Box for inserting the minimum length of a trajectory.
+        """
+        style = {'description_width': 'initial'}  # display too long desc
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text
+    
+    def create_max_length_box(self, val = "max length", desc = "Trajectory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+        """
+        Box for inserting the max length of a trajectory.
+        """
+        style = {'description_width': 'initial'}  # display too long desc
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text
+    
+    def create_min_D_box(self, val = "min value" , desc = "Diffusion coefficient"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+        """
+        Box for inserting the minimum D value.
+        """
+        style = {'description_width': 'initial'}  # display too long desc
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text
+    
+    def create_max_D_box(self, val = "max value", desc = "Diffusion coefficient"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+        """
+        Box for inserting the max D value.
+        """
+        style = {'description_width': 'initial'}  # display too long desc
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text
+    
+    def create_immob_type_check_box(self):
+        checkbox = widgets.Checkbox(value=True,
+                         description='Immobile',
+                         disabled=False)
+        return checkbox
+    
+    def create_confined_type_check_box(self):
+        checkbox = widgets.Checkbox(value=True,
+                         description='Confined',
+                         disabled=False)
+        return checkbox
+    
+    def create_free_type_check_box(self):
+        checkbox = widgets.Checkbox(value=True,
+                         description='Free',
+                         disabled=False)
+        return checkbox
+    
+    def create_analyse_successful_check_box(self):
+        checkbox = widgets.Checkbox(value=True,
+                         description='Analyse successful',
+                         disabled=False)
+        return checkbox
+
+    def create_analyse_not_successful_check_box(self):
+        checkbox = widgets.Checkbox(value=True,
+                         description='Analyse not successful',
+                         disabled=False)
+        return checkbox
+    
+    
