@@ -11,8 +11,10 @@ Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.
 from . import trajectory
 from . import cell
 import numpy as np
+import pylab as pl
 import copy
 import math
+import matplotlib.pyplot as plt
 
 class TrajectoryStatistics():
     def __init__(self):
@@ -22,8 +24,16 @@ class TrajectoryStatistics():
         self.cell_trajectories_filtered_index = []  # deep copy of original cell trajectories index
         #self.cell_trajectories_name = [] ?????
         self.cell_trajectories_log = []  # based on filtered data
-        self.roi_size = 0.0
-
+        self.diffusions = []  # diffusion coefficients from all cells as np array
+        self.max_log_D = 0  # max log10(D) from all cells
+        self.min_log_D = 0  # min log10(D) from all cells
+        #self.roi_size = 0.0 ????????
+        self.total_trajectories = 0  # amount of trajectories in data set
+        self.cell_sizes = [529.786008, 396.80278] 
+        self.hist_log_Ds = []  # histograms (logD vs freq) from all cells as np arrays in this list
+        self.hist_diffusion = []  # diffusions from histogram calculation, transformed back -> 10^-(log10(D))
+        self.mean_frequencies = []  # mean frequencies, size corrected
+        
     def run_statistics(self, min_length, max_length, min_D, max_D, filter_immob, filter_confined,
                        filter_free, filter_analyse_successful, filter_analyse_not_successful):
         """
@@ -208,10 +218,10 @@ class TrajectoryStatistics():
         If no trajectory exists (total_trajectories = 0) percentages will be set to zero, no calculation will be made.
         """
         data_selected = True
-        total_trajectories = 0
+        self.total_trajectories = 0
         for cell_index in range(0, len(self.cell_trajectories_filtered)):
-            total_trajectories += len(self.cell_trajectories_filtered[cell_index])
-        if total_trajectories == 0:
+            self.total_trajectories += len(self.cell_trajectories_filtered[cell_index])
+        if self.total_trajectories == 0:
             data_selected = False
         if data_selected:
             count_immobile = 0
@@ -226,9 +236,9 @@ class TrajectoryStatistics():
                     # has to be not confined AND not immobile (otherwise it will count the immobile particles as well)
                     if not trajectory.confined and not trajectory.immobility:
                         count_free +=1
-            ratio_immobile = count_immobile/total_trajectories*100
-            ratio_confined = count_confined/total_trajectories*100
-            ratio_free = count_free/total_trajectories*100
+            ratio_immobile = count_immobile/self.total_trajectories*100
+            ratio_confined = count_confined/self.total_trajectories*100
+            ratio_free = count_free/self.total_trajectories*100
         else:
             ratio_immobile = 0
             ratio_confined = 0
@@ -245,7 +255,110 @@ class TrajectoryStatistics():
                 log_diffusions.append(np.log10(self.cell_trajectories_filtered[cell][trajectory].D))
             self.cell_trajectories_log.append(log_diffusions)
         print(self.cell_trajectories_log)
+    
+    # plot diffusion vs frequencies.
+    
+    def run_plot_diffusion_histogram(self):
+        self.determine_max_min_diffusion()
+        self.diffusions_log()
+        self.determine_mean_frequency()
+        self.calc_nonlogarithmic_diffusions()
+        self.determine_mean_frequency()
+        self.normalize_percent_frequency()
+        self.plot_bar_log_bins()
+    
+    def determine_max_min_diffusion(self):
+        """
+        Create np array with log10(D) and D. -> min and max values can be determined over that.
+        """
+        self.cell_trajectories_log = np.zeros(self.total_trajectories)
+        self.diffusions = np.zeros(self.total_trajectories)
+        index = 0
+        for cell in range(0, len(self.cell_trajectories_filtered)):
+            for trajectory in range(0, len(self.cell_trajectories_filtered[cell])):
+                pass
+                self.cell_trajectories_log[index] = np.log10(self.cell_trajectories_filtered[cell][trajectory].D)
+                self.diffusions[index] = self.cell_trajectories_filtered[cell][trajectory].D
+                index += 1   
+        self.max_log_D = self.cell_trajectories_log.max()
+        self.min_log_D = self.cell_trajectories_log.min()
+
+    def diffusions_log(self):
+        """
+        For each cell initialize histogram with cell size and target array.
+        """
+        desired_bin_size = 0.05
+        for cell_index in range(0, len(self.cell_trajectories_filtered)):
+            log_Ds = np.zeros(len(self.cell_trajectories_filtered[cell_index]))
+            cell_size = self.cell_sizes[cell_index]
+            for trajectory_index in range(0, len(self.cell_trajectories_filtered[cell_index])):
+                log_Ds[trajectory_index] =  np.log10(self.cell_trajectories_filtered[cell_index][trajectory_index].D)
+            self.diffusion_frequencies(log_Ds, desired_bin_size, cell_size) 
+            
+    def diffusion_frequencies(self, log_diff, desired_bin, size):
+        """
+        :param log_diff: np array with log10(D) of one cell.
+        :param size: cell size.
+        :param desired_bin: bin size.
+        """
+        # min & max determined by diffusions_log_complete function
+        min_bin = np.ceil(self.min_log_D/desired_bin)*desired_bin
+        max_bin = np.ceil(self.max_log_D/desired_bin)*desired_bin 
+        bin_size = int(np.ceil((max_bin - min_bin)/desired_bin))
+        print(max_bin, min_bin, bin_size)
+        #hist = pl.hist(self.cell_trajectories_log.m)
+        hist = np.histogram(log_diff,
+                            range = (min_bin, max_bin),
+                            bins = bin_size)
+        log_diffusion_hist = np.zeros([np.size(hist[0]),2])
+        log_diffusion_hist[:,0] = hist[1][:-1]  # log(D)
+        log_diffusion_hist[:,1] = hist[0][:]  # freq
+        log_diffusion_hist[:,1] = log_diffusion_hist[:,1]  /size
+        self.hist_log_Ds.append(log_diffusion_hist)
         
+    def calc_nonlogarithmic_diffusions(self):
+        """
+        Calculate the nonlogarithmic diffusion coefficients from log10(D) from histogram.
+        """
+        self.hist_diffusion = 10**self.hist_log_Ds[0][:,0]
+        print("Diffusion coefficients:", self.hist_diffusion)
+        
+    def determine_mean_frequency(self):
+        """
+        Mean frequency will be calculated based on all frequencies of cells.
+        """
+        diffusion_frequencies = self.create_np_array(np.shape(self.hist_log_Ds)[1], len(self.cell_trajectories_filtered))
+        for i in range (0, len(self.cell_trajectories_filtered)):
+            diffusion_frequencies[:,i] = self.hist_log_Ds[i][:,1]
+        self.mean_frequencies = self.calc_mean_frequencies(diffusion_frequencies)
+        
+    def normalize_percent_frequency(self):
+        """
+        Normalize an array (sum of elements = 1) and represent is in percent (*100).
+        """
+        self.mean_frequencies = self.mean_frequencies / np.sum(self.mean_frequencies) * 100 
+        print("Mean frequencies:", self.mean_frequencies)
+        
+    def plot_bar_log_bins(self):
+        fig = plt.figure()
+        sp = fig.add_subplot(1,1,1)
+        sp.semilogx(self.hist_diffusion, self.mean_frequencies, color="gray", label="realtive frequency")
+        sp.set_title("Distribution of diffusion coefficients")
+        sp.set_xlabel("D [\u03BCm\u00b2/s]")
+        sp.set_ylabel("normalized relative occurence [%]")
+        sp.legend()
+        plt.show()        
+        
+    def calc_mean_frequencies(self, np_array):
+        """
+        Determine mean value over the horizonal entries of an np.array.
+        -> [2,2][6,4] = [4,3].
+        :param np_array: Np array to build mean over.
+        """
+        #mean_frequencies = np.zeros(np.size(self.hist_log_Ds[0]))
+        mean_frequencies = np_array.mean(axis=1)
+        return mean_frequencies
+            
     def create_np_array(self, length, columns=1):
         """
         :param length: number of np arrays.
@@ -254,18 +367,6 @@ class TrajectoryStatistics():
         """
         np_array = np.zeros((length,columns))
         return np_array
-        
-    def frequency_count(self):
-        max_bin = int(np.ceil(self.cell_trajectories_log.max()/0.05)*0.05)
-        bin_size = int(np.ceil(self.cell_trajectories_log.max()/0.05))
-        hist = np.histogram(self.cell_trajectories_log,
-                            range = (0, max_bin),
-                            bins = bin_size,
-                            density = True)
-        self.log_histogram = np.zeros([np.size(hist[0]),2])
-        self.log_histogram[:,0] = hist[1][:-1]  # log(D)
-        self.log_histogram[:,1] = hist[0][:]  # frequencies
-        self.log_histogram[:,1] = self.normalize_hist(self.log_histogram[:,1])
         
     def normalize_hist(self, normalized_col):
         """
