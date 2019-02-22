@@ -45,6 +45,8 @@ class WidgetLoadHdf5():
         self.analyse_successful_check_box = self.create_analyse_successful_check_box()
         self.analyse_not_successful_check_box = self.create_analyse_not_successful_check_box()
         self.plot_diffusions_button = self.create_plot_diffusions_button()
+        # Plot diffusion histogram
+        self.bin_size_box = self.create_bin_size_box()
         
     def search_sub_folders(self, dirName):
         if (dirName):
@@ -224,4 +226,15 @@ class WidgetLoadHdf5():
                 button_style="",
                 tooltip = "plot diffusion coefficients")
         return button
+    
+    # Plot diffusion histogram
+    
+    def create_bin_size_box(self, val = "0.1" , desc = "bin size"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+        """
+        Box for inserting the bin size for log10(D) histogram.
+        """
+        style = {'description_width': 'initial'}  # display too long desc
+        text = widgets.Text(value=str(val), placeholder='size for log10(D) histogram', description=str(desc), disabled=False, style = style)
+        return text
+    
     
