@@ -28,6 +28,10 @@ class Cell():
         #self.background = []
         self.size = 0.0  # size from roi [ym^2]
         self.name = ""  # name of cell file (raw base name)
+        self.tau_threshold = 0.0  # hand down to trajectory
+        self.dt = 0.0   # hand down to trajectory
+        self.dof = 0.0  # hand down to trajectory
+        self.D_min = 0.0  # hand down to trajectory
         
     @staticmethod
     def analyse_trajectory(self, trajectory):
@@ -57,7 +61,7 @@ class Cell():
             idx = self.trc_file[:,0] == trajectory_number
             localizations = self.trc_file[idx,:]
             if not (localizations.size==0):
-                self.trajectories.append(trajectory.Trajectory(localizations))
+                self.trajectories.append(trajectory.Trajectory(localizations, self.tau_threshold, self.dt, self.dof, self.D_min))
                 
     def cell_size(self):
         """

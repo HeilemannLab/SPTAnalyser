@@ -81,8 +81,8 @@ def init_save_track_analysis(h5, cover_slip, cell_index, track_analysis):
         h5.create_h5(cover_slip.cell_files[cell_index])
 
         cell = cover_slip.cells[cell_index]
-        one_trajectory = cover_slip.cell_trajectories[cell_index][0]
-        h5.data_settings(one_trajectory.dt, cell.pixel_size, cell.pixel_amount, one_trajectory.tau_threshold, one_trajectory.fit_area, one_trajectory.dof, one_trajectory.D_min)
+        one_trajectory = cover_slip.cell_trajectories[cell_index][0]  # get trajectory attributes, that are the same for every trajectory
+        h5.data_settings(cell.dt, cell.pixel_size, cell.pixel_amount, cell.size, cell.tau_threshold, cover_slip.tau_threshold_min_length, one_trajectory.fit_area, cell.dof, cell.D_min)
 
         h5.trc(np.shape(cell.trc_file), cell.trc_file[:,0], cell.trc_file[:,1], cell.trc_file[:,2], cell.trc_file[:,3], cell.trc_file[:,4], cell.trc_file[:,5])
         
@@ -103,5 +103,4 @@ def init_save_track_analysis(h5, cover_slip, cell_index, track_analysis):
         rossier_info = track_analysis.rossier_info
         h5.data_rossier_info(track_analysis.number_of_trajectories, rossier_info[:,0],  rossier_info[:,1],  rossier_info[:,2],  rossier_info[:,3],  rossier_info[:,4],  rossier_info[:,5],  rossier_info[:,6],  rossier_info[:,7],  rossier_info[:,8],  rossier_info[:,9], rossier_info[:,10])
         
-        h5.size(cell.size)
     

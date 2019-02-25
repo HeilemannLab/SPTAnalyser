@@ -18,16 +18,16 @@ from scipy.optimize import curve_fit
 import matplotlib.gridspec as gridspec
 
 class Trajectory():
-    def __init__(self, locs):
+    def __init__(self, locs, tau_thresh, camera_dt, degree, min_D):
         self.trajectory_number = 0  # equals first column of localization
         self.MSDs = []  # stores all MSD values
         self.times = []  # stores all time steps for MSD values
         self.MSD_fit = []  # stores values of fit area of times, MSDs, fit and residues
         self.MSD_D = []  # col0 = times, col1 = MSD vals, col2 = fit, col3= res for the first 4 values
         self.localizations = locs  # np.array with col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = -1, col5 = intensity
-        self.dt = 0.02  # camera integration time in s
-        self.dof = 4  # degree of freedom (to determin D)
-        self.D_min = 0.0065  # minimum of diffusion coeff to be detected [micrometer^2/s]
+        self.dt = camera_dt  # camera integration time in s
+        self.dof = degree  # degree of freedom (to determin D)
+        self.D_min = min_D  # minimum of diffusion coeff to be detected [micrometer^2/s]
         self.length_MSD = 0
         self.length_trajectory = 0
         self.D = 0.0  # diffusion coefficient
@@ -43,7 +43,7 @@ class Trajectory():
         self.dD_conf = 0.0# never determined
         self.r = 0.01  # confinement radius
         self.dr = 0.0
-        self.tau_threshold = 0.12  # check if free or confined: tau > tau_thr -> free, tau < tau_thr -> confined
+        self.tau_threshold = tau_thresh  # check if free or confined: tau > tau_thr -> free, tau < tau_thr -> confined
         self.immobility = False
         self.confined = True  # if confinded false -> free true
         self.analyse_successful = True
@@ -136,7 +136,7 @@ class Trajectory():
     def check_immobility(self):
         self.immobility = False
         if self.D < self.D_min:
-            self.immobility = True     
+            self.immobility = True    
 
     def check_confined(self):
         """
@@ -265,7 +265,7 @@ class Trajectory():
             self.check_confined()
 
     def print_particle(self):
-        print("Number:", self.trajectory_number)
+        print("Number:", int(self.trajectory_number))
         print("Trajectory length:", int(self.length_trajectory))
         print("Diffusion coefficient: {} \u03BCm\u00b2/s".format(self.D))
         print("MSD0: {} \u03BCm\u00b2".format(self.MSD_0))

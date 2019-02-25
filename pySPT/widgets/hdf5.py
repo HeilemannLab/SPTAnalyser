@@ -47,20 +47,23 @@ class Hdf5():
         self.grp03 = self.h5_file.create_group("rossier")
         self.subgrp03 = self.grp03.create_group("rossierPlots")
         self.grp04 = self.h5_file.create_group("settings")
-        self.grp05 = self.h5_file.create_group("size")
         
-    def data_settings(self, dt, pixelsize, pixelamount, tau_threshold, fit_area, dof, dloc_dyn):
+    def data_settings(self, dt, pixelsize, pixelamount, cell_size, tau_threshold, tau_min_length, fit_area, dof, dloc_dyn):
         dset = self.grp04.create_dataset("settings", (1,1), dtype = np.dtype([("dt [s]", float),
                                                       ("pixelsize [nm]", int),
                                                       ("pixel amount", int),
+                                                      ("cell size [\u03BCm\u00b2]", float),
                                                       ("tau threshold [s]", float),
+                                                      ("tau min trajectory length", float),
                                                       ("fit area", float),
                                                       ("dof", int),
                                                       ("\u0394 loc dyn [\u03BCm\u00b2/s]", float)]))
         dset["dt [s]"] = dt
         dset["pixelsize [nm]"] = pixelsize
         dset["pixel amount"] = pixelamount
+        dset["cell size [\u03BCm\u00b2]"] = cell_size
         dset["tau threshold [s]"] = tau_threshold
+        dset["tau min trajectory length"] = tau_min_length
         dset["fit area"] = fit_area
         dset["dof"] = dof
         dset["\u0394 loc dyn [\u03BCm\u00b2/s]"] = dloc_dyn
@@ -129,6 +132,7 @@ class Hdf5():
         dset["\u0394 r [\u03BCm]"] = dr
         dset["Diffusion confined [\u03BCm\u00b2/s]"] = dconfined
         dset["chi\u00b2 [\u03BCm\u2074]"] = chi2
+        self.h5_file.close()
 
         
     def trc(self, shape, trajectory_id, frame, x, y, placeholder, intensity):
@@ -152,11 +156,6 @@ class Hdf5():
         dset = self.grp01.create_dataset("Trajectory{}".format(trajectory_number), (np.shape(dt)[0],), dtype = np.dtype([("dt [s]", float),("MSD [\u03BCm\u00b2]", float)]))
         dset["dt [s]"] = dt
         dset["MSD [\u03BCm\u00b2]"] = MSD    
-        
-    def size(self, size):
-        dset = self.grp05.create_dataset("size", (1,), dtype = np.dtype([("size [\u03BCm\u00b2]", float)]))
-        dset["size [\u03BCm\u00b2]"] = size
-        self.h5_file.close()
         
     def test(self, x, y):
         dset = self.grp00.create_dataset("test", (np.shape(x)[0],), dtype = np.dtype([("x", int), ("y", int)]))

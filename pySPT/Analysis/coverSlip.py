@@ -23,47 +23,20 @@ from tqdm import tqdm_notebook as tqdm
 
 class CoverSlip():
     def __init__(self):
-        #self.background = []
-        #self.background_name = [] 
-        #self.background_log = []
         self.cells = []  # cell objects
         self.cell_trajectories = []  # lists of trajectory object, 1 list = 1 cell
         self.roi_file = []  # full path to roi file
         self.cell_files = []  # list with full paths to cell files
-        #self.trc_file= []   # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = place holder (int), col 5 = intensity ??????
-        
-# =============================================================================
-#     def log_transform(self):
-#         """
-#         Create list with log10(D) for each trajectory in each background of list.
-#         """
-#         for background in range(0, len(self.background)):
-#             for trajectory in range(0, len(self.background[background])):
-#                 self.background_log.append(np.log10(self.background[background][trajectory].D))
-#         print(self.background_log)
-# =============================================================================
-        
-# =============================================================================
-#     def count_background(self):
-#         """
-#         Create histogram with bins = mjd_n and frequencies as np.ndarray.
-#         Multiply the bins with camera integration time -> [s].
-#         """
-#         
-#         #for background in self.background:
-#             
-#         max_bin = self.background_log.max()  # max mjd_n value
-#         bin_size = int(max_bin)  # divides the bin range in sizes -> desired bin = max_bin/bin_size
-#         hist = np.histogram(self.background_log,
-#                             range = (-5, max_bin),
-#                             bins = bin_size,
-#                             density = True)
-#         self.background_histogram = np.zeros([np.size(hist[0]),5])
-#         self.background_histogram[:,0] = hist[1][:-1] # col0 = frames
-#         self.background_histogram[:,1] = hist[0][:]  # col1 = frequencies
-#         #self.normalized_mjd_ns()  # normalize the histogram by the sum
-# =============================================================================
+        self.pixel_size = 0.0   # [nm], hand down to cell
+        self.pixel_amount = 0.0  # amount of pixels of detector (eg. 256*256), hand down to cell
+        self.tau_threshold_min_length = 0.0  
+        self.dt = 0.0   # hand down to cell -> trajectory
+        self.tau_threshold = 0.0  # hand down to cell -> trajectory
+        self.dof = 0.0  # hand down to cell -> trajectory
+        self.D_min = 0.0  # hand down to cell -> trajectory
 
+    def calc_tau_threshold(self):
+        self.tau_threshold = float(self.tau_threshold_min_length)*float(self.dt)*0.6*0.5
 
     def create_cells(self):
         """
@@ -71,8 +44,7 @@ class CoverSlip():
         objects from e.g. CoverSlip Class.
         """
         start = time.time()
-        self.cell_trajectories = []  # contains trajectories for each cell in separate lists
-        self.cells = []  # contains cell objects
+        self.calc_tau_threshold()
         roi_file = np.genfromtxt(self.roi_file, dtype=None, delimiter=",", skip_header=3, encoding=None)
         for file_name in tqdm(self.cell_files):
             one_cell = cell.Cell()  # create cell object for each file
@@ -90,6 +62,12 @@ class CoverSlip():
             trc_file = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 4, 5))  # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = place holder (int), col 5 = intensity
             #self.trc_file = trc_file ????????????
             one_cell.trc_file = trc_file
+            one_cell.tau_threshold = float(self.tau_threshold)
+            one_cell.dt = float(self.dt)
+            one_cell.pixel_amount = float(self.pixel_amount)
+            one_cell.pixel_size = float(self.pixel_size)
+            one_cell.dof = float(self.dof)
+            one_cell.D_min = float(self.D_min)
             one_cell.create_trajectories()
             one_cell.cell_size()
             one_cell.analyse_trajectories()

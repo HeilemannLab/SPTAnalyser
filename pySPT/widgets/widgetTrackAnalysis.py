@@ -29,6 +29,12 @@ class WidgetTrackAnalysis():
         self.roi_button = self.create_roi_button()
         self.got_dir = False
         self.got_roi = False
+        self.camera_pixel_size_box = self.create_camera_pixel_size_box()
+        self.camera_pixel_amount_box = self.create_camera_pixel_amount_box()
+        self.camera_integration_time_box = self.create_camera_integration_time_box()
+        self.min_track_length_box = self.create_min_track_length_box()
+        self.dof_box = self.create_dof_box()
+        self.D_min_box = self.create_D_min_box()
         self.run_button = self.create_run_button()
         self.chosen_cell = ""
         self.cell_options = []
@@ -118,8 +124,56 @@ class WidgetTrackAnalysis():
         root.destroy()
         self.roi_name = root.name
         self.roi_box.value=self.roi_name
-        self.got_roi = True      
-      
+        self.got_roi = True     
+        
+    def create_camera_pixel_size_box(self, val = "158", desc = "Pixel size [nm]"):
+        """
+        Box for inserting the pixel size in nm of the camera.
+        """
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text
+        
+    def create_camera_pixel_amount_box(self, val = "65536", desc = "Amount of pixel on the camera"):
+        """
+        Box for inserting the amount of pixel on the camera
+        """
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text
+    
+    def create_min_track_length_box(self, val = "20", desc = "Min track length"):
+        """
+        Box for inserting the minimal track length for tau threshold calculation.
+        """
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text
+    
+    def create_camera_integration_time_box(self, val = "0.02", desc = "Camera integration time [s]"):
+        """
+        Box for inserting the camera integration time for tau threshold calculation.
+        """
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text
+    
+    def create_D_min_box(self, val = "0.0065", desc = "Minimal detectable D  [\u03BCm\u00b2/s]"):
+        """
+        Box for inserting the camera integration time for tau threshold calculation.
+        """
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text
+    
+    def create_dof_box(self, val = "4", desc = "degree of freedom of D"):
+        """
+        Box for inserting the camera integration time for tau threshold calculation.
+        """
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text
+    
     def create_run_button(self):
         """
         Button to load a roi file for cell size.
