@@ -14,12 +14,18 @@ Large juncs of code that would scare the user of the JNB :)
 #from pySPT.analysis import trajectory
 #from pySPT.analysis import cell
 from . import loadHdf5  # one dot if in same directory
+from . import hdf5
+from ..analysis import coverSlip
 from ..analysis import cell  # two dots for switching the folder
 from ..analysis import trajectory
+from ..analysis import trackAnalysis
 import time
+import numpy as np 
+
 
 def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5):
     """
+    JNB: TrackStatistics
     :param: Objects created in JNB.
     """
     start = time.time()
@@ -65,3 +71,37 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5):
         cover_slip.cell_trajectories.append(one_cell.analysed_trajectories)
         cover_slip.cell_files = load_hdf5.file_names
     print("Initialization took {} s".format(time.time()-start))
+    
+    
+def init_save_track_analysis(h5, cover_slip, cell_index, track_analysis):
+        """
+        JNB: track Analysis, saving.
+        :param: Objects created in JNB.
+        """
+        h5.create_h5(cover_slip.cell_files[cell_index])
+
+        cell = cover_slip.cells[cell_index]
+        one_trajectory = cover_slip.cell_trajectories[cell_index][0]
+        h5.data_settings(one_trajectory.dt, cell.pixel_size, cell.pixel_amount, one_trajectory.tau_threshold, one_trajectory.fit_area, one_trajectory.dof, one_trajectory.D_min)
+
+        h5.trc(np.shape(cell.trc_file), cell.trc_file[:,0], cell.trc_file[:,1], cell.trc_file[:,2], cell.trc_file[:,3], cell.trc_file[:,4], cell.trc_file[:,5])
+        
+        for trajectory in cover_slip.cell_trajectories[cell_index]:
+            plot = track_analysis.save_plots(trajectory)
+            h5.data_diffusion_plots(plot[0], plot[1], plot[2], plot[3], plot[4])
+        for trajectory in cover_slip.cell_trajectories[cell_index]:
+            plot = track_analysis.save_plots(trajectory)
+            h5.data_rossier_plots(plot[0], plot[5], plot[6], plot[7], plot[8])
+        for trajectory in cover_slip.cell_trajectories[cell_index]:
+            h5.msd(trajectory.trajectory_number, trajectory.times, trajectory.MSDs)
+        
+        track_analysis.save_diff(cover_slip.cell_trajectories[cell_index])
+        diff_info = track_analysis.diffusion_info
+        h5.data_diffusion_info(track_analysis.number_of_trajectories, diff_info[:,0], diff_info[:,1], diff_info[:,2], diff_info[:,3], diff_info[:,4], diff_info[:,5])
+
+        track_analysis.save_rossier(cover_slip.cell_trajectories[cell_index])
+        rossier_info = track_analysis.rossier_info
+        h5.data_rossier_info(track_analysis.number_of_trajectories, rossier_info[:,0],  rossier_info[:,1],  rossier_info[:,2],  rossier_info[:,3],  rossier_info[:,4],  rossier_info[:,5],  rossier_info[:,6],  rossier_info[:,7],  rossier_info[:,8],  rossier_info[:,9], rossier_info[:,10])
+        
+        h5.size(cell.size)
+    

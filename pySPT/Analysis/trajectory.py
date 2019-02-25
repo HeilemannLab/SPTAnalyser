@@ -266,11 +266,11 @@ class Trajectory():
 
     def print_particle(self):
         print("Number:", self.trajectory_number)
+        print("Trajectory length:", int(self.length_trajectory))
         print("Diffusion coefficient: {} \u03BCm\u00b2/s".format(self.D))
         print("MSD0: {} \u03BCm\u00b2".format(self.MSD_0))
         print("chi\u00b2 linear fit: {} \u03BCm\u2074".format(self.chi_D))
         print("Type immobile:", self.immobility)
-        print("Trajectory length:", int(self.length_trajectory))
         if not self.immobility:
             print("Analyse successful?", self.analyse_successful)
             if self.analyse_successful:

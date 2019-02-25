@@ -22,18 +22,17 @@ class TrajectoryStatistics():
         self.cell_trajectories_filtered = []  # deep copy of original cell trajectories
         self.cell_trajectories_index = []
         self.cell_trajectories_filtered_index = []  # deep copy of original cell trajectories index
-        #self.cell_trajectories_name = [] ?????
-        self.cell_trajectories_log = []  # based on filtered data
-        self.diffusions = []  # diffusion coefficients from all cells as np array
-        self.max_log_D = 0  # max log10(D) from all cells
-        self.min_log_D = 0  # min log10(D) from all cells
-        #self.roi_size = 0.0 ????????
+        self.min_D = math.inf
+        self.max_D = - math.inf
         self.total_trajectories = 0  # amount of trajectories in data set
-        self.cell_sizes = [529.786008, 396.80278] 
+        self.cell_sizes = []
         self.hist_log_Ds = []  # histograms (logD vs freq) from all cells as np arrays in this list
+        self.diffusion_frequencies = []  # only freq (divided by cell size) of cells
         self.hist_diffusion = []  # diffusions from histogram calculation, transformed back -> 10^-(log10(D))
         self.mean_frequencies = []  # mean frequencies, size corrected
-        
+        self.mean_error = []  # standard error of mean value
+        self.normalization_factor = 0.0  # 100/sum of all mean frequencies
+                   
     def run_statistics(self, min_length, max_length, min_D, max_D, filter_immob, filter_confined,
                        filter_free, filter_analyse_successful, filter_analyse_not_successful):
         """
@@ -74,6 +73,16 @@ class TrajectoryStatistics():
         print("%.1f %% are free" %(self.type_percentage()[2]))     
         if self.type_percentage()[0] + self.type_percentage()[1] + self.type_percentage()[2] == 0:
             print("The selection excludes all data.")
+        print("Total trajectories:", self.total_trajectories)
+        
+    def run_statistics_no_filter(self, bin_size):
+        """
+        If stared from JNB trackAnalysis, no filter are applied, slight deviation in function calls therefore.
+        """
+        self.get_index()
+        self.create_init_filter_lst()
+        self.type_percentage_pre()
+        self.run_plot_diffusion_histogram(bin_size)
         
     def create_init_filter_lst(self):
         """
@@ -132,14 +141,7 @@ class TrajectoryStatistics():
         for cell in range(0, len(self.cell_trajectories_filtered)):
             for trajectory in self.cell_trajectories_filtered[cell]:
                 if trajectory.length_trajectory < int(min_length) or trajectory.length_trajectory > int(max_length):
-                    self.crop_lst(cell, trajectory)
-        # show selected trajectory objects & index
-        #print(self.cell_trajectories_filtered_index) 
-        # show selected trajectory lengths
-        #for cell in range(0, len(self.cell_trajectories_filtered)):
-        #    for trajectory in self.cell_trajectories_filtered[cell]:
-        #        pass
-                #print(trajectory.length_trajectory)     
+                    self.crop_lst(cell, trajectory)   
 
     def crop_lst(self, cell, trajectory):
         """
@@ -205,15 +207,10 @@ class TrajectoryStatistics():
             for trajectory in self.cell_trajectories_filtered[cell]:
                 if trajectory.D < min_D or trajectory.D > max_D:
                     self.crop_lst(cell, trajectory)
-        # show selected trajectory objects & index
-        #print(self.cell_trajectories_filtered_index) 
-        # show selected trajectory lengths
-        #for cell in range(0, len(self.cell_trajectories_filtered)):
-        #    for trajectory in self.cell_trajectories_filtered[cell]:
-        #        print(trajectory.D, trajectory.length_trajectory)
         
     def type_percentage(self):
         """
+        (immob/confined -> true/false=immob, false/true=conf, false/false=free)
         Calculate percentage of immobile free and confined based on total number of trajectories in all cells.
         If no trajectory exists (total_trajectories = 0) percentages will be set to zero, no calculation will be made.
         """
@@ -244,69 +241,98 @@ class TrajectoryStatistics():
             ratio_confined = 0
             ratio_free = 0
         return ratio_immobile, ratio_confined, ratio_free
-                    
-    def background_frequencies_lst(self):
+    
+    def type_percentage_pre(self):
         """
-        Create list with log10(D) for each trajectory in each cell of list.
+        Calculation before saving as hdf5 (immob/confined -> true/true=immob, false/true=conf, false/false=free)
+        Calculate percentage of immobile free and confined based on total number of trajectories in all cells.
+        If no trajectory exists (total_trajectories = 0) percentages will be set to zero, no calculation will be made.
         """
-        for cell in range(0, len(self.cell_trajectories_filtered)):
-            log_diffusions = []
-            for trajectory in range(0, len(self.cell_trajectories_filtered[cell])):
-                log_diffusions.append(np.log10(self.cell_trajectories_filtered[cell][trajectory].D))
-            self.cell_trajectories_log.append(log_diffusions)
-        print(self.cell_trajectories_log)
+        data_selected = True
+        self.total_trajectories = 0
+        for cell_index in range(0, len(self.cell_trajectories_filtered)):
+            self.total_trajectories += len(self.cell_trajectories_filtered[cell_index])
+        if self.total_trajectories == 0:
+            data_selected = False
+        if data_selected:
+            count_immobile = 0
+            count_confined = 0
+            count_free = 0
+            for cell in self.cell_trajectories_filtered:
+                for trajectory in cell:
+                    if trajectory.immobility and trajectory.confined:
+                        count_immobile += 1
+                    if trajectory.confined and not trajectory.immobility:
+                        count_confined += 1
+                    # has to be not confined AND not immobile (otherwise it will count the immobile particles as well)
+                    if not trajectory.confined and not trajectory.immobility:
+                        count_free +=1
+            ratio_immobile = count_immobile/self.total_trajectories*100
+            ratio_confined = count_confined/self.total_trajectories*100
+            ratio_free = count_free/self.total_trajectories*100
+        else:
+            ratio_immobile = 0
+            ratio_confined = 0
+            ratio_free = 0
+        print("%.1f %% are immobile" %(ratio_immobile))
+        print("%.1f %% are confined" %(ratio_confined))
+        print("%.1f %% are free" %(ratio_free)) 
+        print("Total trajectories:", self.total_trajectories)
     
     # plot diffusion vs frequencies.
     
-    def run_plot_diffusion_histogram(self):
+    def run_plot_diffusion_histogram(self, desired_bin_size):
+        self.clear_attributes()
         self.determine_max_min_diffusion()
-        self.diffusions_log()
-        self.determine_mean_frequency()
+        self.diffusions_log(float(desired_bin_size))
         self.calc_nonlogarithmic_diffusions()
         self.determine_mean_frequency()
-        self.normalize_percent_frequency()
+        self.calc_mean_error()
         self.plot_bar_log_bins()
-    
+        
+    def clear_attributes(self):
+        """
+        If one restarts filtering, these attributes are empy (otherwise they would append).
+        """
+        self.hist_log_Ds = []  # histograms (logD vs freq) from all cells as np arrays in this list
+        self.hist_diffusion = []  # diffusions from histogram calculation, transformed back -> 10^-(log10(D))
+        self.mean_frequencies = []  # mean frequencies, size corrected
+        self.mean_error = []
+        
     def determine_max_min_diffusion(self):
         """
         Create np array with log10(D) and D. -> min and max values can be determined over that.
         """
-        self.cell_trajectories_log = np.zeros(self.total_trajectories)
-        self.diffusions = np.zeros(self.total_trajectories)
-        index = 0
-        for cell in range(0, len(self.cell_trajectories_filtered)):
-            for trajectory in range(0, len(self.cell_trajectories_filtered[cell])):
-                pass
-                self.cell_trajectories_log[index] = np.log10(self.cell_trajectories_filtered[cell][trajectory].D)
-                self.diffusions[index] = self.cell_trajectories_filtered[cell][trajectory].D
-                index += 1   
-        self.max_log_D = self.cell_trajectories_log.max()
-        self.min_log_D = self.cell_trajectories_log.min()
-
-    def diffusions_log(self):
+        for cell in self.cell_trajectories:
+            for trajectory in cell:
+                if trajectory.D < self.min_D:
+                    self.min_D = trajectory.D
+                if trajectory.D > self.max_D:
+                    self.max_D = trajectory.D
+                    
+    def diffusions_log(self, desired_bin_size):
         """
         For each cell initialize histogram with cell size and target array.
         """
-        desired_bin_size = 0.05
+        #desired_bin_size = 0.05
         for cell_index in range(0, len(self.cell_trajectories_filtered)):
             log_Ds = np.zeros(len(self.cell_trajectories_filtered[cell_index]))
             cell_size = self.cell_sizes[cell_index]
             for trajectory_index in range(0, len(self.cell_trajectories_filtered[cell_index])):
                 log_Ds[trajectory_index] =  np.log10(self.cell_trajectories_filtered[cell_index][trajectory_index].D)
-            self.diffusion_frequencies(log_Ds, desired_bin_size, cell_size) 
-            
-    def diffusion_frequencies(self, log_diff, desired_bin, size):
+            self.calc_diffusion_frequencies(log_Ds, desired_bin_size, cell_size) 
+        
+    def calc_diffusion_frequencies(self, log_diff, desired_bin, size):
         """
         :param log_diff: np array with log10(D) of one cell.
         :param size: cell size.
         :param desired_bin: bin size.
         """
         # min & max determined by diffusions_log_complete function
-        min_bin = np.ceil(self.min_log_D/desired_bin)*desired_bin
-        max_bin = np.ceil(self.max_log_D/desired_bin)*desired_bin 
+        min_bin = np.ceil(np.log10(self.min_D)/desired_bin)*desired_bin
+        max_bin = np.ceil(np.log10(self.max_D)/desired_bin)*desired_bin 
         bin_size = int(np.ceil((max_bin - min_bin)/desired_bin))
-        print(max_bin, min_bin, bin_size)
-        #hist = pl.hist(self.cell_trajectories_log.m)
+        #print(max_bin, min_bin, bin_size)
         hist = np.histogram(log_diff,
                             range = (min_bin, max_bin),
                             bins = bin_size)
@@ -321,33 +347,39 @@ class TrajectoryStatistics():
         Calculate the nonlogarithmic diffusion coefficients from log10(D) from histogram.
         """
         self.hist_diffusion = 10**self.hist_log_Ds[0][:,0]
-        print("Diffusion coefficients:", self.hist_diffusion)
         
     def determine_mean_frequency(self):
         """
         Mean frequency will be calculated based on all frequencies of cells.
-        """
-        diffusion_frequencies = self.create_np_array(np.shape(self.hist_log_Ds)[1], len(self.cell_trajectories_filtered))
-        for i in range (0, len(self.cell_trajectories_filtered)):
-            diffusion_frequencies[:,i] = self.hist_log_Ds[i][:,1]
-        self.mean_frequencies = self.calc_mean_frequencies(diffusion_frequencies)
-        
-    def normalize_percent_frequency(self):
-        """
         Normalize an array (sum of elements = 1) and represent is in percent (*100).
         """
-        self.mean_frequencies = self.mean_frequencies / np.sum(self.mean_frequencies) * 100 
-        print("Mean frequencies:", self.mean_frequencies)
+        self.diffusion_frequencies = self.create_np_array(np.shape(self.hist_log_Ds)[1], len(self.cell_trajectories_filtered))
+        for i in range (0, len(self.cell_trajectories_filtered)):
+            self.diffusion_frequencies[:,i] = self.hist_log_Ds[i][:,1]
+        self.mean_frequencies = self.calc_mean_frequencies(self.diffusion_frequencies)
+        
+        self.normalization_factor = 100/np.sum(self.mean_frequencies)
+        self.mean_frequencies = self.mean_frequencies * self.normalization_factor
+        
+    def calc_mean_error(self):
+        """
+        Standard deviation (N-1) divided by square root of number of elements.
+        Normalize an array (sum of elements = 1) and represent is in percent (*100).
+        """
+        self.mean_error =  np.std(self.diffusion_frequencies, axis=1, ddof=1)/(np.shape(self.diffusion_frequencies)[1])**(1/2) 
+        self.mean_error = self.mean_error * self.normalization_factor 
         
     def plot_bar_log_bins(self):
-        fig = plt.figure()
-        sp = fig.add_subplot(1,1,1)
-        sp.semilogx(self.hist_diffusion, self.mean_frequencies, color="gray", label="realtive frequency")
-        sp.set_title("Distribution of diffusion coefficients")
-        sp.set_xlabel("D [\u03BCm\u00b2/s]")
-        sp.set_ylabel("normalized relative occurence [%]")
-        sp.legend()
-        plt.show()        
+        plt.subplot(111, xscale="log")
+        (_, caps, _) = plt.errorbar(self.hist_diffusion, self.mean_frequencies, yerr=self.mean_error, capsize=4, label="relative frequency")  # capsize length of cap
+        for cap in caps:
+            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+        plt.xlim(self.min_D, self.max_D)
+        plt.legend()
+        plt.title("Distribution of diffusion coefficients")
+        plt.ylabel("normalized relative occurence [%]")
+        plt.xlabel("D [\u03BCm\u00b2/s]")
+        plt.show() 
         
     def calc_mean_frequencies(self, np_array):
         """
@@ -374,7 +406,7 @@ class TrajectoryStatistics():
         """
         normalized_col = normalized_col / np.sum(normalized_col)
         return normalized_col
-        
+       
         
  
     
