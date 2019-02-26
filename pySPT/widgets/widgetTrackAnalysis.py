@@ -226,8 +226,8 @@ class WidgetTrackAnalysis():
         cell_names = []
         for cell in cells:
             cell_names.append(cell.name)
-        self.drop_down_cells.options = cell_names
-        return cell_names
+        self.drop_down_cells.options = sorted(cell_names)
+        return sorted(cell_names)
     
     def create_plot_button(self):
         button = widgets.Button(
@@ -240,8 +240,8 @@ class WidgetTrackAnalysis():
     def create_clear_output(self):
         clear_output()
         
-    def warning_file(self):
-        print("No file was loaded.")
+    def warning_trc_file(self):
+        print("No *.trc files were loaded.")
         
     def create_plot_diff_button(self):
         button = widgets.Button(

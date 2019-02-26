@@ -128,12 +128,17 @@ class WidgetLoadHdf5():
         self.drop_down_trajectories.options = trajectory_numbers
         return trajectory_numbers
     
-    def get_cell_names(self, cells):
+    def get_cell_names(self, cells, filtered_cell_trajectories):
+        """
+        :param cells: list of cell objects from coverslip.
+        :param cell_trajectories_filtered: list with trajectories (for each cell 1 list).
+        """
         cell_names = []
         for cell in cells:
-            cell_names.append(cell.name)
-        self.drop_down_cells.options = cell_names
-        return cell_names
+            if filtered_cell_trajectories[cells.index(cell)]:  # if cell has trajectory entries 
+                cell_names.append(cell.name)
+        self.drop_down_cells.options = sorted(cell_names)  # alphabetically sorted
+        return sorted(cell_names)
     
     def create_plot_button(self):
         button = widgets.Button(

@@ -21,6 +21,8 @@ from ..analysis import trajectory
 from ..analysis import trackAnalysis
 import time
 import numpy as np 
+from tqdm import tqdm_notebook as tqdm
+from ipywidgets import IntSlider
 
 
 def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5):
@@ -28,27 +30,33 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5):
     JNB: TrackStatistics
     :param: Objects created in JNB.
     """
+
+    
     start = time.time()
     widget_load_hdf5.search_sub_folders(widget_load_hdf5.dir_name)
     load_hdf5.file_names = widget_load_hdf5.file_names
     load_hdf5.run_load_hdf5()
-    for cell_index in range(0, load_hdf5.cell_numbers):
+    for cell_index in range(load_hdf5.cell_numbers):
         one_cell = cell.Cell()
         one_cell.trc_file = load_hdf5.trc_files[cell_index]
         one_cell.pixel_size = load_hdf5.pixel_sizes[cell_index]
         one_cell.pixel_amount = load_hdf5.pixel_amounts[cell_index]
-        one_cell.size = load_hdf5.sizes[cell_index]
+        one_cell.size = load_hdf5.cell_sizes[cell_index]
         one_cell.name = load_hdf5.names[cell_index]
+        one_cell.tau_threshold = load_hdf5.tau_thresholds[cell_index]
+        one_cell.dt = load_hdf5.dts[cell_index]
+        one_cell.dof = load_hdf5.dofs[cell_index]
+        one_cell.D_min = load_hdf5.D_mins[cell_index]
         for trajectory_index in range(0, load_hdf5.trajectory_numbers[cell_index]):
-            one_trajectory = trajectory.Trajectory(load_hdf5.locs[cell_index][trajectory_index])
+            one_trajectory = trajectory.Trajectory(load_hdf5.locs[cell_index][trajectory_index], one_cell.tau_threshold, one_cell.dt, one_cell.dof, one_cell.D_min)
             one_trajectory.trajectory_number = trajectory_index+1
             one_trajectory.MSDs = load_hdf5.cells_trajectories_MSDs[cell_index][trajectory_index]
             one_trajectory.times = load_hdf5.cells_trajectories_times[cell_index][trajectory_index]
             one_trajectory.MSD_fit = load_hdf5.cells_trajectories_MSD_fit[cell_index][trajectory_index]
             one_trajectory.MSD_D = load_hdf5.cells_trajectories_MSD_D[cell_index][trajectory_index]
-            one_trajectory.dt = load_hdf5.dts[cell_index]
-            one_trajectory.dof = load_hdf5.dofs[cell_index]
-            one_trajectory.D_min = load_hdf5.D_mins[cell_index]
+            #one_trajectory.dt = load_hdf5.dts[cell_index]
+            #one_trajectory.dof = load_hdf5.dofs[cell_index]
+            #one_trajectory.D_min = load_hdf5.D_mins[cell_index]
             one_trajectory.length_trajectory = load_hdf5.cells_lengths_trajectories[cell_index][trajectory_index][0]
             one_trajectory.length_MSD = load_hdf5.cells_lengths_MSDs[cell_index][trajectory_index][0]
             one_trajectory.D = load_hdf5.cells_trajectories_D[cell_index][trajectory_index][0]
@@ -62,15 +70,16 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5):
             one_trajectory.D_conf = load_hdf5.cells_trajectories_Dconf[cell_index][trajectory_index][0]
             one_trajectory.r = load_hdf5.cells_trajectories_r[cell_index][trajectory_index][0]
             one_trajectory.dr = load_hdf5.cells_trajectories_dr[cell_index][trajectory_index][0]
-            one_trajectory.tau_threshold = load_hdf5.tau_thresholds[cell_index]
+            #one_trajectory.tau_threshold = load_hdf5.tau_thresholds[cell_index]
             one_trajectory.immobility = bool(load_hdf5.cells_trajectories_type[cell_index][trajectory_index][0])
             one_trajectory.confined = bool(load_hdf5.cells_trajectories_type[cell_index][trajectory_index][1])
             one_trajectory.analyse_successful = bool(load_hdf5.cells_trajectories_analyse_successful[cell_index][trajectory_index][0])
             one_cell.analysed_trajectories.append(one_trajectory)
+        
         cover_slip.cells.append(one_cell)
         cover_slip.cell_trajectories.append(one_cell.analysed_trajectories)
         cover_slip.cell_files = load_hdf5.file_names
-    print("Initialization took {} s".format(time.time()-start))
+        print("Initialization took {} s".format(time.time()-start))
     
     
 def init_save_track_analysis(h5, cover_slip, cell_index, track_analysis):

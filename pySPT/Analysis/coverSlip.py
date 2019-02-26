@@ -27,6 +27,10 @@ class CoverSlip():
         self.cell_trajectories = []  # lists of trajectory object, 1 list = 1 cell
         self.roi_file = []  # full path to roi file
         self.cell_files = []  # list with full paths to cell files
+        self.backgrounds = []  # backgroud objects
+        self.background_trajectories = []  # lists of trajectory objects, 1 list = 1 background
+        self.background_files = []  # list with full paths of bg files
+        # initialization parameters for cell (only from trc -> h5)
         self.pixel_size = 0.0   # [nm], hand down to cell
         self.pixel_amount = 0.0  # amount of pixels of detector (eg. 256*256), hand down to cell
         self.tau_threshold_min_length = 0.0  
@@ -45,7 +49,8 @@ class CoverSlip():
         """
         start = time.time()
         self.calc_tau_threshold()
-        roi_file = np.genfromtxt(self.roi_file, dtype=None, delimiter=",", skip_header=3, encoding=None)
+        if self.roi_file:  # if no roi file path was inserted, no file can be loaded  
+            roi_file = np.genfromtxt(self.roi_file, dtype=None, delimiter=",", skip_header=3, encoding=None)
         for file_name in tqdm(self.cell_files):
             one_cell = cell.Cell()  # create cell object for each file
             base_name = os.path.basename(file_name)
@@ -56,9 +61,10 @@ class CoverSlip():
                 else:
                     raw_base_name += i   
             one_cell.name = raw_base_name
-            for file in roi_file:
-                if raw_base_name in file[0]:
-                    one_cell.size = file[1]            
+            if self.roi_file:
+                for file in roi_file:
+                    if raw_base_name in file[0]:
+                        one_cell.size = file[1]            
             trc_file = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 4, 5))  # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = place holder (int), col 5 = intensity
             #self.trc_file = trc_file ????????????
             one_cell.trc_file = trc_file

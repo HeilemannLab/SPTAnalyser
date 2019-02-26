@@ -22,6 +22,10 @@ class TrajectoryStatistics():
         self.cell_trajectories_filtered = []  # deep copy of original cell trajectories
         self.cell_trajectories_index = []
         self.cell_trajectories_filtered_index = []  # deep copy of original cell trajectories index
+        self.background_trajectories = [] # [[],[]] contains list of cells, cells contain trajectories
+        self.background_trajectories_filtered = []  # deep copy of original cell trajectories
+        self.background_trajectories_index = []
+        self.background_trajectories_filtered_index = []  # deep copy of original cell trajectories index
         self.min_D = math.inf
         self.max_D = - math.inf
         self.total_trajectories = 0  # amount of trajectories in data set
