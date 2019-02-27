@@ -171,9 +171,10 @@ class Trajectory():
         #y1, y2 = 0, self.MSD_fit[:,1].max()
         plt.plot(self.MSD_fit[:,0], self.MSD_fit[:,1], "o", color = "0.5", label="MSD values")
         plt.legend()
-        plt.title("MSD-Plot")
+        plt.title("MSD-Plot (60 %% of values)")
         plt.xlabel("Time step [s]")
         plt.ylabel("MSD")
+        plt.show()
         #plt.axis((x1,x2,y1,y2))
         
     def create_MSD_values(self):
@@ -241,15 +242,11 @@ class Trajectory():
         plt.show() 
         
     def show_trajectory(self):
-        #plt.rc('text', usetex=True)
-        #plt.rc('font', family='serif')
-        #x1, x2 = self.localizations[:,2].min(), self.localizations[:,2].max()
-        #y1, y2 = self.localizations[:,3].min(), self.localizations[:,3].max()
-        plt.plot(self.localizations[:,2], self.localizations[:,3], linestyle="--", marker="o")
+        plt.plot(self.localizations[:,2], self.localizations[:,3], linestyle="--", marker="o", label="localization")
+        plt.legend()
         plt.title("Trajectory of one particle")
         plt.xlabel(r"$\mu$" + "m in x direction")
         plt.ylabel(r"$\mu$" + "m in y direction")
-        #plt.xlabel(r'\textbf{time} (s)')
         plt.show()
 
     def analyse_particle(self):

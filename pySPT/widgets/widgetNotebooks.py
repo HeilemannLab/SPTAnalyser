@@ -21,22 +21,25 @@ from ..analysis import trajectory
 from ..analysis import trackAnalysis
 import time
 import numpy as np 
-from tqdm import tqdm_notebook as tqdm
-from ipywidgets import IntSlider
 
 
-def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5):
+def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
     """
     JNB: TrackStatistics
     :param: Objects created in JNB.
+    :param is_cell: if true -> cell objects distributed to cell attributes of coverslip, 
+    if false -> bg object distributed to bg attributes of coverslip.
     """
-
-    
     start = time.time()
-    widget_load_hdf5.search_sub_folders(widget_load_hdf5.dir_name)
-    load_hdf5.file_names = widget_load_hdf5.file_names
-    load_hdf5.run_load_hdf5()
-    for cell_index in range(load_hdf5.cell_numbers):
+    load_hdf5.clear()
+    if is_cell:
+        widget_load_hdf5.search_sub_folders(widget_load_hdf5.dir_name, is_cell)
+        load_hdf5.file_names = widget_load_hdf5.file_names
+    else:
+        widget_load_hdf5.search_sub_folders(widget_load_hdf5.dir_name_bg, is_cell)
+        load_hdf5.file_names = widget_load_hdf5.file_names_bg
+    load_hdf5.run_load_hdf5()  # initialize the loadHdf5 class -> fill all needed attributes with values.
+    for cell_index in range(load_hdf5.cell_numbers):  # distribute the attributes to the objects
         one_cell = cell.Cell()
         one_cell.trc_file = load_hdf5.trc_files[cell_index]
         one_cell.pixel_size = load_hdf5.pixel_sizes[cell_index]
@@ -75,11 +78,19 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5):
             one_trajectory.confined = bool(load_hdf5.cells_trajectories_type[cell_index][trajectory_index][1])
             one_trajectory.analyse_successful = bool(load_hdf5.cells_trajectories_analyse_successful[cell_index][trajectory_index][0])
             one_cell.analysed_trajectories.append(one_trajectory)
-        
-        cover_slip.cells.append(one_cell)
-        cover_slip.cell_trajectories.append(one_cell.analysed_trajectories)
-        cover_slip.cell_files = load_hdf5.file_names
-        print("Initialization took {} s".format(time.time()-start))
+        # distinguish between cells & bg 
+        if is_cell:
+            cover_slip.cells.append(one_cell)
+            cover_slip.cell_trajectories.append(one_cell.analysed_trajectories)
+            cover_slip.cell_files = load_hdf5.file_names
+        else:
+            cover_slip.backgrounds.append(one_cell)
+            cover_slip.background_trajectories.append(one_cell.analysed_trajectories)
+            cover_slip.background_files = load_hdf5.file_names
+    print("Initialization took {} s".format(time.time()-start))
+    
+    print("BG:", cover_slip.backgrounds, cover_slip.background_files)
+    print("cells:", cover_slip.cells, cover_slip.cell_files)
     
     
 def init_save_track_analysis(h5, cover_slip, cell_index, track_analysis):

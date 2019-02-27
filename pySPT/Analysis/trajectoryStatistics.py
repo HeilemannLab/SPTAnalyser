@@ -30,6 +30,7 @@ class TrajectoryStatistics():
         self.max_D = - math.inf
         self.total_trajectories = 0  # amount of trajectories in data set
         self.cell_sizes = []
+        self.bg_sizes = []
         self.hist_log_Ds = []  # histograms (logD vs freq) from all cells as np arrays in this list
         self.diffusion_frequencies = []  # only freq (divided by cell size) of cells
         self.hist_diffusion = []  # diffusions from histogram calculation, transformed back -> 10^-(log10(D))
@@ -72,28 +73,26 @@ class TrajectoryStatistics():
         self.filter_D(min_D, max_D)
         self.filter_type(filter_immob, filter_confined, filter_free,
                          filter_analyse_successful, filter_analyse_not_successful)
+        if filter_analyse_successful and not filter_analyse_not_successful:
+            print("Filter for analyse successful only.")
+        elif filter_analyse_not_successful and not filter_analyse_successful:
+            print("Filter for analyse not successful only.")
         print("%.1f %% are immobile" %(self.type_percentage()[0]))
         print("%.1f %% are confined" %(self.type_percentage()[1]))
-        print("%.1f %% are free" %(self.type_percentage()[2]))     
+        print("%.1f %% are free" %(self.type_percentage()[2]))        
         if self.type_percentage()[0] + self.type_percentage()[1] + self.type_percentage()[2] == 0:
             print("The selection excludes all data.")
         print("Total trajectories:", self.total_trajectories)
-        
-    def run_statistics_no_filter(self, bin_size):
-        """
-        If stared from JNB trackAnalysis, no filter are applied, slight deviation in function calls therefore.
-        """
-        self.get_index()
-        self.create_init_filter_lst()
-        self.type_percentage_pre()
-        self.run_plot_diffusion_histogram(bin_size)
-        
+                
     def create_init_filter_lst(self):
         """
         Create copy of initial cell trajectories & index list.
         """
         self.cell_trajectories_filtered = copy.deepcopy(self.cell_trajectories)
         self.cell_trajectories_filtered_index = copy.deepcopy(self.cell_trajectories_index)
+        if self.background_trajectories:
+            self.background_trajectories_filtered = copy.deepcopy(self.background_trajectories)
+            self.background_trajectories_filtered_index = copy.deepcopy(self.background_trajectories_index)
 
     def get_index(self):
         """
@@ -105,6 +104,12 @@ class TrajectoryStatistics():
             for trajectory in range(0, len(self.cell_trajectories[cell])):
                 i.append(trajectory+1)  # trajectory numbering starts with 1
             self.cell_trajectories_index.append(i)
+        if self.background_trajectories:
+            for background in range(0, len(self.background_trajectories)):
+                i = []
+                for trajectory in range(0, len(self.background_trajectories[background])):
+                    i.append(trajectory+1)  # trajectory numbering starts with 1
+                self.background_trajectories_index.append(i)
         
     def plot_trajectory(self, cell, number):
         cell = int(cell) - 1
@@ -146,16 +151,28 @@ class TrajectoryStatistics():
             for trajectory in self.cell_trajectories_filtered[cell]:
                 if trajectory.length_trajectory < int(min_length) or trajectory.length_trajectory > int(max_length):
                     self.crop_lst(cell, trajectory)   
+        if self.background_trajectories_filtered:
+            for background in range(0, len(self.background_trajectories_filtered)):
+                for trajectory in self.background_trajectories_filtered[background]:
+                    if trajectory.length_trajectory < int(min_length) or trajectory.length_trajectory > int(max_length):
+                        self.crop_lst(background, trajectory, is_cell=False) 
 
-    def crop_lst(self, cell, trajectory):
+    def crop_lst(self, cell, trajectory, is_cell=True):
         """
         Delete trajectory and its index.
         """
-        trajectory_index = self.cell_trajectories_filtered[cell].index(trajectory)
-        self.cell_trajectories_filtered[cell] = self.cell_trajectories_filtered[cell][0:trajectory_index] + \
-        self.cell_trajectories_filtered[cell][trajectory_index+1:]
-        self.cell_trajectories_filtered_index[cell] = self.cell_trajectories_filtered_index[cell][0:trajectory_index] + \
-        self.cell_trajectories_filtered_index[cell][trajectory_index+1:] 
+        if not is_cell:
+            trajectory_index = self.background_trajectories_filtered[cell].index(trajectory)
+            self.background_trajectories_filtered[cell] = self.background_trajectories_filtered[cell][0:trajectory_index] + \
+            self.background_trajectories_filtered[cell][trajectory_index+1:]
+            self.background_trajectories_filtered_index[cell] = self.background_trajectories_filtered_index[cell][0:trajectory_index] + \
+            self.background_trajectories_filtered_index[cell][trajectory_index+1:] 
+        else:
+            trajectory_index = self.cell_trajectories_filtered[cell].index(trajectory)
+            self.cell_trajectories_filtered[cell] = self.cell_trajectories_filtered[cell][0:trajectory_index] + \
+            self.cell_trajectories_filtered[cell][trajectory_index+1:]
+            self.cell_trajectories_filtered_index[cell] = self.cell_trajectories_filtered_index[cell][0:trajectory_index] + \
+            self.cell_trajectories_filtered_index[cell][trajectory_index+1:] 
         
     def filter_type(self, filter_immob, filter_confined, filter_free,
                     filter_analyse_successful, filter_analyse_not_successful):
@@ -189,6 +206,34 @@ class TrajectoryStatistics():
                 for trajectory in self.cell_trajectories_filtered[cell]:
                     if not trajectory.analyse_successful:
                         self.crop_lst(cell, trajectory)
+        
+        if self.background_trajectories_filtered:
+            if not filter_immob:
+                for background in range(0, len(self.background_trajectories_filtered)):
+                    for trajectory in self.background_trajectories_filtered[background]:
+                        # meaning that one wants to get rid of all immobile particles -> crop them out of the lists.
+                        if trajectory.immobility and not trajectory.confined:
+                            self.crop_lst(background, trajectory, is_cell=False)
+            if not filter_confined:
+                for background in range(0, len(self.background_trajectories_filtered)):
+                    for trajectory in self.background_trajectories_filtered[background]:
+                        if trajectory.confined and not trajectory.immobility:
+                            self.crop_lst(background, trajectory, is_cell=False)
+            if not filter_free:
+                for background in range(0, len(self.background_trajectories_filtered)):
+                    for trajectory in self.background_trajectories_filtered[background]:
+                        if not trajectory.confined and not trajectory.immobility:
+                            self.crop_lst(background, trajectory, is_cell=False)
+            if not filter_analyse_successful:
+                for background in range(0, len(self.background_trajectories_filtered)):
+                    for trajectory in self.background_trajectories_filtered[background]:
+                        if trajectory.analyse_successful:
+                            self.crop_lst(background, trajectory, is_cell=False)
+            if not filter_analyse_not_successful:
+                for background in range(0, len(self.background_trajectories_filtered)):
+                    for trajectory in self.background_trajectories_filtered[background]:
+                        if not trajectory.analyse_successful:
+                            self.crop_lst(background, trajectory, is_cell=False)
     
     def get_max_D(self):
         max_D = - math.inf
@@ -211,6 +256,11 @@ class TrajectoryStatistics():
             for trajectory in self.cell_trajectories_filtered[cell]:
                 if trajectory.D < min_D or trajectory.D > max_D:
                     self.crop_lst(cell, trajectory)
+        if self.background_trajectories_filtered:
+            for background in range(0, len(self.background_trajectories_filtered)):
+                for trajectory in self.background_trajectories_filtered[background]:
+                    if trajectory.D < min_D or trajectory.D > max_D:
+                        self.crop_lst(background, trajectory, is_cell=False)
         
     def type_percentage(self):
         """
@@ -245,43 +295,6 @@ class TrajectoryStatistics():
             ratio_confined = 0
             ratio_free = 0
         return ratio_immobile, ratio_confined, ratio_free
-    
-    def type_percentage_pre(self):
-        """
-        Calculation before saving as hdf5 (immob/confined -> true/true=immob, false/true=conf, false/false=free)
-        Calculate percentage of immobile free and confined based on total number of trajectories in all cells.
-        If no trajectory exists (total_trajectories = 0) percentages will be set to zero, no calculation will be made.
-        """
-        data_selected = True
-        self.total_trajectories = 0
-        for cell_index in range(0, len(self.cell_trajectories_filtered)):
-            self.total_trajectories += len(self.cell_trajectories_filtered[cell_index])
-        if self.total_trajectories == 0:
-            data_selected = False
-        if data_selected:
-            count_immobile = 0
-            count_confined = 0
-            count_free = 0
-            for cell in self.cell_trajectories_filtered:
-                for trajectory in cell:
-                    if trajectory.immobility and trajectory.confined:
-                        count_immobile += 1
-                    if trajectory.confined and not trajectory.immobility:
-                        count_confined += 1
-                    # has to be not confined AND not immobile (otherwise it will count the immobile particles as well)
-                    if not trajectory.confined and not trajectory.immobility:
-                        count_free +=1
-            ratio_immobile = count_immobile/self.total_trajectories*100
-            ratio_confined = count_confined/self.total_trajectories*100
-            ratio_free = count_free/self.total_trajectories*100
-        else:
-            ratio_immobile = 0
-            ratio_confined = 0
-            ratio_free = 0
-        print("%.1f %% are immobile" %(ratio_immobile))
-        print("%.1f %% are confined" %(ratio_confined))
-        print("%.1f %% are free" %(ratio_free)) 
-        print("Total trajectories:", self.total_trajectories)
     
     # plot diffusion vs frequencies.
     
@@ -404,12 +417,6 @@ class TrajectoryStatistics():
         np_array = np.zeros((length,columns))
         return np_array
         
-    def normalize_hist(self, normalized_col):
-        """
-        Normalize a column and return it.
-        """
-        normalized_col = normalized_col / np.sum(normalized_col)
-        return normalized_col
        
         
  

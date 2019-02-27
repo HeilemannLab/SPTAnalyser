@@ -7,59 +7,224 @@ Created on Fri Feb  8 09:17:05 2019
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
-Helping class for same called Jupyter Notebook, create cells and initialize analysis,
-helping functions for .h5 saving (gathering informations from analyse classes).
+For JNB "trackAnalysis": ...
 """
 
-import os
+
 import numpy as np
-from . import trajectory
-from . import cell
+import copy
+import math
+import matplotlib.pyplot as plt
+
 
 class TrackAnalysis():
     def __init__(self):
-        #self.cell_trajectories = []
-        #self.cells = []
-        #self.file_names = []
+        self.cell_trajectories = [] # [[],[]] contains list of cells, cells contain trajectories
+        self.cell_trajectories_filtered = []  # deep copy of original cell trajectories
+        self.cell_trajectories_index = []
+        self.cell_trajectories_filtered_index = []  # deep copy of original cell trajectories index
+        self.min_D = math.inf
+        self.max_D = - math.inf
+        self.total_trajectories = 0  # amount of trajectories in data set
+        self.cell_sizes = []
+        self.hist_log_Ds = []  # histograms (logD vs freq) from all cells as np arrays in this list
+        self.diffusion_frequencies = []  # only freq (divided by cell size) of cells
+        self.hist_diffusion = []  # diffusions from histogram calculation, transformed back -> 10^-(log10(D))
+        self.mean_frequencies = []  # mean frequencies, size corrected
+        self.mean_error = []  # standard error of mean value
+        self.normalization_factor = 0.0  # 100/sum of all mean frequencies
+        # Save
         self.diffusion_info = []
         self.number_of_trajectories = 0
         self.rossier_info = []
         self.diff_plot = []
         self.rossier_plot = []
+
+    def run_statistics_no_filter(self, bin_size):
+        """
+        If stared from JNB trackAnalysis, no filter are applied, slight deviation in function calls therefore.
+        """
+        self.get_index()
+        self.create_init_filter_lst()
+        self.type_percentage_pre()
+        self.run_plot_diffusion_histogram(bin_size)
         
-# =============================================================================
-#     def create_cell_trajectories(self):
-#         """
-#         Initialize cell analysis, also load roi file for cell size. Cell & trajectory
-#         objects from e.g. CoverSlip Class.
-#         """
-#         self.cell_trajectories = []  # contains trajectories for each cell in separate lists
-#         self.cells = []  # contains cell objects
-#         for file_name in self.file_names:
-#             one_cell = cell.Cell()  # create cell object for each file
-#             base_name = os.path.basename(file_name)
-#             raw_base_name = ""
-#             for i in base_name:
-#                 if i == ".":
-#                     break
-#                 else:
-#                     raw_base_name += i   
-#             one_cell.name = raw_base_name
-#             for file in roi_file:
-#                 if raw_base_name in file[0]:
-#                     one_cell.size = file[1]            
-#             trc_file = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 5)) # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = intensity
-#             one_cell.trc_file = trc_file
-#             one_cell.create_trajectories()
-#             one_cell.analyse_trajectories()
-#             print("size", one_cell.size)
-#             self.cell_trajectories.append(one_cell.analysed_trajectories)
-#             self.cells.append(one_cell)
-#         for i in self.cells:
-#             print(i.name, i.size)
-#             i.plot_trajectory(4)
-# =============================================================================
+    def create_init_filter_lst(self):
+        """
+        Create copy of initial cell trajectories & index list.
+        """
+        self.cell_trajectories_filtered = copy.deepcopy(self.cell_trajectories)
+        self.cell_trajectories_filtered_index = copy.deepcopy(self.cell_trajectories_index)
+
+    def get_index(self):
+        """
+        Each cell is a list, create i lists for the cells. In the lists append the numbers of elements = trajectory numbers.
+        Starting with 1.
+        """
+        for cell in range(0, len(self.cell_trajectories)):
+            i = []
+            for trajectory in range(0, len(self.cell_trajectories[cell])):
+                i.append(trajectory+1)  # trajectory numbering starts with 1
+            self.cell_trajectories_index.append(i)
             
+    def type_percentage_pre(self):
+        """
+        Calculation before saving as hdf5 (immob/confined -> true/true=immob, false/true=conf, false/false=free)
+        Calculate percentage of immobile free and confined based on total number of trajectories in all cells.
+        If no trajectory exists (total_trajectories = 0) percentages will be set to zero, no calculation will be made.
+        """
+        data_selected = True
+        self.total_trajectories = 0
+        for cell_index in range(0, len(self.cell_trajectories_filtered)):
+            self.total_trajectories += len(self.cell_trajectories_filtered[cell_index])
+        if self.total_trajectories == 0:
+            data_selected = False
+        if data_selected:
+            count_immobile = 0
+            count_confined = 0
+            count_free = 0
+            for cell in self.cell_trajectories_filtered:
+                for trajectory in cell:
+                    if trajectory.immobility and trajectory.confined:
+                        count_immobile += 1
+                    if trajectory.confined and not trajectory.immobility:
+                        count_confined += 1
+                    # has to be not confined AND not immobile (otherwise it will count the immobile particles as well)
+                    if not trajectory.confined and not trajectory.immobility:
+                        count_free +=1
+            ratio_immobile = count_immobile/self.total_trajectories*100
+            ratio_confined = count_confined/self.total_trajectories*100
+            ratio_free = count_free/self.total_trajectories*100
+        else:
+            ratio_immobile = 0
+            ratio_confined = 0
+            ratio_free = 0
+        print("%.1f %% are immobile" %(ratio_immobile))
+        print("%.1f %% are confined" %(ratio_confined))
+        print("%.1f %% are free" %(ratio_free)) 
+        print("Total trajectories:", self.total_trajectories)
+
+    def run_plot_diffusion_histogram(self, desired_bin_size):
+        self.clear_attributes()
+        self.determine_max_min_diffusion()
+        self.diffusions_log(float(desired_bin_size))
+        self.calc_nonlogarithmic_diffusions()
+        self.determine_mean_frequency()
+        self.calc_mean_error()
+        self.plot_bar_log_bins()
+        
+    def clear_attributes(self):
+        """
+        If one restarts filtering, these attributes are empy (otherwise they would append).
+        """
+        self.hist_log_Ds = []  # histograms (logD vs freq) from all cells as np arrays in this list
+        self.hist_diffusion = []  # diffusions from histogram calculation, transformed back -> 10^-(log10(D))
+        self.mean_frequencies = []  # mean frequencies, size corrected
+        self.mean_error = []
+        
+    def determine_max_min_diffusion(self):
+        """
+        Create np array with log10(D) and D. -> min and max values can be determined over that.
+        """
+        for cell in self.cell_trajectories:
+            for trajectory in cell:
+                if trajectory.D < self.min_D:
+                    self.min_D = trajectory.D
+                if trajectory.D > self.max_D:
+                    self.max_D = trajectory.D
+                    
+    def diffusions_log(self, desired_bin_size):
+        """
+        For each cell initialize histogram with cell size and target array.
+        """
+        #desired_bin_size = 0.05
+        for cell_index in range(0, len(self.cell_trajectories_filtered)):
+            log_Ds = np.zeros(len(self.cell_trajectories_filtered[cell_index]))
+            cell_size = self.cell_sizes[cell_index]
+            for trajectory_index in range(0, len(self.cell_trajectories_filtered[cell_index])):
+                log_Ds[trajectory_index] =  np.log10(self.cell_trajectories_filtered[cell_index][trajectory_index].D)
+            self.calc_diffusion_frequencies(log_Ds, desired_bin_size, cell_size) 
+            
+    def calc_diffusion_frequencies(self, log_diff, desired_bin, size):
+        """
+        :param log_diff: np array with log10(D) of one cell.
+        :param size: cell size.
+        :param desired_bin: bin size.
+        """
+        # min & max determined by diffusions_log_complete function
+        min_bin = np.ceil(np.log10(self.min_D)/desired_bin)*desired_bin
+        max_bin = np.ceil(np.log10(self.max_D)/desired_bin)*desired_bin 
+        bin_size = int(np.ceil((max_bin - min_bin)/desired_bin))
+        #print(max_bin, min_bin, bin_size)
+        hist = np.histogram(log_diff,
+                            range = (min_bin, max_bin),
+                            bins = bin_size)
+        log_diffusion_hist = np.zeros([np.size(hist[0]),2])
+        log_diffusion_hist[:,0] = hist[1][:-1]  # log(D)
+        log_diffusion_hist[:,1] = hist[0][:]  # freq
+        log_diffusion_hist[:,1] = log_diffusion_hist[:,1]  /size
+        self.hist_log_Ds.append(log_diffusion_hist)
+            
+    def calc_nonlogarithmic_diffusions(self):
+        """
+        Calculate the nonlogarithmic diffusion coefficients from log10(D) from histogram.
+        """
+        self.hist_diffusion = 10**self.hist_log_Ds[0][:,0]
+        
+    def determine_mean_frequency(self):
+        """
+        Mean frequency will be calculated based on all frequencies of cells.
+        Normalize an array (sum of elements = 1) and represent is in percent (*100).
+        """
+        self.diffusion_frequencies = self.create_np_array(np.shape(self.hist_log_Ds)[1], len(self.cell_trajectories_filtered))
+        for i in range (0, len(self.cell_trajectories_filtered)):
+            self.diffusion_frequencies[:,i] = self.hist_log_Ds[i][:,1]
+        self.mean_frequencies = self.calc_mean_frequencies(self.diffusion_frequencies)
+        
+        self.normalization_factor = 100/np.sum(self.mean_frequencies)
+        self.mean_frequencies = self.mean_frequencies * self.normalization_factor
+        
+    def calc_mean_error(self):
+        """
+        Standard deviation (N-1) divided by square root of number of elements.
+        Normalize an array (sum of elements = 1) and represent is in percent (*100).
+        """
+        self.mean_error =  np.std(self.diffusion_frequencies, axis=1, ddof=1)/(np.shape(self.diffusion_frequencies)[1])**(1/2) 
+        self.mean_error = self.mean_error * self.normalization_factor 
+        
+    def plot_bar_log_bins(self):
+        plt.subplot(111, xscale="log")
+        (_, caps, _) = plt.errorbar(self.hist_diffusion, self.mean_frequencies, yerr=self.mean_error, capsize=4, label="relative frequency")  # capsize length of cap
+        for cap in caps:
+            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+        plt.xlim(self.min_D, self.max_D)
+        plt.legend()
+        plt.title("Distribution of diffusion coefficients")
+        plt.ylabel("normalized relative occurence [%]")
+        plt.xlabel("D [\u03BCm\u00b2/s]")
+        plt.show() 
+
+    def calc_mean_frequencies(self, np_array):
+        """
+        Determine mean value over the horizonal entries of an np.array.
+        -> [2,2][6,4] = [4,3].
+        :param np_array: Np array to build mean over.
+        """
+        #mean_frequencies = np.zeros(np.size(self.hist_log_Ds[0]))
+        mean_frequencies = np_array.mean(axis=1)
+        return mean_frequencies
+            
+    def create_np_array(self, length, columns=1):
+        """
+        :param length: number of np arrays.
+        :param columns: amount of entries in a numpy array.
+        :return: return a numpy array.
+        """
+        np_array = np.zeros((length,columns))
+        return np_array        
+    
+    # Save
+    
     def save_diff(self, trajectories):
         """
         diffusion info: col0 = id, col1= D, col2 = dD, col3 = MSD(0), col4 = chi2, col5 = length

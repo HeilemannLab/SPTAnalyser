@@ -43,6 +43,9 @@ class WidgetTrackAnalysis():
         self.drop_down_trajectories = self.create_drop_down_trajectories()
         self.plot_button = self.create_plot_button()
         self.save_button = self.create_save_button()
+        # Plot diffusion histogram
+        self.bin_size_box = self.create_bin_size_box()
+        self.plot_diff_button = self.create_plot_diff_button()
    
     def searchSubFolders(self, dirName):
         if (dirName):
@@ -243,20 +246,30 @@ class WidgetTrackAnalysis():
     def warning_trc_file(self):
         print("No *.trc files were loaded.")
         
-    def create_plot_diff_button(self):
-        button = widgets.Button(
-                description="plot",
-                disabled=False,
-                button_style="",
-                tooltip = "plot diffusion histogram")
-        return button
-        
     def create_save_button(self):
         button = widgets.Button(
                 description="save",
                 disabled=False,
                 button_style="",
                 tooltip = "save entire analysis")
+        return button
+    
+    # Plot diffusion histogram
+    
+    def create_bin_size_box(self, val = "0.1" , desc = "bin size"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+        """
+        Box for inserting the bin size for log10(D) histogram.
+        """
+        style = {'description_width': 'initial'}  # display too long desc
+        text = widgets.Text(value=str(val), placeholder='size for log10(D) histogram', description=str(desc), disabled=False, style = style)
+        return text
+    
+    def create_plot_diff_button(self):
+        button = widgets.Button(
+                description="plot",
+                disabled=False,
+                button_style="",
+                tooltip = "plot diffusion histogram")
         return button
 
 

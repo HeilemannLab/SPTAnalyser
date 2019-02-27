@@ -63,6 +63,49 @@ class LoadHdf5():
         self.file_names.append(file_name01)
         self.file_names.append(file_name02)
         
+    def clear(self):
+        self.file_names = []  # coverslip.cell_files, list with full path file names in loading order
+        self.names = []  # cell.name, raw base name of file, has to be distributed to indiv cells
+        self.hdf5 = []  # list of xxx objects
+        self.trajectory_numbers = []  # amount of trajectories per cell
+        self.cell_numbers = 0  # amount of cells
+        self.cell_sizes = []  # list of cell sizes -> cell.size
+        self.tau_min_trajectory_lengths = []
+        self.pixel_sizes = []  # list of pixel sizes -> cell.pixel_size
+        self.pixel_amounts = []  # list of amount of pixel of detector -> cell.pixel_amount
+        self.dts = []  # integration times -> trajectory.dt
+        self.tau_thresholds = []  # -> trajectory.tau_threshold
+        self.fit_areas = []  # -> trajectory.fit_area
+        self.dofs = []  # -> trajectory.dof
+        self.D_mins = []  # -> trajectory.D_min
+        # diffusion infos
+        self.cells_lengths_trajectories = []  # 
+        self.cells_lengths_MSDs = []  # 
+        self.cells_trajectories_D = []  #trajectory.D
+        self.cells_trajectories_dD = []  # trajectory.dD
+        self.cells_trajectories_MSD0 = []  # trajectory.MSD_0
+        self.cells_trajectories_chi2_D = []  # trajectory.chi_D
+        self.cells_trajectories_number = []  # trajectory.trajectory_number
+        # rossier statistics
+        self.cells_trajectories_tau = []  # trajectory.tau
+        self.cells_trajectories_dtau = []  # trajectory.dtau
+        self.cells_trajectories_r = []  # traujectoty.r
+        self.cells_trajectories_dr = []  # trajectory.dr
+        self.cells_trajectories_Dconf = []  # trajectory.D_conf
+        self.cells_trajectories_chi2_rossier = []  # trajectory.dD_conf
+        self.cells_trajectories_analyse_successful = []  # trajectory.analyse_successful
+        self.cells_trajectories_type = []
+        #
+        self.cells_trajectories_MSD_fit = []  # trajectory.MSD_fit col0 = dt, col1 = MSD, col2 = fit, col3 = res 
+        self.cells_trajectories_MSD_D = []  # trajectory.MSD_D col0 = dt, col1 = MSD, col2 = fit, col3 = res of first 4 values
+        self.cells_trajectories_MSDs = []  # trajectory.MSDs
+        self.cells_trajectories_times = []  # trajectories.times
+        self.trc_files = []  # cell.trc_file
+        self.locs = []  # 
+        #
+        self.cells = []  # list of cell objects ->cover_slip.cells -> needs entire list
+        
+        
     def read_h5(self):
         for file_name in self.file_names:
             h5_file = h5py.File(file_name, "r")
@@ -83,7 +126,7 @@ class LoadHdf5():
         Number of cells that were loaded.
         """
         self.cell_numbers = len(self.hdf5)
-        
+               
     def get_cell_name(self):
         """
         From a list of paths create the raw base names list.

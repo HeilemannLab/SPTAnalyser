@@ -21,13 +21,20 @@ import math
 
 class WidgetLoadHdf5():
     def __init__(self):
-        self.data_set_dir = ""
-        self.file_names = []
+        # Load cell.h5 files
+        #self.data_set_dir = ""  # directory of cell file search
+        self.file_names = []  # list of file names for cell files
         self.suffix = ".h5"
         self.dir_button = self.create_dir_button()
         self.dir_box = self.create_dir_box()
-        self.dir_name = ""
-        self.init_button = self.create_init_button()
+        self.dir_name = ""  # input for directory
+        self.init_cells_button = self.create_init_cells_button()
+        # Load bg.h5 files
+        self.init_background_button = self.create_init_background_button()
+        self.dir_name_bg = ""  # directory of bg file search
+        self.dir_button_bg = self.create_dir_button_bg()
+        self.dir_box_bg = self.create_dir_box_bg()
+        self.file_names_bg = []  # list of file names for bg files
         self.chosen_cell = ""
         self.cell_options = []
         self.trajectory_options = []
@@ -48,17 +55,34 @@ class WidgetLoadHdf5():
         # Plot diffusion histogram
         self.bin_size_box = self.create_bin_size_box()
         
-    def search_sub_folders(self, dirName):
-        if (dirName):
-            self.data_set_dir = dirName
-            for root, dirs, files in os.walk(self.data_set_dir):
-                self.extend_list(root, files)
-                
-    def extend_list(self, root, files):
+    # Load cell files
+        
+# =============================================================================
+#     def search_sub_folders(self, dirName):
+#         if (dirName):
+#             self.data_set_dir = dirName
+#             for root, dirs, files in os.walk(self.data_set_dir):
+#                 self.extend_list(root, files)
+#                 
+#     def extend_list(self, root, files):
+#         for name in files:
+#             #if name.endswith(self.suffix) and "background" not in name:
+#             if name.endswith(self.suffix):
+#                 self.file_names.append(os.path.join(root, name))
+# =============================================================================
+    
+    def search_sub_folders(self, dir_name, is_cell=True):
+        if dir_name:
+            for root, dirs, files in os.walk(dir_name):
+                self.extend_list(root, files, is_cell)
+
+    def extend_list(self, root, files, is_cell=True):
         for name in files:
-            #if name.endswith(self.suffix) and "background" not in name:
             if name.endswith(self.suffix):
-                self.file_names.append(os.path.join(root, name))
+                if is_cell:
+                    self.file_names.append(os.path.join(root, name))
+                else:
+                    self.file_names_bg.append(os.path.join(root, name))
                 
     def create_dir_button(self):
         """
@@ -81,7 +105,7 @@ class WidgetLoadHdf5():
         root.destroy()
         self.dir_name = root.name
         self.dir_box.value=self.dir_name
-        self.got_dir = True
+        #self.got_dir = True
         
     def create_dir_box(self, val = "directory to be searched in", desc = "directory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
         """
@@ -93,9 +117,9 @@ class WidgetLoadHdf5():
     
     def change_dir_box(self, change):
         self.dir_name = self.dir_box.value  
-        self.got_dir = True
+        #self.got_dir = True
         
-    def create_init_button(self):
+    def create_init_cells_button(self):
         """
         Initialize objects
         """
@@ -106,7 +130,56 @@ class WidgetLoadHdf5():
                 tooltip='initialize objects')
                 #icon='check')
         return button    
-
+    
+    # Load bg.h5 files
+    
+    def create_dir_button_bg(self):
+        """
+        Button to load a directory as search platform.
+        """
+        button = widgets.Button(
+                description='browse',
+                disabled=False,
+                button_style='', # 'success', 'info', 'warning', 'danger' or ''
+                tooltip='browse for directory')
+                #icon='check')
+        return button    
+    
+    def open_dir_bg(self, b):
+        root = tk.Tk()
+        root.withdraw()
+        root.update()
+        root.name = fd.askdirectory(initialdir=os.getcwd(),title='Please select a directory') 
+        root.update()
+        root.destroy()
+        self.dir_name_bg = root.name
+        self.dir_box_bg.value = self.dir_name_bg
+        #self.got_dir_bg = True
+        
+    def create_dir_box_bg(self, val = "directory to be searched in", desc = "directory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+        """
+        Box for inserting the directory with description, alternative for dir loading button.
+        """
+        style = {'description_width': 'initial'}  # display too long desc
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text
+    
+    def change_dir_box_bg(self, change):
+        self.dir_name_bg = self.dir_box_bg.value  
+        #self.got_dir_bg = True
+    
+    def create_init_background_button(self):
+        """
+        Initialize objects
+        """
+        button = widgets.Button(
+                description='initialize',
+                disabled=False,
+                button_style='', # 'success', 'info', 'warning', 'danger' or ''
+                tooltip='initialize objects')
+                #icon='check')
+        return button  
+    
     def create_drop_down_cells(self):
         drop_down_cells = widgets.Dropdown(
                 options=self.cell_options,
