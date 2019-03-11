@@ -55,6 +55,8 @@ class WidgetLoadHdf5():
         self.plot_diffusions_button = self.create_plot_diffusions_button()
         # Plot diffusion histogram
         self.bin_size_box = self.create_bin_size_box()
+        # Save statistics
+        self.save_button = self.create_save_button()
         
     # Load cell files
         
@@ -323,4 +325,13 @@ class WidgetLoadHdf5():
         text = widgets.Text(value=str(val), placeholder='size for log10(D) histogram', description=str(desc), disabled=False, style = style)
         return text
     
+    # Save h5 statistics
+    
+    def create_save_button(self):
+        button = widgets.Button(
+                description="save",
+                disabled=False,
+                button_style="",
+                tooltip = "save statistics")
+        return button
     

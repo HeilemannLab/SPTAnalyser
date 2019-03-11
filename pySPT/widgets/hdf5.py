@@ -12,8 +12,6 @@ Class for creating a .h5 file for one cell.
 
 import numpy as np
 import h5py
-import tkinter as tk
-from tkinter import filedialog
 import os
 
 class Hdf5():

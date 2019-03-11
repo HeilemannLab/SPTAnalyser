@@ -94,7 +94,7 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
     print("BG:", cover_slip.backgrounds, cover_slip.background_files)
     print("cells:", cover_slip.cells, cover_slip.cell_files)
     
-def track_stats_widget_arrangement(widget11, widget21, widget31, widget41, widget51, widget12, widget22, widget32, widget42, widget52):
+def init_track_stats_widget_arrangement(widget11, widget21, widget31, widget41, widget51, widget12, widget22, widget32, widget42, widget52):
     """
     HBox are line arrangements, col/row
     return VBox with its inserted lines.
@@ -136,4 +136,29 @@ def init_save_track_analysis(h5, cover_slip, cell_index, track_analysis):
         rossier_info = track_analysis.rossier_info
         h5.data_rossier_info(track_analysis.number_of_trajectories, rossier_info[:,0],  rossier_info[:,1],  rossier_info[:,2],  rossier_info[:,3],  rossier_info[:,4],  rossier_info[:,5],  rossier_info[:,6],  rossier_info[:,7],  rossier_info[:,8],  rossier_info[:,9], rossier_info[:,10])
         
+def init_save_track_stats(h5_stats, track_stats):
     
+    h5_stats.create_h5("C:\\Users\\pcoffice37\\Documents\\testing_file_search\\track_stats_test")
+    
+# =============================================================================
+#     for cell_index in range(len(track_stats.cells)):
+#         h5_stats.cells(cell_index, track_stats.cells[cell_index].name, track_stats.cell_sizes[cell_index])
+# =============================================================================
+    cell_info = []  # name, size
+    for i in range(len(track_stats.cell_sizes)):
+        one_cell = (track_stats.cells[i].name, track_stats.cell_sizes[i])
+        cell_info.append(one_cell)
+    h5_stats.cells(cell_info)
+    
+    background_info = []
+    for i in range(len(track_stats.bg_sizes)):
+        one_bg = (track_stats.backgrounds[i].name, track_stats.bg_sizes[i])
+        background_info.append(one_bg)
+        
+    print(cell_info)
+    print(background_info)
+    h5_stats.backgrounds(background_info)
+    
+    
+
+        
