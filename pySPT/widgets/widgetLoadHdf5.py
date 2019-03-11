@@ -43,6 +43,7 @@ class WidgetLoadHdf5():
         self.plot_button = self.create_plot_button()
         self.filter_button = self.create_filter_button()
         self.min_length_box = self.create_min_length_box()
+        self.min_length = 0  
         self.max_length_box = self.create_max_length_box()
         self.min_D_box = self.create_min_D_box()
         self.max_D_box = self.create_max_D_box()
@@ -232,13 +233,20 @@ class WidgetLoadHdf5():
                 tooltip = "apply filter")
         return button
     
+# =============================================================================
+#     def change_min_length_box(self):
+#         self.min_length_box.value = self.min_length 
+#         print("change", self.min_length_box.value )
+#         #self.got_dir = True
+# =============================================================================
+    
     def create_min_length_box(self, val = "min length" , desc = "Trajectory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
         """
         Box for inserting the minimum length of a trajectory.
         """
         style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
-        return text
+        text_min = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text_min
     
     def create_max_length_box(self, val = "max length", desc = "Trajectory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
         """

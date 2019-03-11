@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 
 class TrajectoryStatistics():
     def __init__(self):
+        self.cells = []  # contains lists of cell objects
         self.cell_trajectories = [] # [[],[]] contains list of cells, cells contain trajectories
         self.cell_trajectories_filtered = []  # deep copy of original cell trajectories
         self.cell_trajectories_index = []
@@ -30,14 +31,27 @@ class TrajectoryStatistics():
         self.max_D = - math.inf
         self.total_trajectories = 0  # amount of trajectories in data set
         self.cell_sizes = []
-        self.bg_sizes = []
         self.hist_log_Ds = []  # histograms (logD vs freq) from all cells as np arrays in this list
         self.diffusion_frequencies = []  # only freq (divided by cell size) of cells
         self.hist_diffusion = []  # diffusions from histogram calculation, transformed back -> 10^-(log10(D))
         self.mean_frequencies = []  # mean frequencies, size corrected
         self.mean_error = []  # standard error of mean value
         self.normalization_factor = 0.0  # 100/sum of all mean frequencies
-                   
+        self.bg_sizes = []
+        self.tau_threshold_min_length = float(math.inf)  # from all cells, the min rossier length will be set as the default value
+                                        # for the filter setting trajectory min length
+        
+    def calc_min_rossier_length(self):
+        #self.tau_threshold_min_length = float(math.inf)
+        for cell in self.cells:
+            print("before cell", cell.tau_threshold_min_length, type(cell.tau_threshold_min_length))
+            print("before self", self.tau_threshold_min_length, type(self.tau_threshold_min_length))
+            if cell.tau_threshold_min_length < self.tau_threshold_min_length:
+                self.tau_threshold_min_length = cell.tau_threshold_min_length
+                print(type(self.tau_threshold_min_length))
+        self.tau_threshold_min_length = str(self.tau_threshold_min_length)
+        print(self.tau_threshold_min_length, type(self.tau_threshold_min_length))
+        
     def run_statistics(self, min_length, max_length, min_D, max_D, filter_immob, filter_confined,
                        filter_free, filter_analyse_successful, filter_analyse_not_successful):
         """

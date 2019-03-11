@@ -30,6 +30,7 @@ class Cell():
         self.dt = 0.0   # hand down to trajectory
         self.dof = 0.0  # hand down to trajectory
         self.D_min = 0.0  # hand down to trajectory
+        self.tau_threshold_min_length = 0.0 
         
     @staticmethod
     def analyse_trajectory(self, trajectory):

@@ -68,6 +68,7 @@ class CoverSlip():
             trc_file = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 4, 5))  # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = place holder (int), col 5 = intensity
             #self.trc_file = trc_file ????????????
             one_cell.trc_file = trc_file
+            one_cell.tau_threshold_min_length = self.tau_threshold_min_length
             one_cell.tau_threshold = float(self.tau_threshold)
             one_cell.dt = float(self.dt)
             one_cell.pixel_amount = float(self.pixel_amount)

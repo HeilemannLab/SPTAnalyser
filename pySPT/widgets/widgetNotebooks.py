@@ -21,6 +21,7 @@ from ..analysis import trajectory
 from ..analysis import trackAnalysis
 import time
 import numpy as np 
+from ipywidgets import HBox, VBox
 
 
 def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
@@ -50,6 +51,7 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
         one_cell.dt = load_hdf5.dts[cell_index]
         one_cell.dof = load_hdf5.dofs[cell_index]
         one_cell.D_min = load_hdf5.D_mins[cell_index]
+        one_cell.tau_threshold_min_length = load_hdf5.tau_min_trajectory_lengths[cell_index]
         for trajectory_index in range(0, load_hdf5.trajectory_numbers[cell_index]):
             one_trajectory = trajectory.Trajectory(load_hdf5.locs[cell_index][trajectory_index], one_cell.tau_threshold, one_cell.dt, one_cell.dof, one_cell.D_min)
             one_trajectory.trajectory_number = trajectory_index+1
@@ -92,6 +94,17 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
     print("BG:", cover_slip.backgrounds, cover_slip.background_files)
     print("cells:", cover_slip.cells, cover_slip.cell_files)
     
+def track_stats_widget_arrangement(widget11, widget21, widget31, widget41, widget51, widget12, widget22, widget32, widget42, widget52):
+    """
+    HBox are line arrangements, col/row
+    return VBox with its inserted lines.
+    """
+    first_line = HBox([widget11, widget12])
+    second_line = HBox([widget21, widget22])
+    third_line = HBox([widget31, widget32])
+    fourth_line = HBox([widget41, widget42])
+    fifth_line = HBox([widget51, widget52])
+    return VBox([first_line, second_line, third_line, fourth_line, fifth_line])
     
 def init_save_track_analysis(h5, cover_slip, cell_index, track_analysis):
         """
