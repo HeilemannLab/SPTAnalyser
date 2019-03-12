@@ -56,23 +56,12 @@ class WidgetLoadHdf5():
         # Plot diffusion histogram
         self.bin_size_box = self.create_bin_size_box()
         # Save statistics
+        self.save_dir_button = self.create_save_dir_button()
+        self.save_dir_box = self.create_save_dir_box()
+        self.save_name_box = self.create_save_raw_base_name_box()
+        self.dir_save = ""
+        self.filtered_dataset_checkbox = self.create_filtered_dataset_checkbox()
         self.save_button = self.create_save_button()
-        
-    # Load cell files
-        
-# =============================================================================
-#     def search_sub_folders(self, dirName):
-#         if (dirName):
-#             self.data_set_dir = dirName
-#             for root, dirs, files in os.walk(self.data_set_dir):
-#                 self.extend_list(root, files)
-#                 
-#     def extend_list(self, root, files):
-#         for name in files:
-#             #if name.endswith(self.suffix) and "background" not in name:
-#             if name.endswith(self.suffix):
-#                 self.file_names.append(os.path.join(root, name))
-# =============================================================================
     
     def search_sub_folders(self, dir_name, is_cell=True):
         if dir_name:
@@ -326,6 +315,53 @@ class WidgetLoadHdf5():
         return text
     
     # Save h5 statistics
+
+    def create_save_dir_button(self):
+        """
+        Button to select directory for saving statistics h5 file.
+        """
+        button = widgets.Button(
+                description='browse',
+                disabled=False,
+                button_style='', # 'success', 'info', 'warning', 'danger' or ''
+                tooltip='browse for directory')
+                #icon='check')
+        return button  
+    
+    def save_open_dir(self, b):
+        root = tk.Tk()
+        root.withdraw()
+        root.update()
+        root.name = fd.askdirectory(initialdir=os.getcwd(),title='Please select a directory') 
+        root.update()
+        root.destroy()
+        self.dir_save = root.name
+        self.save_dir_box.value=self.dir_save
+        
+    def create_save_dir_box(self, val = "directory for statistics file", desc = "directory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+        """
+        Box for inserting the directory with description, alternative for dir loading button.
+        """
+        style = {'description_width': 'initial'}  # display too long desc
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text
+    
+    def change_save_dir_box(self, change):
+        self.dir_save = self.save_dir_box.value   
+    
+    def create_save_raw_base_name_box(self, val = "statistics", desc = "file name"):
+        """
+        Box for inserting the raw base name for statistics h5 file.
+        """
+        style = {'description_width': 'initial'}  # display too long desc
+        text = widgets.Text(value=str(val), placeholder='name for statistics .h5 file', description=str(desc), disabled=False, style = style)
+        return text
+        
+    def create_filtered_dataset_checkbox(self):
+        checkbox = widgets.Checkbox(value=True,
+                         description='Save filtered dataset',
+                         disabled=False)
+        return checkbox
     
     def create_save_button(self):
         button = widgets.Button(
@@ -334,4 +370,8 @@ class WidgetLoadHdf5():
                 button_style="",
                 tooltip = "save statistics")
         return button
+    
+
+    
+    
     

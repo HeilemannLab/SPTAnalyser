@@ -91,8 +91,10 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
             cover_slip.background_files = load_hdf5.file_names
     print("Initialization took {} s".format(time.time()-start))
     
-    print("BG:", cover_slip.backgrounds, cover_slip.background_files)
-    print("cells:", cover_slip.cells, cover_slip.cell_files)
+# =============================================================================
+#     print("BG:", cover_slip.backgrounds, cover_slip.background_files)
+#     print("cells:", cover_slip.cells, cover_slip.cell_files)
+# =============================================================================
     
 def init_track_stats_widget_arrangement(widget11, widget21, widget31, widget41, widget51, widget12, widget22, widget32, widget42, widget52):
     """
@@ -107,58 +109,79 @@ def init_track_stats_widget_arrangement(widget11, widget21, widget31, widget41, 
     return VBox([first_line, second_line, third_line, fourth_line, fifth_line])
     
 def init_save_track_analysis(h5, cover_slip, cell_index, track_analysis):
-        """
-        JNB: track Analysis, saving.
-        :param: Objects created in JNB.
-        """
-        h5.create_h5(cover_slip.cell_files[cell_index])
+    """
+    JNB: track Analysis, saving.
+    :param: Objects created in JNB.
+    """        
+    h5.create_h5(cover_slip.cell_files[cell_index])
 
-        cell = cover_slip.cells[cell_index]
-        one_trajectory = cover_slip.cell_trajectories[cell_index][0]  # get trajectory attributes, that are the same for every trajectory
-        h5.data_settings(cell.dt, cell.pixel_size, cell.pixel_amount, cell.size, cell.tau_threshold, cover_slip.tau_threshold_min_length, one_trajectory.fit_area, cell.dof, cell.D_min)
+    cell = cover_slip.cells[cell_index]
+    one_trajectory = cover_slip.cell_trajectories[cell_index][0]  # get trajectory attributes, that are the same for every trajectory
+    h5.data_settings(cell.dt, cell.pixel_size, cell.pixel_amount, cell.size, cell.tau_threshold, cover_slip.tau_threshold_min_length, one_trajectory.fit_area, cell.dof, cell.D_min)
 
-        h5.trc(np.shape(cell.trc_file), cell.trc_file[:,0], cell.trc_file[:,1], cell.trc_file[:,2], cell.trc_file[:,3], cell.trc_file[:,4], cell.trc_file[:,5])
-        
-        for trajectory in cover_slip.cell_trajectories[cell_index]:
-            plot = track_analysis.save_plots(trajectory)
-            h5.data_diffusion_plots(plot[0], plot[1], plot[2], plot[3], plot[4])
-        for trajectory in cover_slip.cell_trajectories[cell_index]:
-            plot = track_analysis.save_plots(trajectory)
-            h5.data_rossier_plots(plot[0], plot[5], plot[6], plot[7], plot[8])
-        for trajectory in cover_slip.cell_trajectories[cell_index]:
-            h5.msd(trajectory.trajectory_number, trajectory.times, trajectory.MSDs)
-        
-        track_analysis.save_diff(cover_slip.cell_trajectories[cell_index])
-        diff_info = track_analysis.diffusion_info
-        h5.data_diffusion_info(track_analysis.number_of_trajectories, diff_info[:,0], diff_info[:,1], diff_info[:,2], diff_info[:,3], diff_info[:,4], diff_info[:,5])
-
-        track_analysis.save_rossier(cover_slip.cell_trajectories[cell_index])
-        rossier_info = track_analysis.rossier_info
-        h5.data_rossier_info(track_analysis.number_of_trajectories, rossier_info[:,0],  rossier_info[:,1],  rossier_info[:,2],  rossier_info[:,3],  rossier_info[:,4],  rossier_info[:,5],  rossier_info[:,6],  rossier_info[:,7],  rossier_info[:,8],  rossier_info[:,9], rossier_info[:,10])
-        
-def init_save_track_stats(h5_stats, track_stats):
+    h5.trc(np.shape(cell.trc_file), cell.trc_file[:,0], cell.trc_file[:,1], cell.trc_file[:,2], cell.trc_file[:,3], cell.trc_file[:,4], cell.trc_file[:,5])
     
-    h5_stats.create_h5("C:\\Users\\pcoffice37\\Documents\\testing_file_search\\track_stats_test")
+    for trajectory in cover_slip.cell_trajectories[cell_index]:
+        plot = track_analysis.save_plots(trajectory)
+        h5.data_diffusion_plots(plot[0], plot[1], plot[2], plot[3], plot[4])
+    for trajectory in cover_slip.cell_trajectories[cell_index]:
+        plot = track_analysis.save_plots(trajectory)
+        h5.data_rossier_plots(plot[0], plot[5], plot[6], plot[7], plot[8])
+    for trajectory in cover_slip.cell_trajectories[cell_index]:
+        h5.msd(trajectory.trajectory_number, trajectory.times, trajectory.MSDs)
     
-# =============================================================================
-#     for cell_index in range(len(track_stats.cells)):
-#         h5_stats.cells(cell_index, track_stats.cells[cell_index].name, track_stats.cell_sizes[cell_index])
-# =============================================================================
+    track_analysis.save_diff(cover_slip.cell_trajectories[cell_index])
+    diff_info = track_analysis.diffusion_info
+    h5.data_diffusion_info(track_analysis.number_of_trajectories, diff_info[:,0], diff_info[:,1], diff_info[:,2], diff_info[:,3], diff_info[:,4], diff_info[:,5])
+
+    track_analysis.save_rossier(cover_slip.cell_trajectories[cell_index])
+    rossier_info = track_analysis.rossier_info
+    h5.data_rossier_info(track_analysis.number_of_trajectories, rossier_info[:,0],  rossier_info[:,1],  rossier_info[:,2],  rossier_info[:,3],  rossier_info[:,4],  rossier_info[:,5],  rossier_info[:,6],  rossier_info[:,7],  rossier_info[:,8],  rossier_info[:,9], rossier_info[:,10])
+    
+def init_save_track_stats(h5_stats, track_stats, path, name):
+    """
+    :param path: head path for statistics h5 file.
+    :param name: raw base name for statistics h5 file.
+    """
+    h5_stats.create_h5(path + "\\" + name)
+    
+    h5_stats.filter_info(track_stats.filter_settings)
+    
+    h5_stats.filter_statistics(track_stats.get_min_length(), track_stats.get_max_length(), track_stats.get_min_D(),
+                         track_stats.get_max_D(), track_stats.type_percentage()[0], track_stats.type_percentage()[1],
+                         track_stats.type_percentage()[2], track_stats.total_trajectories, track_stats.bin_size)
+    
+    # cell files are always loaded
+    for cell in track_stats.cells:
+        cell_name = cell.name
+        cell_index = track_stats.cells.index(cell)
+        h5_stats.cell_counts(cell_name, len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.diffusion_frequencies[:,cell_index])
     cell_info = []  # name, size
     for i in range(len(track_stats.cell_sizes)):
         one_cell = (track_stats.cells[i].name, track_stats.cell_sizes[i])
         cell_info.append(one_cell)
     h5_stats.cells(cell_info)
-    
-    background_info = []
-    for i in range(len(track_stats.bg_sizes)):
-        one_bg = (track_stats.backgrounds[i].name, track_stats.bg_sizes[i])
-        background_info.append(one_bg)
+    # if no bg file was loaded only mean cell frequencies are determined
+    if not track_stats.background_trajectories:
+        h5_stats.diffusion_plot(len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.mean_frequencies,
+                                   track_stats.mean_error)
+    # if background files were loaded    
+    if track_stats.background_trajectories:
+        h5_stats.diffusion_plot_bg(len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.mean_frequencies,
+                                   track_stats.mean_error, track_stats.mean_frequencies_bg, track_stats.mean_error_bg,
+                                   track_stats.corrected_frequencies, track_stats.corrected_frequencies_error)        
+        for bg in track_stats.backgrounds:
+            bg_name = bg.name
+            bg_index = track_stats.backgrounds.index(bg)
+            h5_stats.bg_counts(bg_name, len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.diffusion_frequencies_bg[:,bg_index])
+        background_info = []
+        for i in range(len(track_stats.bg_sizes)):
+            one_bg = (track_stats.backgrounds[i].name, track_stats.bg_sizes[i])
+            background_info.append(one_bg)
+        h5_stats.backgrounds(background_info)
         
-    print(cell_info)
-    print(background_info)
-    h5_stats.backgrounds(background_info)
-    
+        
+
     
 
         

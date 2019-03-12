@@ -29,8 +29,10 @@ class TrajectoryStatistics():
         self.background_trajectories_filtered = []  # deep copy of original cell trajectories
         self.background_trajectories_index = []
         self.background_trajectories_filtered_index = []  # deep copy of original cell trajectories index
+        self.filter_settings = []  # list with boolean values for immob, confined, free, analyse success, not success
         self.min_D = math.inf
         self.max_D = - math.inf
+        self.bin_size = 0.1  # bin size for freq vs D plot
         self.total_trajectories = 0  # amount of trajectories in data set
         self.cell_sizes = []  # filled by jnb -> cell.size for cell in cover_slip.cells
         self.bg_sizes = []  # filled by jnb -> background.size for bg in cover_slip.bg
@@ -69,6 +71,7 @@ class TrajectoryStatistics():
         """
         self.get_index()
         self.create_init_filter_lst()
+        self.filter_settings = [filter_immob, filter_confined, filter_free, filter_analyse_successful, filter_analyse_not_successful]
         try:
             max_length = int(max_length)
             print("max trajectory length:", max_length)
@@ -95,6 +98,7 @@ class TrajectoryStatistics():
             print("min diffusion coefficient: {} [\u03BCm\u00b2/s]".format(min_D))
         self.filter_length(min_length, max_length)
         self.filter_D(min_D, max_D)
+        self.filter_immob = filter_immob
         self.filter_type(filter_immob, filter_confined, filter_free,
                          filter_analyse_successful, filter_analyse_not_successful)
         if filter_analyse_successful and not filter_analyse_not_successful:
@@ -322,19 +326,23 @@ class TrajectoryStatistics():
     
     # plot diffusion vs frequencies.
     
-    def run_plot_diffusion_histogram(self, desired_bin_size):
+    def run_plot_diffusion_histogram(self, desired_bin_size, plot=True):
         self.clear_attributes()
+        self.bin_size = desired_bin_size
         self.determine_max_min_diffusion()
         self.diffusions_log(float(desired_bin_size))
-        self.diffusions_log_bg(float(desired_bin_size))
         self.calc_nonlogarithmic_diffusions()
         self.determine_mean_frequency()
-        self.determine_mean_frequency(is_cell=False)
         self.calc_mean_error()
-        self.calc_mean_error(is_cell=False)
-        self.calc_bg_corrected_freq()
-        self.plot_bar_log_bins()
-        self.plot_bar_log_bins_bg_corrected()
+        if self.background_trajectories:
+            self.diffusions_log_bg(float(desired_bin_size))
+            self.determine_mean_frequency(is_cell=False)
+            self.calc_mean_error(is_cell=False)
+            self.calc_bg_corrected_freq()
+        if plot:
+            self.plot_bar_log_bins()
+            if self.background_trajectories:
+                self.plot_bar_log_bins_bg_corrected()
         
     def clear_attributes(self):
         """
