@@ -296,6 +296,9 @@ class TrackAnalysis():
                 self.rossier_info[i,10] = trajectory.chi_MSD_fit
             # if analysis was not successful -> output is 0 by default
             elif not trajectory.analyse_successful and not trajectory.immobility:
+                self.rossier_info[i,1] = trajectory.immobility
+                self.rossier_info[i,2] = False
+                self.rossier_info[i,3] = False
                 self.rossier_info[i,4] = trajectory.analyse_successful
                 self.rossier_info[i,5] = 0
                 self.rossier_info[i,6] = 0

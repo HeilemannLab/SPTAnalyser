@@ -286,13 +286,13 @@ class WidgetLoadHdf5():
     
     def create_analyse_successful_check_box(self):
         checkbox = widgets.Checkbox(value=True,
-                         description='Analyse successful',
+                         description='Type determination successful',
                          disabled=False)
         return checkbox
 
     def create_analyse_not_successful_check_box(self):
         checkbox = widgets.Checkbox(value=True,
-                         description='Analyse not successful',
+                         description='Type determination not successful',
                          disabled=False)
         return checkbox
     

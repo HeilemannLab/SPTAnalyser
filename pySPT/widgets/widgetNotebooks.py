@@ -161,7 +161,8 @@ def init_save_filtered_analysis(h5_filtered, cover_slip, cell_index, track_stats
     for trajectory in track_stats.cell_trajectories_filtered[cell_index]:
         h5_filtered.msd(trajectory.trajectory_number, trajectory.times, trajectory.MSDs)
         
-    h5_filtered.filter_info(track_stats.filter_settings)
+    h5_filtered.filter_info(track_stats.filter_settings, track_stats.get_min_length(), track_stats.get_max_length(), track_stats.get_min_D(),
+                         track_stats.get_max_D())
     
     track_analysis.save_diff(track_stats.cell_trajectories_filtered[cell_index])
     diff_info = track_analysis.diffusion_info
@@ -171,8 +172,6 @@ def init_save_filtered_analysis(h5_filtered, cover_slip, cell_index, track_stats
     rossier_info = track_analysis.rossier_info
     h5_filtered.data_rossier_info(track_analysis.number_of_trajectories, rossier_info[:,0],  rossier_info[:,1],  rossier_info[:,2],  rossier_info[:,3],  rossier_info[:,4],  rossier_info[:,5],  rossier_info[:,6],  rossier_info[:,7],  rossier_info[:,8],  rossier_info[:,9], rossier_info[:,10])
     
-
-    
 def init_save_track_stats(h5_stats, track_stats, path, name):
     """
     JNB Track Statistics, create h5 file for all statistics.
@@ -181,11 +180,13 @@ def init_save_track_stats(h5_stats, track_stats, path, name):
     """
     h5_stats.create_h5(path + "\\" + name)
     
-    h5_stats.filter_info(track_stats.filter_settings)
+    h5_stats.filter_info(track_stats.filter_settings, track_stats.get_min_length(), track_stats.get_max_length(), track_stats.get_min_D(),
+                         track_stats.get_max_D())
     
-    h5_stats.filter_statistics(track_stats.get_min_length(), track_stats.get_max_length(), track_stats.get_min_D(),
-                         track_stats.get_max_D(), track_stats.type_percentage()[0], track_stats.type_percentage()[1],
-                         track_stats.type_percentage()[2], track_stats.total_trajectories, track_stats.bin_size)
+    h5_stats.statistics(track_stats.type_percentage()[0], track_stats.type_percentage()[1],
+                         track_stats.type_percentage()[2], track_stats.total_trajectories_filtered, (track_stats.total_trajectories - track_stats.total_trajectories_filtered))
+    
+    h5_stats.diffusion_bin_size(track_stats.bin_size)
     
     # cell files are always loaded
     for cell in track_stats.cells:
@@ -196,7 +197,7 @@ def init_save_track_stats(h5_stats, track_stats, path, name):
     for i in range(len(track_stats.cell_sizes)):
         one_cell = (track_stats.cells[i].name, track_stats.cell_sizes[i])
         cell_info.append(one_cell)
-    h5_stats.cells(cell_info)
+    
     # if no bg file was loaded only mean cell frequencies are determined
     if not track_stats.background_trajectories:
         h5_stats.diffusion_plot(len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.mean_frequencies,
@@ -215,6 +216,8 @@ def init_save_track_stats(h5_stats, track_stats, path, name):
             one_bg = (track_stats.backgrounds[i].name, track_stats.bg_sizes[i])
             background_info.append(one_bg)
         h5_stats.backgrounds(background_info)
+        
+    h5_stats.cells(cell_info)
         
         
     

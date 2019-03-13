@@ -47,33 +47,34 @@ class SaveFiltered():
         self.subgrp03 = self.grp03.create_group("rossierPlots")
         self.grp04 = self.h5_file.create_group("settings")
         self.grp05 = self.h5_file.create_group("filterInfo")
+        self.grp06 = self.h5_file.create_group("statistics")
         
-    def filter_info(self, filter_settings):
+    def filter_info(self, filter_settings, min_length, max_length, min_diff, max_diff):
         dset = self.grp05.create_dataset("filters", (1,1), dtype = np.dtype([("filter immobile", int),
                                                          ("filter confined", int),
                                                          ("filter free", int),
                                                          ("filter analyse successful", int),
-                                                         ("filter analyse not successful", int)]))
+                                                         ("filter analyse not successful", int),
+                                                         ("min trajectory length [frames]", int),
+                                                        ("max trajectory length [frames]", int),
+                                                        ("min diffusion coefficient [\u03BCm\u00b2/s]", float),
+                                                         ("max diffusion coefficient [\u03BCm\u00b2/s]", float)]))
         dset["filter immobile"] = filter_settings[0]
         dset["filter confined"] = filter_settings[1]
         dset["filter free"] = filter_settings[2]
         dset["filter analyse successful"] = filter_settings[3]
         dset["filter analyse not successful"] = filter_settings[4]
-
-    def filter_statistics(self, min_length, max_length, min_diff, max_diff, immobile, confined, free, total_trajectories):
-        dset = self.grp05.create_dataset("statistics", (1,1), dtype = np.dtype([("min trajectory length [frames]", int),
-                                                        ("max trajectory length [frames]", int),
-                                                        ("min diffusion coefficient [\u03BCm\u00b2/s]", float),
-                                                         ("max diffusion coefficient [\u03BCm\u00b2/s]", float),
-                                                         ("immobile [%]", float),
-                                                         ("confined [%]", float),
-                                                         ("free [%]", float),
-                                                         ("total trajectories", int),
-                                                         ("bin size", float)]))
         dset["min trajectory length [frames]"] = min_length
         dset["max trajectory length [frames]"] = max_length
         dset["min diffusion coefficient [\u03BCm\u00b2/s]"] = min_diff
         dset["max diffusion coefficient [\u03BCm\u00b2/s]"] = max_diff
+
+    def statistics(self, immobile, confined, free, total_trajectories):
+        dset = self.grp06.create_dataset("statistics", (1,1), dtype = np.dtype([("immobile [%]", float),
+                                                         ("confined [%]", float),
+                                                         ("free [%]", float),
+                                                         ("total trajectories", int)]))
+
         dset["immobile [%]"] = immobile
         dset["confined [%]"] = confined
         dset["free [%]"] = free

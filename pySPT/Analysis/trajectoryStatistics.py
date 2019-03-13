@@ -35,6 +35,10 @@ class TrajectoryStatistics():
         self.max_D = - math.inf
         self.bin_size = 0.1  # bin size for freq vs D plot
         self.total_trajectories = 0  # amount of trajectories in data set
+        self.total_trajectories_cell = []  # list with amount of total trajectories per cell 
+        self.total_trajectories_filtered = 0  # amount of trajectories in data set after filter
+        self.total_trajectories_filtered_cell = []  # list with amount of total trajectories per cell after filter
+        self.cell_type_count = []  # tupels with (immobile, confined, free %) for each cell
         self.cell_sizes = []  # filled by jnb -> cell.size for cell in cover_slip.cells
         self.bg_sizes = []  # filled by jnb -> background.size for bg in cover_slip.bg
         self.hist_log_Ds = []  # histograms (logD vs freq) from all cells as np arrays in this list
@@ -64,14 +68,26 @@ class TrajectoryStatistics():
         self.tau_threshold_min_length = str(self.tau_threshold_min_length)
         print(self.tau_threshold_min_length, type(self.tau_threshold_min_length))
         
+    def default_statistics(self):
+        self.cell_trajectories_filtered = []  # deep copy of original cell trajectories
+        self.cell_trajectories_index = []
+        self.cell_trajectories_filtered_index = []  # deep copy of original cell trajectories index
+        self.background_trajectories_index = []
+        self.background_trajectories_filtered = []  # deep copy of original cell trajectories
+        self.background_trajectories_filtered_index = []  # deep copy of original cell trajectories index
+        self.total_trajectories = 0  # amount of trajectories in data set
+        self.total_trajectories_cell = []  # list with amount of total trajectories per cell 
+        
     def run_statistics(self, min_length, max_length, min_D, max_D, filter_immob, filter_confined,
                        filter_free, filter_analyse_successful, filter_analyse_not_successful):
         """
         Initialize filtered lists, filter functions and percentage function.
         """
+        self.default_statistics()
         self.get_index()
         self.create_init_filter_lst()
         self.filter_settings = [filter_immob, filter_confined, filter_free, filter_analyse_successful, filter_analyse_not_successful]
+        self.calc_amount_trajectories()
         try:
             max_length = int(max_length)
             print("max trajectory length:", max_length)
@@ -102,16 +118,21 @@ class TrajectoryStatistics():
         self.filter_type(filter_immob, filter_confined, filter_free,
                          filter_analyse_successful, filter_analyse_not_successful)
         self.filter_cell_trc()
+
         if filter_analyse_successful and not filter_analyse_not_successful:
-            print("Filter for analyse successful only.")
+            print("Filter for type determination successful only.")
         elif filter_analyse_not_successful and not filter_analyse_successful:
-            print("Filter for analyse not successful only.")
+            print("Filter for type determination not successful only.")
         print("%.1f %% are immobile" %(self.type_percentage()[0]))
         print("%.1f %% are confined" %(self.type_percentage()[1]))
         print("%.1f %% are free" %(self.type_percentage()[2]))        
-        if self.type_percentage()[0] + self.type_percentage()[1] + self.type_percentage()[2] == 0:
+        if self.total_trajectories_filtered == 0:
             print("The selection excludes all data.")
-        print("Total trajectories:", self.total_trajectories)
+        print("Trajectories included:", self.total_trajectories_filtered)
+        print("Trajectories excluded:", self.total_trajectories - self.total_trajectories_filtered)
+        print("cell types %", self.cell_type_count)
+        print("cell count", self.total_trajectories_filtered_cell)
+        print("index", self.cell_trajectories_filtered_index)
                 
     def create_init_filter_lst(self):
         """
@@ -204,7 +225,7 @@ class TrajectoryStatistics():
             self.cell_trajectories_filtered_index[cell][trajectory_index+1:] 
         
     def filter_type(self, filter_immob, filter_confined, filter_free,
-                    filter_analyse_successful, filter_analyse_not_successful):
+                    filter_type_successful, filter_type_not_successful):
         """
         :param filter_immob: if checked in JNB -> True -> filter data includes immob trajectories, else False -> will be neglected.
         """
@@ -225,15 +246,15 @@ class TrajectoryStatistics():
                 for trajectory in self.cell_trajectories_filtered[cell]:
                     if not trajectory.confined and not trajectory.immobility:
                         self.crop_lst(cell, trajectory)
-        if not filter_analyse_successful:
+        if not filter_type_successful:  # only without successful type det -> immob False & analyse success False
             for cell in range(0, len(self.cell_trajectories_filtered)):
                 for trajectory in self.cell_trajectories_filtered[cell]:
-                    if trajectory.analyse_successful:
+                    if trajectory.analyse_successful or trajectory.immobility:  # -> crop immob true or analyse successful true
                         self.crop_lst(cell, trajectory)
-        if not filter_analyse_not_successful:
+        if not filter_type_not_successful:  # only with successful type det -> immob = True or analyse successful
             for cell in range(0, len(self.cell_trajectories_filtered)):
                 for trajectory in self.cell_trajectories_filtered[cell]:
-                    if not trajectory.analyse_successful:
+                    if not trajectory.analyse_successful and not trajectory.immobility:  # -> crop analyse success false; immobility false
                         self.crop_lst(cell, trajectory)
         
         if self.background_trajectories_filtered:
@@ -253,15 +274,15 @@ class TrajectoryStatistics():
                     for trajectory in self.background_trajectories_filtered[background]:
                         if not trajectory.confined and not trajectory.immobility:
                             self.crop_lst(background, trajectory, is_cell=False)
-            if not filter_analyse_successful:
+            if not filter_type_successful:
                 for background in range(0, len(self.background_trajectories_filtered)):
                     for trajectory in self.background_trajectories_filtered[background]:
-                        if trajectory.analyse_successful:
+                        if trajectory.analyse_successful or trajectory.immobility:
                             self.crop_lst(background, trajectory, is_cell=False)
-            if not filter_analyse_not_successful:
+            if not filter_type_not_successful:
                 for background in range(0, len(self.background_trajectories_filtered)):
                     for trajectory in self.background_trajectories_filtered[background]:
-                        if not trajectory.analyse_successful:
+                        if not trajectory.analyse_successful and not trajectory.immobility:
                             self.crop_lst(background, trajectory, is_cell=False)
     
     def get_max_D(self):
@@ -291,6 +312,46 @@ class TrajectoryStatistics():
                     if trajectory.D < min_D or trajectory.D > max_D:
                         self.crop_lst(background, trajectory, is_cell=False)
         
+# =============================================================================
+#     def type_percentage(self):
+#         """
+#         (immob/confined -> true/false=immob, false/true=conf, false/false=free)
+#         Calculate percentage of immobile free and confined based on total number of trajectories in all cells.
+#         If no trajectory exists (total_trajectories = 0) percentages will be set to zero, no calculation will be made.
+#         """
+#         data_selected = True
+#         self.total_trajectories = 0
+#         for cell_index in range(0, len(self.cell_trajectories_filtered)):
+#             self.total_trajectories += len(self.cell_trajectories_filtered[cell_index])
+#         if self.total_trajectories == 0:
+#             data_selected = False
+#         if data_selected:
+#             count_immobile = 0
+#             count_confined = 0
+#             count_free = 0
+#             for cell in self.cell_trajectories_filtered:
+#                 for trajectory in cell:
+#                     if trajectory.immobility and not trajectory.confined:
+#                         count_immobile += 1
+#                     if trajectory.confined and not trajectory.immobility:
+#                         count_confined += 1
+#                     # has to be not confined AND not immobile (otherwise it will count the immobile particles as well)
+#                     if not trajectory.confined and not trajectory.immobility:
+#                         count_free +=1
+#             ratio_immobile = count_immobile/self.total_trajectories*100
+#             ratio_confined = count_confined/self.total_trajectories*100
+#             ratio_free = count_free/self.total_trajectories*100
+#         else:
+#             ratio_immobile = 0
+#             ratio_confined = 0
+#             ratio_free = 0
+#         return ratio_immobile, ratio_confined, ratio_free
+# =============================================================================
+    def calc_amount_trajectories(self):
+        for cell_index in range(0, len(self.cell_trajectories)):
+            self.total_trajectories_cell.append(len(self.cell_trajectories[cell_index]))
+        self.total_trajectories = np.sum(self.total_trajectories_cell)
+        
     def type_percentage(self):
         """
         (immob/confined -> true/false=immob, false/true=conf, false/false=free)
@@ -298,27 +359,42 @@ class TrajectoryStatistics():
         If no trajectory exists (total_trajectories = 0) percentages will be set to zero, no calculation will be made.
         """
         data_selected = True
-        self.total_trajectories = 0
+        self.total_trajectories_filtered = 0
+        self.total_trajectories_filtered_cell = []
+        self.cell_type_count = []
         for cell_index in range(0, len(self.cell_trajectories_filtered)):
-            self.total_trajectories += len(self.cell_trajectories_filtered[cell_index])
-        if self.total_trajectories == 0:
+            self.total_trajectories_filtered_cell.append(len(self.cell_trajectories_filtered[cell_index]))
+        self.total_trajectories_filtered = np.sum(self.total_trajectories_filtered_cell)
+        if self.total_trajectories_filtered == 0:
             data_selected = False
         if data_selected:
             count_immobile = 0
             count_confined = 0
             count_free = 0
             for cell in self.cell_trajectories_filtered:
+                count_immobile_cell = 0
+                count_confined_cell = 0
+                count_free_cell = 0
                 for trajectory in cell:
-                    if trajectory.immobility and not trajectory.confined:
+                    if trajectory.immobility and not trajectory.confined and not trajectory.analyse_successful:
+                        count_immobile_cell += 1
                         count_immobile += 1
-                    if trajectory.confined and not trajectory.immobility:
+                    if trajectory.confined and not trajectory.immobility and trajectory.analyse_successful:
+                        count_confined_cell += 1
                         count_confined += 1
                     # has to be not confined AND not immobile (otherwise it will count the immobile particles as well)
-                    if not trajectory.confined and not trajectory.immobility:
+                    if not trajectory.confined and not trajectory.immobility and trajectory.analyse_successful:
+                        count_free_cell += 1
                         count_free +=1
-            ratio_immobile = count_immobile/self.total_trajectories*100
-            ratio_confined = count_confined/self.total_trajectories*100
-            ratio_free = count_free/self.total_trajectories*100
+                cell_index = self.cell_trajectories_filtered.index(cell)
+                ratio_immobile_cell = count_immobile_cell/self.total_trajectories_filtered_cell[cell_index]*100
+                ratio_confined_cell = count_confined_cell/self.total_trajectories_filtered_cell[cell_index]*100
+                ratio_free_cell = count_free_cell/self.total_trajectories_filtered_cell[cell_index]*100
+                cell_types_percent = (ratio_immobile_cell, ratio_confined_cell, ratio_free_cell)
+                self.cell_type_count.append(cell_types_percent)
+            ratio_immobile = count_immobile/self.total_trajectories_filtered*100
+            ratio_confined = count_confined/self.total_trajectories_filtered*100
+            ratio_free = count_free/self.total_trajectories_filtered*100
         else:
             ratio_immobile = 0
             ratio_confined = 0

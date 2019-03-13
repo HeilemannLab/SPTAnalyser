@@ -113,7 +113,7 @@ class Hdf5():
         dset = self.grp03.create_dataset("rossierStatistics", (number,), dtype = np.dtype([("trajectory id", int),
                                                            ("type immobile", int),
                                                            ("type confined", int),("type free", int),
-                                                           ("analyse succesful", int),
+                                                           ("rossier analyse successful", int),
                                                            ("tau [s]", float),
                                                            ("\u0394 tau [s]", float),
                                                            ("r [\u03BCm]", float),
@@ -124,7 +124,7 @@ class Hdf5():
         dset["type immobile"] = type_immobile
         dset["type confined"] = type_confined
         dset["type free"] = type_free
-        dset["analyse succesful"] = analyse_success
+        dset["rossier analyse successful"] = analyse_success
         dset["tau [s]"] = tau
         dset["\u0394 tau [s]"] = dtau
         dset["r [\u03BCm]"] = r
