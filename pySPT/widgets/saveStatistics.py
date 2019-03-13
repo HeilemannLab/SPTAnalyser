@@ -46,6 +46,7 @@ class SaveStatistics():
         self.grp03 = self.h5_file.create_group("backgroundCounts")
         self.grp04 = self.h5_file.create_group("filterInfo")
         self.grp05 = self.h5_file.create_group("diffusionHistogram")
+        self.grp06 = self.h5_file.create_group("statistics")
         
     def cells(self, data):
         my_datatype = np.dtype([("cell name", h5py.special_dtype(vlen=str)),

@@ -98,6 +98,7 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
     
 def init_track_stats_widget_arrangement(widget11, widget21, widget31, widget41, widget51, widget12, widget22, widget32, widget42, widget52):
     """
+    JNB Track Statistics.
     HBox are line arrangements, col/row
     return VBox with its inserted lines.
     """
@@ -138,8 +139,43 @@ def init_save_track_analysis(h5, cover_slip, cell_index, track_analysis):
     rossier_info = track_analysis.rossier_info
     h5.data_rossier_info(track_analysis.number_of_trajectories, rossier_info[:,0],  rossier_info[:,1],  rossier_info[:,2],  rossier_info[:,3],  rossier_info[:,4],  rossier_info[:,5],  rossier_info[:,6],  rossier_info[:,7],  rossier_info[:,8],  rossier_info[:,9], rossier_info[:,10])
     
+def init_save_filtered_analysis(h5_filtered, cover_slip, cell_index, track_stats, path):
+    """
+    JNB Track Statistics, create filtered h5 files for cells that are not excluded by filters.
+    """
+    track_analysis = trackAnalysis.TrackAnalysis()
+    cell_name = track_stats.cells[cell_index].name
+    h5_filtered.create_h5(path + "\\" + cell_name)
+    cell = track_stats.cells[cell_index]
+    one_trajectory = track_stats.cell_trajectories_filtered[cell_index][0]  # get trajectory attributes, that are the same for every trajectory
+    h5_filtered.data_settings(cell.dt, cell.pixel_size, cell.pixel_amount, cell.size, cell.tau_threshold, cover_slip.tau_threshold_min_length, one_trajectory.fit_area, cell.dof, cell.D_min)
+    
+    h5_filtered.trc(np.shape(track_stats.filtered_trc_files[cell_index]), track_stats.filtered_trc_files[cell_index][:,0], track_stats.filtered_trc_files[cell_index][:,1], track_stats.filtered_trc_files[cell_index][:,2], track_stats.filtered_trc_files[cell_index][:,3], track_stats.filtered_trc_files[cell_index][:,4], track_stats.filtered_trc_files[cell_index][:,5])
+    
+    for trajectory in track_stats.cell_trajectories_filtered[cell_index]:
+        plot = track_analysis.save_plots(trajectory)
+        h5_filtered.data_diffusion_plots(plot[0], plot[1], plot[2], plot[3], plot[4])
+    for trajectory in track_stats.cell_trajectories_filtered[cell_index]:
+        plot = track_analysis.save_plots(trajectory)
+        h5_filtered.data_rossier_plots(plot[0], plot[5], plot[6], plot[7], plot[8])
+    for trajectory in track_stats.cell_trajectories_filtered[cell_index]:
+        h5_filtered.msd(trajectory.trajectory_number, trajectory.times, trajectory.MSDs)
+        
+    h5_filtered.filter_info(track_stats.filter_settings)
+    
+    track_analysis.save_diff(track_stats.cell_trajectories_filtered[cell_index])
+    diff_info = track_analysis.diffusion_info
+    h5_filtered.data_diffusion_info(track_analysis.number_of_trajectories, diff_info[:,0], diff_info[:,1], diff_info[:,2], diff_info[:,3], diff_info[:,4], diff_info[:,5])
+    
+    track_analysis.save_rossier(track_stats.cell_trajectories_filtered[cell_index])
+    rossier_info = track_analysis.rossier_info
+    h5_filtered.data_rossier_info(track_analysis.number_of_trajectories, rossier_info[:,0],  rossier_info[:,1],  rossier_info[:,2],  rossier_info[:,3],  rossier_info[:,4],  rossier_info[:,5],  rossier_info[:,6],  rossier_info[:,7],  rossier_info[:,8],  rossier_info[:,9], rossier_info[:,10])
+    
+
+    
 def init_save_track_stats(h5_stats, track_stats, path, name):
     """
+    JNB Track Statistics, create h5 file for all statistics.
     :param path: head path for statistics h5 file.
     :param name: raw base name for statistics h5 file.
     """
@@ -180,6 +216,8 @@ def init_save_track_stats(h5_stats, track_stats, path, name):
             background_info.append(one_bg)
         h5_stats.backgrounds(background_info)
         
+        
+    
         
 
     

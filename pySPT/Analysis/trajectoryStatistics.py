@@ -30,6 +30,7 @@ class TrajectoryStatistics():
         self.background_trajectories_index = []
         self.background_trajectories_filtered_index = []  # deep copy of original cell trajectories index
         self.filter_settings = []  # list with boolean values for immob, confined, free, analyse success, not success
+        self.filtered_trc_files = []  # contains filtered trc files of cells
         self.min_D = math.inf
         self.max_D = - math.inf
         self.bin_size = 0.1  # bin size for freq vs D plot
@@ -52,7 +53,6 @@ class TrajectoryStatistics():
         self.corrected_frequencies = []  # mean cell frequencies - mean bg frequencies
                                         # for the filter setting trajectory min length
 
-        
     def calc_min_rossier_length(self):
         #self.tau_threshold_min_length = float(math.inf)
         for cell in self.cells:
@@ -101,6 +101,7 @@ class TrajectoryStatistics():
         self.filter_immob = filter_immob
         self.filter_type(filter_immob, filter_confined, filter_free,
                          filter_analyse_successful, filter_analyse_not_successful)
+        self.filter_cell_trc()
         if filter_analyse_successful and not filter_analyse_not_successful:
             print("Filter for analyse successful only.")
         elif filter_analyse_not_successful and not filter_analyse_successful:
@@ -324,6 +325,19 @@ class TrajectoryStatistics():
             ratio_free = 0
         return ratio_immobile, ratio_confined, ratio_free
     
+    def filter_cell_trc(self):
+        self.filtered_trc_files = []
+        for cell_index in range(len(self.cell_trajectories)):
+            trc_file = copy.deepcopy(self.cells[cell_index].trc_file)
+            bool_arr = np.array([self.filter_cell_trc_function(row, cell_index) for row in trc_file])
+            self.filtered_trc_files.append(trc_file[bool_arr])
+
+    def filter_cell_trc_function(self, row, cell_index):
+        """
+        If first trc index (numbering) in filtered trajectory index -> true.
+        """
+        return row[0] in self.cell_trajectories_filtered_index[cell_index]
+    
     # plot diffusion vs frequencies.
     
     def run_plot_diffusion_histogram(self, desired_bin_size, plot=True):
@@ -508,7 +522,7 @@ class TrajectoryStatistics():
         np_array = np.zeros((length,columns))
         return np_array
         
-    # Save as hdf5
+
 
 
         

@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Feb 11 15:01:01 2019
+Created on Tue Mar 12 13:29:25 2019
 
-@author: Johanna Rahm
+@author: Johanna
 
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
-Class for creating a .h5 file for one cell.
+Save filtered data set as h5.
 """
 
 import numpy as np
 import h5py
 import os
 
-class Hdf5():
+class SaveFiltered():
     # one cell
     def __init__(self):
         self.h5_file = []  # h5 file
@@ -46,6 +46,39 @@ class Hdf5():
         self.grp03 = self.h5_file.create_group("rossier")
         self.subgrp03 = self.grp03.create_group("rossierPlots")
         self.grp04 = self.h5_file.create_group("settings")
+        self.grp05 = self.h5_file.create_group("filterInfo")
+        
+    def filter_info(self, filter_settings):
+        dset = self.grp05.create_dataset("filters", (1,1), dtype = np.dtype([("filter immobile", int),
+                                                         ("filter confined", int),
+                                                         ("filter free", int),
+                                                         ("filter analyse successful", int),
+                                                         ("filter analyse not successful", int)]))
+        dset["filter immobile"] = filter_settings[0]
+        dset["filter confined"] = filter_settings[1]
+        dset["filter free"] = filter_settings[2]
+        dset["filter analyse successful"] = filter_settings[3]
+        dset["filter analyse not successful"] = filter_settings[4]
+
+    def filter_statistics(self, min_length, max_length, min_diff, max_diff, immobile, confined, free, total_trajectories):
+        dset = self.grp05.create_dataset("statistics", (1,1), dtype = np.dtype([("min trajectory length [frames]", int),
+                                                        ("max trajectory length [frames]", int),
+                                                        ("min diffusion coefficient [\u03BCm\u00b2/s]", float),
+                                                         ("max diffusion coefficient [\u03BCm\u00b2/s]", float),
+                                                         ("immobile [%]", float),
+                                                         ("confined [%]", float),
+                                                         ("free [%]", float),
+                                                         ("total trajectories", int),
+                                                         ("bin size", float)]))
+        dset["min trajectory length [frames]"] = min_length
+        dset["max trajectory length [frames]"] = max_length
+        dset["min diffusion coefficient [\u03BCm\u00b2/s]"] = min_diff
+        dset["max diffusion coefficient [\u03BCm\u00b2/s]"] = max_diff
+        dset["immobile [%]"] = immobile
+        dset["confined [%]"] = confined
+        dset["free [%]"] = free
+        dset["total trajectories"] = total_trajectories
+
         
     def data_settings(self, dt, pixelsize, pixelamount, cell_size, tau_threshold, tau_min_length, fit_area, dof, dloc_dyn):
         dset = self.grp04.create_dataset("settings", (1,1), dtype = np.dtype([("dt [s]", float),
