@@ -46,6 +46,18 @@ class Hdf5():
         self.grp03 = self.h5_file.create_group("rossier")
         self.subgrp03 = self.grp03.create_group("rossierPlots")
         self.grp04 = self.h5_file.create_group("settings")
+        self.grp05 = self.h5_file.create_group("statistics")
+        
+    def statistics(self, immobile, confined, free, total_trajectories):
+        dset = self.grp05.create_dataset("statistics", (1,1), dtype = np.dtype([("immobile [%]", float),
+                                                         ("confined [%]", float),
+                                                         ("free [%]", float),
+                                                         ("amount trajectories", int)]))
+
+        dset["immobile [%]"] = immobile
+        dset["confined [%]"] = confined
+        dset["free [%]"] = free
+        dset["amount trajectories"] = total_trajectories
         
     def data_settings(self, dt, pixelsize, pixelamount, cell_size, tau_threshold, tau_min_length, fit_area, dof, dloc_dyn):
         dset = self.grp04.create_dataset("settings", (1,1), dtype = np.dtype([("dt [s]", float),
@@ -156,11 +168,6 @@ class Hdf5():
         dset["dt [s]"] = dt
         dset["MSD [\u03BCm\u00b2]"] = MSD    
         
-    def test(self, x, y):
-        dset = self.grp00.create_dataset("test", (np.shape(x)[0],), dtype = np.dtype([("x", int), ("y", int)]))
-        dset["x"] = x
-        dset["y"] = y
-        self.h5_file.close()
         
     
         

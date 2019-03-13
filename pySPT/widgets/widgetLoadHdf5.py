@@ -17,7 +17,7 @@ import tkinter.filedialog as fd
 from ipywidgets import widgets
 from IPython.display import display
 from IPython.display import clear_output
-import math
+import datetime
 
 class WidgetLoadHdf5():
     def __init__(self):
@@ -62,6 +62,8 @@ class WidgetLoadHdf5():
         self.dir_save = ""
         self.filtered_dataset_checkbox = self.create_filtered_dataset_checkbox()
         self.save_button = self.create_save_button()
+        self.save_folder_name_box = self.create_save_folder_name_box()
+        #self.current_date = ""
     
     def search_sub_folders(self, dir_name, is_cell=True):
         if dir_name:
@@ -338,12 +340,12 @@ class WidgetLoadHdf5():
         self.dir_save = root.name
         self.save_dir_box.value=self.dir_save
         
-    def create_save_dir_box(self, val = "directory for statistics file", desc = "directory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+    def create_save_dir_box(self, val = "", desc = "directory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
         """
         Box for inserting the directory with description, alternative for dir loading button.
         """
         style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder='directory for filtered data', description=str(desc), disabled=False, style = style)
         return text
     
     def change_save_dir_box(self, change):
@@ -355,6 +357,28 @@ class WidgetLoadHdf5():
         """
         style = {'description_width': 'initial'}  # display too long desc
         text = widgets.Text(value=str(val), placeholder='name for statistics .h5 file', description=str(desc), disabled=False, style = style)
+        return text
+    
+    def calc_date(self):
+        now = datetime.datetime.now()
+        year = str(now.year)
+        year = year[2:]
+        month = str(now.month)
+        day = str(now.day)
+        if len(month) == 1:
+            month = str(0) + month
+        if len(day) == 1:
+            day = str(0) + day
+        date = str(year + month + day)
+        return date
+    
+    def create_save_folder_name_box(self, desc = "folder name"):
+        """
+        Box for inserting the raw base name for statistics h5 file.
+        """
+        current_date = self.calc_date()
+        style = {'description_width': 'initial'}  # display too long desc
+        text = widgets.Text(value=str(current_date + "_filtered"), placeholder='name of folder', description=str(desc), disabled=False, style = style)
         return text
         
     def create_filtered_dataset_checkbox(self):

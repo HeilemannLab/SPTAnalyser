@@ -69,16 +69,19 @@ class SaveFiltered():
         dset["min diffusion coefficient [\u03BCm\u00b2/s]"] = min_diff
         dset["max diffusion coefficient [\u03BCm\u00b2/s]"] = max_diff
 
-    def statistics(self, immobile, confined, free, total_trajectories):
+    def statistics(self, immobile, confined, free, trajectories_included, trajectories_excluded):
         dset = self.grp06.create_dataset("statistics", (1,1), dtype = np.dtype([("immobile [%]", float),
                                                          ("confined [%]", float),
                                                          ("free [%]", float),
-                                                         ("total trajectories", int)]))
+                                                         ("total trajectories", int),
+                                                         ("trajectories included", int),
+                                                         ("trajectories excluded", int)]))
 
         dset["immobile [%]"] = immobile
         dset["confined [%]"] = confined
         dset["free [%]"] = free
-        dset["total trajectories"] = total_trajectories
+        dset["trajectories included"] = trajectories_included
+        dset["trajectories excluded"] = trajectories_excluded
 
         
     def data_settings(self, dt, pixelsize, pixelamount, cell_size, tau_threshold, tau_min_length, fit_area, dof, dloc_dyn):
@@ -189,13 +192,6 @@ class SaveFiltered():
         dset = self.grp01.create_dataset("Trajectory{}".format(trajectory_number), (np.shape(dt)[0],), dtype = np.dtype([("dt [s]", float),("MSD [\u03BCm\u00b2]", float)]))
         dset["dt [s]"] = dt
         dset["MSD [\u03BCm\u00b2]"] = MSD    
-        
-    def test(self, x, y):
-        dset = self.grp00.create_dataset("test", (np.shape(x)[0],), dtype = np.dtype([("x", int), ("y", int)]))
-        dset["x"] = x
-        dset["y"] = y
-        self.h5_file.close()
-        
     
         
                        

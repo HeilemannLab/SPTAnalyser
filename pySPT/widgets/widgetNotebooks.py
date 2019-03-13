@@ -21,6 +21,7 @@ from ..analysis import trajectory
 from ..analysis import trackAnalysis
 import time
 import numpy as np 
+import os
 from ipywidgets import HBox, VBox
 
 
@@ -119,6 +120,9 @@ def init_save_track_analysis(h5, cover_slip, cell_index, track_analysis):
     cell = cover_slip.cells[cell_index]
     one_trajectory = cover_slip.cell_trajectories[cell_index][0]  # get trajectory attributes, that are the same for every trajectory
     h5.data_settings(cell.dt, cell.pixel_size, cell.pixel_amount, cell.size, cell.tau_threshold, cover_slip.tau_threshold_min_length, one_trajectory.fit_area, cell.dof, cell.D_min)
+    
+    h5.statistics(track_analysis.cell_type_count[cell_index][0], track_analysis.cell_type_count[cell_index][1], track_analysis.cell_type_count[cell_index][2], track_analysis.total_trajectories_cell[cell_index])
+
 
     h5.trc(np.shape(cell.trc_file), cell.trc_file[:,0], cell.trc_file[:,1], cell.trc_file[:,2], cell.trc_file[:,3], cell.trc_file[:,4], cell.trc_file[:,5])
     
@@ -139,17 +143,19 @@ def init_save_track_analysis(h5, cover_slip, cell_index, track_analysis):
     rossier_info = track_analysis.rossier_info
     h5.data_rossier_info(track_analysis.number_of_trajectories, rossier_info[:,0],  rossier_info[:,1],  rossier_info[:,2],  rossier_info[:,3],  rossier_info[:,4],  rossier_info[:,5],  rossier_info[:,6],  rossier_info[:,7],  rossier_info[:,8],  rossier_info[:,9], rossier_info[:,10])
     
-def init_save_filtered_analysis(h5_filtered, cover_slip, cell_index, track_stats, path):
+def init_save_filtered_analysis(h5_filtered, cover_slip, cell_index, track_stats, directory, folder_name):
     """
     JNB Track Statistics, create filtered h5 files for cells that are not excluded by filters.
     """
     track_analysis = trackAnalysis.TrackAnalysis()
     cell_name = track_stats.cells[cell_index].name
-    h5_filtered.create_h5(path + "\\" + cell_name)
+    h5_filtered.create_h5(directory + "\\" + folder_name + "\\" + cell_name)
     cell = track_stats.cells[cell_index]
     one_trajectory = track_stats.cell_trajectories_filtered[cell_index][0]  # get trajectory attributes, that are the same for every trajectory
     h5_filtered.data_settings(cell.dt, cell.pixel_size, cell.pixel_amount, cell.size, cell.tau_threshold, cover_slip.tau_threshold_min_length, one_trajectory.fit_area, cell.dof, cell.D_min)
     
+    h5_filtered.statistics(track_stats.cell_type_count[cell_index][0], track_stats.cell_type_count[cell_index][1], track_stats.cell_type_count[cell_index][2], track_stats.total_trajectories_filtered_cell[cell_index], (track_stats.total_trajectories_cell[cell_index]-track_stats.total_trajectories_filtered_cell[cell_index]))
+       
     h5_filtered.trc(np.shape(track_stats.filtered_trc_files[cell_index]), track_stats.filtered_trc_files[cell_index][:,0], track_stats.filtered_trc_files[cell_index][:,1], track_stats.filtered_trc_files[cell_index][:,2], track_stats.filtered_trc_files[cell_index][:,3], track_stats.filtered_trc_files[cell_index][:,4], track_stats.filtered_trc_files[cell_index][:,5])
     
     for trajectory in track_stats.cell_trajectories_filtered[cell_index]:
@@ -172,13 +178,17 @@ def init_save_filtered_analysis(h5_filtered, cover_slip, cell_index, track_stats
     rossier_info = track_analysis.rossier_info
     h5_filtered.data_rossier_info(track_analysis.number_of_trajectories, rossier_info[:,0],  rossier_info[:,1],  rossier_info[:,2],  rossier_info[:,3],  rossier_info[:,4],  rossier_info[:,5],  rossier_info[:,6],  rossier_info[:,7],  rossier_info[:,8],  rossier_info[:,9], rossier_info[:,10])
     
-def init_save_track_stats(h5_stats, track_stats, path, name):
+def init_save_track_stats(h5_stats, track_stats, directory, folder_name, name):
     """
     JNB Track Statistics, create h5 file for all statistics.
     :param path: head path for statistics h5 file.
     :param name: raw base name for statistics h5 file.
     """
-    h5_stats.create_h5(path + "\\" + name)
+
+    if not os.path.exists(directory + "\\" + folder_name):
+        os.makedirs(directory + "\\" + folder_name)
+    
+    h5_stats.create_h5(directory + "\\" + folder_name + "\\" + name)
     
     h5_stats.filter_info(track_stats.filter_settings, track_stats.get_min_length(), track_stats.get_max_length(), track_stats.get_min_D(),
                          track_stats.get_max_D())
@@ -218,6 +228,7 @@ def init_save_track_stats(h5_stats, track_stats, path, name):
         h5_stats.backgrounds(background_info)
         
     h5_stats.cells(cell_info)
+
         
         
     

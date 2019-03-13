@@ -26,6 +26,8 @@ class TrackAnalysis():
         self.min_D = math.inf
         self.max_D = - math.inf
         self.total_trajectories = 0  # amount of trajectories in data set
+        self.total_trajectories_cell = []  # amount of trajectories per cell
+        self.cell_type_count = []  # tupel with percentage of types (immob, confined, free %) per cell
         self.cell_sizes = []
         self.hist_log_Ds = []  # histograms (logD vs freq) from all cells as np arrays in this list
         self.diffusion_frequencies = []  # only freq (divided by cell size) of cells
@@ -40,14 +42,13 @@ class TrackAnalysis():
         self.diff_plot = []
         self.rossier_plot = []
 
-    def run_statistics_no_filter(self, bin_size):
+    def run_statistics_no_filter(self):
         """
         If stared from JNB trackAnalysis, no filter are applied, slight deviation in function calls therefore.
         """
         self.get_index()
         self.create_init_filter_lst()
         self.type_percentage_pre()
-        self.run_plot_diffusion_histogram(bin_size)
         
     def create_init_filter_lst(self):
         """
@@ -66,7 +67,7 @@ class TrackAnalysis():
             for trajectory in range(0, len(self.cell_trajectories[cell])):
                 i.append(trajectory+1)  # trajectory numbering starts with 1
             self.cell_trajectories_index.append(i)
-            
+    
     def type_percentage_pre(self):
         """
         Calculation before saving as hdf5 (immob/confined -> true/true=immob, false/true=conf, false/false=free)
@@ -75,8 +76,11 @@ class TrackAnalysis():
         """
         data_selected = True
         self.total_trajectories = 0
+        self.total_trajectories_cell = []
+        self.cell_type_count = []
         for cell_index in range(0, len(self.cell_trajectories_filtered)):
-            self.total_trajectories += len(self.cell_trajectories_filtered[cell_index])
+            self.total_trajectories_cell.append(len(self.cell_trajectories_filtered[cell_index]))
+        self.total_trajectories = np.sum(self.total_trajectories_cell)
         if self.total_trajectories == 0:
             data_selected = False
         if data_selected:
@@ -84,14 +88,26 @@ class TrackAnalysis():
             count_confined = 0
             count_free = 0
             for cell in self.cell_trajectories_filtered:
+                count_immobile_cell = 0
+                count_confined_cell = 0
+                count_free_cell = 0
                 for trajectory in cell:
-                    if trajectory.immobility and trajectory.confined:
+                    if trajectory.immobility and trajectory.confined and trajectory.analyse_successful:
+                        count_immobile_cell += 1
                         count_immobile += 1
-                    if trajectory.confined and not trajectory.immobility:
+                    if trajectory.confined and not trajectory.immobility and trajectory.analyse_successful:
+                        count_confined_cell += 1
                         count_confined += 1
                     # has to be not confined AND not immobile (otherwise it will count the immobile particles as well)
-                    if not trajectory.confined and not trajectory.immobility:
+                    if not trajectory.confined and not trajectory.immobility and trajectory.analyse_successful:
+                        count_free_cell += 1
                         count_free +=1
+                cell_index = self.cell_trajectories_filtered.index(cell)
+                ratio_immobile_cell = count_immobile_cell/self.total_trajectories_cell[cell_index]*100
+                ratio_confined_cell = count_confined_cell/self.total_trajectories_cell[cell_index]*100
+                ratio_free_cell = count_free_cell/self.total_trajectories_cell[cell_index]*100
+                cell_types_percent = (ratio_immobile_cell, ratio_confined_cell, ratio_free_cell)
+                self.cell_type_count.append(cell_types_percent)
             ratio_immobile = count_immobile/self.total_trajectories*100
             ratio_confined = count_confined/self.total_trajectories*100
             ratio_free = count_free/self.total_trajectories*100
@@ -103,6 +119,7 @@ class TrackAnalysis():
         print("%.1f %% are confined" %(ratio_confined))
         print("%.1f %% are free" %(ratio_free)) 
         print("Total trajectories:", self.total_trajectories)
+        print(self.cell_type_count)
 
     def run_plot_diffusion_histogram(self, desired_bin_size):
         self.clear_attributes()
