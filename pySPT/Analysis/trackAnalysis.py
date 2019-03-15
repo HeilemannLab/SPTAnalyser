@@ -119,7 +119,6 @@ class TrackAnalysis():
         print("%.1f %% are confined" %(ratio_confined))
         print("%.1f %% are free" %(ratio_free)) 
         print("Total trajectories:", self.total_trajectories)
-        print(self.cell_type_count)
 
     def run_plot_diffusion_histogram(self, desired_bin_size):
         self.clear_attributes()

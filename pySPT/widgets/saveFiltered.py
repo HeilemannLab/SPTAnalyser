@@ -36,7 +36,6 @@ class SaveFiltered():
     def create_h5_name(self, path):     
         # splitext -> tupel with path split from .* ending. It splits at the last dot in name.
         self.trc_file_hdf5 = os.path.splitext(path)[0] + ".h5"  
-        print(self.trc_file_hdf5)
 
     def groups(self):
         self.grp00 = self.h5_file.create_group("trc")
@@ -73,7 +72,6 @@ class SaveFiltered():
         dset = self.grp06.create_dataset("statistics", (1,1), dtype = np.dtype([("immobile [%]", float),
                                                          ("confined [%]", float),
                                                          ("free [%]", float),
-                                                         ("total trajectories", int),
                                                          ("trajectories included", int),
                                                          ("trajectories excluded", int)]))
 
@@ -170,7 +168,6 @@ class SaveFiltered():
         dset["chi\u00b2 [\u03BCm\u2074]"] = chi2
         self.h5_file.close()
 
-        
     def trc(self, shape, trajectory_id, frame, x, y, placeholder, intensity):
         dset = self.grp00.create_dataset("trcFile", (shape[0],), dtype = np.dtype([("trajectory id", int),
                                                       ("frame", int),

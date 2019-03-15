@@ -110,36 +110,43 @@ class SaveStatistics():
         dset["trajectories included"] = trajectories_included
         dset["trajectories excluded"] = trajectories_excluded
         
-    def diffusion_plot_bg(self, number, diffusion, mean_freq_cells, dmean_freq_cells, mean_freq_bg, dmean_freq_bg, mean_freq, dmean_freq):
-        """
-        If bg is inserted."
-        """
+    def diffusion_plot(self, number, diffusion, mean_cell, dmean_cell):
         dset = self.grp05.create_dataset("histogram values", (number,), dtype = np.dtype([("diffusion coefficient [\u03BCm\u00b2/s]", float),
-                                                 ("mean frequency cells [%]", float),
-                                                 ("\u0394 mean frequency cells [%]", float),
-                                                 ("mean frequency backgrounds [%]", float),
-                                                 ("\u0394 mean frequency backgrounds [%]", float),
-                                                 ("corrected frequency [%]", float),
-                                                 ("\u0394 corrected frequency [%]", float)]))
+                                                 ("mean frequency cells", float),
+                                                 ("\u0394 mean frequency cells", float)]))
         dset["diffusion coefficient [\u03BCm\u00b2/s]"] = diffusion    
-        dset["mean frequency cells [%]"] = mean_freq_cells
-        dset["\u0394 mean frequency cells [%]"] = dmean_freq_cells
-        dset["mean frequency backgrounds [%]"] = mean_freq_bg
-        dset["\u0394 mean frequency backgrounds [%]"] = dmean_freq_bg
-        dset["corrected frequency [%]"] = mean_freq
-        dset["\u0394 corrected frequency [%]"] = dmean_freq
+        dset["mean frequency cells"] = mean_cell
+        dset["\u0394 mean frequency cells"] = dmean_cell
         
-    def diffusion_plot(self, number, diffusion, mean_freq_cells, dmean_freq_cells):
+    def diffusion_plot_bg(self, number, diffusion, mean_cell, dmean_cell, mean_bg, dmean_bg, mean_cell_corr, dmean_cell_corr):
+        pass
+    
+    def diffusion_plot_normalized(self, number, diffusion, mean_cell_percent, dmean_cell_percent):
         """
-        Diffusion plot without bg correction.
+        Normalized values if bg is inserted."
         """
-        dset = self.grp05.create_dataset("diffusion histogram", (number,), dtype = np.dtype([("diffusion coefficient [\u03BCm\u00b2/s]", float),
+        dset = self.grp05.create_dataset("histogram values normalized", (number,), dtype = np.dtype([("diffusion coefficient [\u03BCm\u00b2/s]", float),
                                                  ("mean frequency cells [%]", float),
                                                  ("\u0394 mean frequency cells [%]", float)]))
         dset["diffusion coefficient [\u03BCm\u00b2/s]"] = diffusion    
-        dset["mean frequency cells [%]"] = mean_freq_cells
-        dset["\u0394 mean frequency cells [%]"] = dmean_freq_cells
+        dset["mean frequency cells [%]"] = mean_cell_percent
+        dset["\u0394 mean frequency cells [%]"] = dmean_cell_percent
         
+    def diffusion_plot_bg_normalized(self, number, diffusion, mean_cell_percent, dmean_cell_percent, mean_cell_corr_percent, dmean_cell_corr_percent):
+        """
+        Diffusion plot without bg correction, normalized.
+        """
+        dset = self.grp05.create_dataset("histogram values normalized", (number,), dtype = np.dtype([("diffusion coefficient [\u03BCm\u00b2/s]", float),
+                                                 ("mean frequency cells [%]", float),
+                                                 ("\u0394 mean frequency cells [%]", float),
+                                                 ("mean frequency corrected [%]", float),
+                                                 ("\u0394 mean frequency corrected [%]", float))])
+        dset["diffusion coefficient [\u03BCm\u00b2/s]"] = diffusion
+        dset["mean frequency cells [%]"] = mean_cell_percent
+        dset["\u0394 mean frequency cells [%]"] = dmean_cell_percent
+        dset["mean frequency corrected [%]"] = mean_cell_corr_percent
+        dset["\u0394 mean frequency corrected [%]"] = dmean_cell_corr_percent
+    
     def diffusion_bin_size(self, bin_size):
         dset = self.grp05.create_dataset("bin size", (1,1), dtype = np.dtype([("bin size", float)]))
         dset["bin size"] = bin_size

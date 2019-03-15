@@ -171,7 +171,7 @@ class Trajectory():
         #y1, y2 = 0, self.MSD_fit[:,1].max()
         plt.plot(self.MSD_fit[:,0], self.MSD_fit[:,1], "o", color = "0.5", label="MSD values")
         plt.legend()
-        plt.title("MSD-Plot (60 %% of values)")
+        plt.title("MSD-Plot (60 % of values)")
         plt.xlabel("Time step [s]")
         plt.ylabel("MSD")
         plt.show()

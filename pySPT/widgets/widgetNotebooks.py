@@ -13,9 +13,8 @@ Large juncs of code that would scare the user of the JNB :)
 #from .analysis import trajectory
 #from pySPT.analysis import trajectory
 #from pySPT.analysis import cell
-from . import loadHdf5  # one dot if in same directory
 from . import hdf5
-from ..analysis import coverSlip
+from . import saveFiltered
 from ..analysis import cell  # two dots for switching the folder
 from ..analysis import trajectory
 from ..analysis import trackAnalysis
@@ -23,6 +22,7 @@ import time
 import numpy as np 
 import os
 from ipywidgets import HBox, VBox
+from tqdm import tqdm_notebook as tqdm
 
 
 def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
@@ -60,9 +60,6 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
             one_trajectory.times = load_hdf5.cells_trajectories_times[cell_index][trajectory_index]
             one_trajectory.MSD_fit = load_hdf5.cells_trajectories_MSD_fit[cell_index][trajectory_index]
             one_trajectory.MSD_D = load_hdf5.cells_trajectories_MSD_D[cell_index][trajectory_index]
-            #one_trajectory.dt = load_hdf5.dts[cell_index]
-            #one_trajectory.dof = load_hdf5.dofs[cell_index]
-            #one_trajectory.D_min = load_hdf5.D_mins[cell_index]
             one_trajectory.length_trajectory = load_hdf5.cells_lengths_trajectories[cell_index][trajectory_index][0]
             one_trajectory.length_MSD = load_hdf5.cells_lengths_MSDs[cell_index][trajectory_index][0]
             one_trajectory.D = load_hdf5.cells_trajectories_D[cell_index][trajectory_index][0]
@@ -76,7 +73,6 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
             one_trajectory.D_conf = load_hdf5.cells_trajectories_Dconf[cell_index][trajectory_index][0]
             one_trajectory.r = load_hdf5.cells_trajectories_r[cell_index][trajectory_index][0]
             one_trajectory.dr = load_hdf5.cells_trajectories_dr[cell_index][trajectory_index][0]
-            #one_trajectory.tau_threshold = load_hdf5.tau_thresholds[cell_index]
             one_trajectory.immobility = bool(load_hdf5.cells_trajectories_type[cell_index][trajectory_index][0])
             one_trajectory.confined = bool(load_hdf5.cells_trajectories_type[cell_index][trajectory_index][1])
             one_trajectory.analyse_successful = bool(load_hdf5.cells_trajectories_analyse_successful[cell_index][trajectory_index][0])
@@ -92,10 +88,6 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
             cover_slip.background_files = load_hdf5.file_names
     print("Initialization took {} s".format(time.time()-start))
     
-# =============================================================================
-#     print("BG:", cover_slip.backgrounds, cover_slip.background_files)
-#     print("cells:", cover_slip.cells, cover_slip.cell_files)
-# =============================================================================
     
 def init_track_stats_widget_arrangement(widget11, widget21, widget31, widget41, widget51, widget12, widget22, widget32, widget42, widget52):
     """
@@ -110,11 +102,14 @@ def init_track_stats_widget_arrangement(widget11, widget21, widget31, widget41, 
     fifth_line = HBox([widget51, widget52])
     return VBox([first_line, second_line, third_line, fourth_line, fifth_line])
     
-def init_save_track_analysis(h5, cover_slip, cell_index, track_analysis):
+
+def init_save_track_analysis(cover_slip, cell_index, track_analysis):
     """
     JNB: track Analysis, saving.
     :param: Objects created in JNB.
-    """        
+    """       
+    h5 = hdf5.Hdf5()
+    
     h5.create_h5(cover_slip.cell_files[cell_index])
 
     cell = cover_slip.cells[cell_index]
@@ -143,16 +138,18 @@ def init_save_track_analysis(h5, cover_slip, cell_index, track_analysis):
     rossier_info = track_analysis.rossier_info
     h5.data_rossier_info(track_analysis.number_of_trajectories, rossier_info[:,0],  rossier_info[:,1],  rossier_info[:,2],  rossier_info[:,3],  rossier_info[:,4],  rossier_info[:,5],  rossier_info[:,6],  rossier_info[:,7],  rossier_info[:,8],  rossier_info[:,9], rossier_info[:,10])
     
-def init_save_filtered_analysis(h5_filtered, cover_slip, cell_index, track_stats, directory, folder_name):
+    
+def init_save_filtered_analysis(cover_slip, cell_index, track_stats, directory, folder_name):
     """
     JNB Track Statistics, create filtered h5 files for cells that are not excluded by filters.
     """
+    h5_filtered = saveFiltered.SaveFiltered()
     track_analysis = trackAnalysis.TrackAnalysis()
     cell_name = track_stats.cells[cell_index].name
     h5_filtered.create_h5(directory + "\\" + folder_name + "\\" + cell_name)
     cell = track_stats.cells[cell_index]
     one_trajectory = track_stats.cell_trajectories_filtered[cell_index][0]  # get trajectory attributes, that are the same for every trajectory
-    h5_filtered.data_settings(cell.dt, cell.pixel_size, cell.pixel_amount, cell.size, cell.tau_threshold, cover_slip.tau_threshold_min_length, one_trajectory.fit_area, cell.dof, cell.D_min)
+    h5_filtered.data_settings(cell.dt, cell.pixel_size, cell.pixel_amount, cell.size, cell.tau_threshold, cell.tau_threshold_min_length, one_trajectory.fit_area, cell.dof, cell.D_min)
     
     h5_filtered.statistics(track_stats.cell_type_count[cell_index][0], track_stats.cell_type_count[cell_index][1], track_stats.cell_type_count[cell_index][2], track_stats.total_trajectories_filtered_cell[cell_index], (track_stats.total_trajectories_cell[cell_index]-track_stats.total_trajectories_filtered_cell[cell_index]))
        
@@ -178,13 +175,13 @@ def init_save_filtered_analysis(h5_filtered, cover_slip, cell_index, track_stats
     rossier_info = track_analysis.rossier_info
     h5_filtered.data_rossier_info(track_analysis.number_of_trajectories, rossier_info[:,0],  rossier_info[:,1],  rossier_info[:,2],  rossier_info[:,3],  rossier_info[:,4],  rossier_info[:,5],  rossier_info[:,6],  rossier_info[:,7],  rossier_info[:,8],  rossier_info[:,9], rossier_info[:,10])
     
+    
 def init_save_track_stats(h5_stats, track_stats, directory, folder_name, name):
     """
     JNB Track Statistics, create h5 file for all statistics.
     :param path: head path for statistics h5 file.
     :param name: raw base name for statistics h5 file.
     """
-
     if not os.path.exists(directory + "\\" + folder_name):
         os.makedirs(directory + "\\" + folder_name)
     
@@ -228,12 +225,5 @@ def init_save_track_stats(h5_stats, track_stats, directory, folder_name, name):
         h5_stats.backgrounds(background_info)
         
     h5_stats.cells(cell_info)
-
-        
-        
-    
-        
-
-    
 
         

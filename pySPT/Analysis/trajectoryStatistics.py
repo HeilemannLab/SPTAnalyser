@@ -8,14 +8,12 @@ Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 """
 
-from . import trajectory
-from . import cell
+
 import numpy as np
-import pylab as pl
 import copy
 import math
 import matplotlib.pyplot as plt
-
+import time
 
 class TrajectoryStatistics():
     def __init__(self):
@@ -46,15 +44,19 @@ class TrajectoryStatistics():
         self.diffusion_frequencies = []  # only freq (divided by cell size) of cells
         self.diffusion_frequencies_bg = []  # only freq (divided my bg size) of bg
         self.hist_diffusion = []  # diffusions from histogram calculation, transformed back -> 10^-(log10(D))
-        self.mean_frequencies = []  # mean frequencies, size corrected, sum = 1 in percent
+        self.mean_frequencies = []  # mean frequencies
+        self.mean_frequencies_percent = []  # mean frequencies, size corrected, sum = 1 in percent
         self.mean_error = []  # standard error of mean value
-        self.mean_frequencies_bg = [] # mean frequencies, size corrected, sum = 1 in percent
+        self.mean_error_percent = []  # standard error of mean value
+        self.mean_frequencies_bg = [] # mean frequencies
         self.mean_error_bg = [] # standard error of mean value
         self.normalization_factor = 0.0  # 100/sum of all mean frequencies
-        self.normalization_factor_bg = 0.0  # 100/sum of all mean frequencies
+        self.normalization_factor_corrected = 0.0  # 100/sum of all mean frequencies
         self.corrected_frequencies_error = []
+        self.corrected_frequencies_error_percent = []
         self.tau_threshold_min_length = float(math.inf)  # from all cells, the min rossier length will be set as the default value
         self.corrected_frequencies = []  # mean cell frequencies - mean bg frequencies
+        self.corrected_frequencies_percent = []  # mean cell frequencies - mean bg frequencies
                                         # for the filter setting trajectory min length
 
     def calc_min_rossier_length(self):
@@ -83,17 +85,12 @@ class TrajectoryStatistics():
         """
         Initialize filtered lists, filter functions and percentage function.
         """
+        start = time.time()
         self.default_statistics()
         self.get_index()
         self.create_init_filter_lst()
         self.filter_settings = [filter_immob, filter_confined, filter_free, filter_analyse_successful, filter_analyse_not_successful]
         self.calc_amount_trajectories()
-        try:
-            max_length = int(max_length)
-            print("max trajectory length:", max_length)
-        except ValueError:
-            max_length = self.get_max_length()
-            print("max trajectory length:", max_length)
         try:
             min_length = int(min_length)
             print("min trajectory length:", min_length)
@@ -101,23 +98,30 @@ class TrajectoryStatistics():
             min_length = self.get_min_length()
             print("min trajectory length:", min_length)
         try:
-            max_D = float(max_D)
-            print("max diffusion coefficient: {} [\u03BCm\u00b2/s]".format(max_D))
+            max_length = int(max_length)
+            print("max trajectory length:", max_length)
         except ValueError:
-            max_D = self.get_max_D()
-            print("max diffusion coefficient: {} [\u03BCm\u00b2/s]".format(max_D))
+            max_length = self.get_max_length()
+            print("max trajectory length:", max_length)
         try:
             min_D = float(min_D)
             print("min diffusion coefficient: {} [\u03BCm\u00b2/s]".format(min_D))
         except ValueError:
             min_D = self.get_min_D()
             print("min diffusion coefficient: {} [\u03BCm\u00b2/s]".format(min_D))
+        try:
+            max_D = float(max_D)
+            print("max diffusion coefficient: {} [\u03BCm\u00b2/s]".format(max_D))
+        except ValueError:
+            max_D = self.get_max_D()
+            print("max diffusion coefficient: {} [\u03BCm\u00b2/s]".format(max_D))
         self.filter_length(min_length, max_length)
         self.filter_D(min_D, max_D)
         self.filter_immob = filter_immob
         self.filter_type(filter_immob, filter_confined, filter_free,
                          filter_analyse_successful, filter_analyse_not_successful)
         self.filter_cell_trc()
+        print("Initialization took {} s".format(time.time()-start))
 
         if filter_analyse_successful and not filter_analyse_not_successful:
             print("Filter for type determination successful only.")
@@ -133,7 +137,8 @@ class TrajectoryStatistics():
         print("cell types %", self.cell_type_count)
         print("cell count", self.total_trajectories_filtered_cell)
         print("index", self.cell_trajectories_filtered_index)
-                
+        print("background index", self.background_trajectories_filtered_index)
+        
     def create_init_filter_lst(self):
         """
         Create copy of initial cell trajectories & index list.
@@ -234,17 +239,17 @@ class TrajectoryStatistics():
             for cell in range(0, len(self.cell_trajectories_filtered)):
                 for trajectory in self.cell_trajectories_filtered[cell]:
                     # meaning that one wants to get rid of all immobile particles -> crop them out of the lists.
-                    if trajectory.immobility and not trajectory.confined:
+                    if trajectory.immobility and not trajectory.confined and not trajectory.analyse_successful:
                         self.crop_lst(cell, trajectory)
         if not filter_confined:
             for cell in range(0, len(self.cell_trajectories_filtered)):
                 for trajectory in self.cell_trajectories_filtered[cell]:
-                    if trajectory.confined and not trajectory.immobility:
+                    if trajectory.confined and not trajectory.immobility and trajectory.analyse_successful:
                         self.crop_lst(cell, trajectory)
         if not filter_free:
             for cell in range(0, len(self.cell_trajectories_filtered)):
                 for trajectory in self.cell_trajectories_filtered[cell]:
-                    if not trajectory.confined and not trajectory.immobility:
+                    if not trajectory.confined and not trajectory.immobility and trajectory.analyse_successful:
                         self.crop_lst(cell, trajectory)
         if not filter_type_successful:  # only without successful type det -> immob False & analyse success False
             for cell in range(0, len(self.cell_trajectories_filtered)):
@@ -262,17 +267,17 @@ class TrajectoryStatistics():
                 for background in range(0, len(self.background_trajectories_filtered)):
                     for trajectory in self.background_trajectories_filtered[background]:
                         # meaning that one wants to get rid of all immobile particles -> crop them out of the lists.
-                        if trajectory.immobility and not trajectory.confined:
+                        if trajectory.immobility and not trajectory.confined and not trajectory.analyse_successful:
                             self.crop_lst(background, trajectory, is_cell=False)
             if not filter_confined:
                 for background in range(0, len(self.background_trajectories_filtered)):
                     for trajectory in self.background_trajectories_filtered[background]:
-                        if trajectory.confined and not trajectory.immobility:
+                        if trajectory.confined and not trajectory.immobility and trajectory.analyse_successful:
                             self.crop_lst(background, trajectory, is_cell=False)
             if not filter_free:
                 for background in range(0, len(self.background_trajectories_filtered)):
                     for trajectory in self.background_trajectories_filtered[background]:
-                        if not trajectory.confined and not trajectory.immobility:
+                        if not trajectory.confined and not trajectory.immobility and trajectory.analyse_successful:
                             self.crop_lst(background, trajectory, is_cell=False)
             if not filter_type_successful:
                 for background in range(0, len(self.background_trajectories_filtered)):
@@ -312,41 +317,6 @@ class TrajectoryStatistics():
                     if trajectory.D < min_D or trajectory.D > max_D:
                         self.crop_lst(background, trajectory, is_cell=False)
         
-# =============================================================================
-#     def type_percentage(self):
-#         """
-#         (immob/confined -> true/false=immob, false/true=conf, false/false=free)
-#         Calculate percentage of immobile free and confined based on total number of trajectories in all cells.
-#         If no trajectory exists (total_trajectories = 0) percentages will be set to zero, no calculation will be made.
-#         """
-#         data_selected = True
-#         self.total_trajectories = 0
-#         for cell_index in range(0, len(self.cell_trajectories_filtered)):
-#             self.total_trajectories += len(self.cell_trajectories_filtered[cell_index])
-#         if self.total_trajectories == 0:
-#             data_selected = False
-#         if data_selected:
-#             count_immobile = 0
-#             count_confined = 0
-#             count_free = 0
-#             for cell in self.cell_trajectories_filtered:
-#                 for trajectory in cell:
-#                     if trajectory.immobility and not trajectory.confined:
-#                         count_immobile += 1
-#                     if trajectory.confined and not trajectory.immobility:
-#                         count_confined += 1
-#                     # has to be not confined AND not immobile (otherwise it will count the immobile particles as well)
-#                     if not trajectory.confined and not trajectory.immobility:
-#                         count_free +=1
-#             ratio_immobile = count_immobile/self.total_trajectories*100
-#             ratio_confined = count_confined/self.total_trajectories*100
-#             ratio_free = count_free/self.total_trajectories*100
-#         else:
-#             ratio_immobile = 0
-#             ratio_confined = 0
-#             ratio_free = 0
-#         return ratio_immobile, ratio_confined, ratio_free
-# =============================================================================
     def calc_amount_trajectories(self):
         for cell_index in range(0, len(self.cell_trajectories)):
             self.total_trajectories_cell.append(len(self.cell_trajectories[cell_index]))
@@ -387,15 +357,18 @@ class TrajectoryStatistics():
                         count_free_cell += 1
                         count_free +=1
                 cell_index = self.cell_trajectories_filtered.index(cell)
-                ratio_immobile_cell = count_immobile_cell/self.total_trajectories_filtered_cell[cell_index]*100
-                ratio_confined_cell = count_confined_cell/self.total_trajectories_filtered_cell[cell_index]*100
-                ratio_free_cell = count_free_cell/self.total_trajectories_filtered_cell[cell_index]*100
-                cell_types_percent = (ratio_immobile_cell, ratio_confined_cell, ratio_free_cell)
+                if self.total_trajectories_filtered_cell[cell_index]:
+                    ratio_immobile_cell = count_immobile_cell/self.total_trajectories_filtered_cell[cell_index]*100
+                    ratio_confined_cell = count_confined_cell/self.total_trajectories_filtered_cell[cell_index]*100
+                    ratio_free_cell = count_free_cell/self.total_trajectories_filtered_cell[cell_index]*100
+                    cell_types_percent = (ratio_immobile_cell, ratio_confined_cell, ratio_free_cell)
+                else:
+                    cell_types_percent = (0.0,0.0,0.0)  # if all trajectories from a cell are filtered, the type % are 0
                 self.cell_type_count.append(cell_types_percent)
             ratio_immobile = count_immobile/self.total_trajectories_filtered*100
             ratio_confined = count_confined/self.total_trajectories_filtered*100
             ratio_free = count_free/self.total_trajectories_filtered*100
-        else:
+        else:  # if all trajectories are filtered the type % are 0 
             ratio_immobile = 0
             ratio_confined = 0
             ratio_free = 0
@@ -424,11 +397,26 @@ class TrajectoryStatistics():
         self.calc_nonlogarithmic_diffusions()
         self.determine_mean_frequency()
         self.calc_mean_error()
+        print("normalization factor", self.normalization_factor)
+        print("mean cell freq", self.mean_frequencies)
+        print("mean cell freq %", self.mean_frequencies_percent)
+        print("mean freq error", self.mean_error_percent)
+        print("mean freq error%", self.mean_error_percent)
         if self.background_trajectories:
             self.diffusions_log_bg(float(desired_bin_size))
             self.determine_mean_frequency(is_cell=False)
             self.calc_mean_error(is_cell=False)
             self.calc_bg_corrected_freq()
+            print("D", self.hist_diffusion)
+            print("normalization factor corr", self.normalization_factor_corrected)
+            print("corr freq", self.corrected_frequencies)
+            print("corr freq %", self.corrected_frequencies_percent)
+            print("dcorr freq", self.corrected_frequencies_error)
+            print("dcorr freq%", self.corrected_frequencies_error_percent)
+            print("mean bg freq", self.mean_frequencies_bg)
+            print("cell", self.hist_log_Ds)
+            print("BG", self.hist_log_Ds_bg)
+            print("diffusion freq", self.diffusion_frequencies)
         if plot:
             self.plot_bar_log_bins()
             if self.background_trajectories:
@@ -520,15 +508,17 @@ class TrajectoryStatistics():
             for i in range (0, len(self.cell_trajectories_filtered)):
                 self.diffusion_frequencies[:,i] = self.hist_log_Ds[i][:,1]
             self.mean_frequencies = self.calc_mean_frequencies(self.diffusion_frequencies)
+            print("freq, no %", self.mean_frequencies)
+            print("SUMME", np.sum(self.mean_frequencies))
             self.normalization_factor = 100/np.sum(self.mean_frequencies)
-            self.mean_frequencies *= self.normalization_factor
+            self.mean_frequencies_percent = self.mean_frequencies * self.normalization_factor
         else:
             self.diffusion_frequencies_bg = self.create_np_array(np.shape(self.hist_log_Ds_bg)[1], len(self.background_trajectories_filtered))
             for i in range(0, len(self.background_trajectories_filtered)):
                 self.diffusion_frequencies_bg[:,i] = self.hist_log_Ds_bg[i][:,1]
             self.mean_frequencies_bg = self.calc_mean_frequencies(self.diffusion_frequencies_bg)
-            self.normalization_factor_bg = 100/np.sum(self.mean_frequencies_bg)
-            self.mean_frequencies_bg *= self.normalization_factor_bg
+            #self.normalization_factor_bg = 100/np.sum(self.mean_frequencies_bg)
+            #self.mean_frequencies_bg *= self.normalization_factor_bg
         
     def calc_mean_error(self, is_cell=True):
         """
@@ -537,10 +527,9 @@ class TrajectoryStatistics():
         """
         if is_cell:
             self.mean_error =  np.std(self.diffusion_frequencies, axis=1, ddof=1)/(np.shape(self.diffusion_frequencies)[1])**(1/2) 
-            self.mean_error *= self.normalization_factor 
+            self.mean_error_percent = self.mean_error * self.normalization_factor 
         else:
             self.mean_error_bg = np.std(self.diffusion_frequencies_bg, axis=1, ddof=1)/(np.shape(self.diffusion_frequencies_bg)[1])**(1/2)
-            self.mean_error_bg *= self.normalization_factor_bg
             
     def calc_bg_corrected_freq(self):
         """
@@ -554,10 +543,13 @@ class TrajectoryStatistics():
             if self.corrected_frequencies[i] < 0:
                 self.corrected_frequencies[i] = 0
             self.corrected_frequencies_error[i] = ((self.mean_error[i])**2+(self.mean_error_bg[i])**2)**(1/2)
+        self.normalization_factor_corrected = 100/np.sum(self.corrected_frequencies)
+        self.corrected_frequencies_error_percent = self.corrected_frequencies_error * self.normalization_factor_corrected
+        self.corrected_frequencies_percent = self.corrected_frequencies * self.normalization_factor_corrected
         
     def plot_bar_log_bins(self):
         plt.subplot(111, xscale="log")
-        (_, caps, _) = plt.errorbar(self.hist_diffusion, self.mean_frequencies, yerr=self.mean_error, capsize=4, label="relative frequency")  # capsize length of cap
+        (_, caps, _) = plt.errorbar(self.hist_diffusion, self.mean_frequencies_percent, yerr=self.mean_error_percent, capsize=4, label="relative frequency")  # capsize length of cap
         for cap in caps:
             cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
         plt.xlim(self.min_D, self.max_D)
@@ -569,7 +561,7 @@ class TrajectoryStatistics():
         
     def plot_bar_log_bins_bg_corrected(self):
         plt.subplot(111, xscale="log")
-        (_, caps, _) = plt.errorbar(self.hist_diffusion, self.corrected_frequencies, yerr=self.corrected_frequencies_error, capsize=4, label="relative frequency")  # capsize length of cap
+        (_, caps, _) = plt.errorbar(self.hist_diffusion, self.corrected_frequencies_percent, yerr=self.corrected_frequencies_error_percent, capsize=4, label="relative frequency")  # capsize length of cap
         for cap in caps:
             cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
         plt.xlim(self.min_D, self.max_D)
