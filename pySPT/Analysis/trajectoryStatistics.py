@@ -15,6 +15,7 @@ import math
 import matplotlib.pyplot as plt
 import time
 
+
 class TrajectoryStatistics():
     def __init__(self):
         self.cells = []  # contains lists of cell objects
@@ -389,38 +390,48 @@ class TrajectoryStatistics():
     
     # plot diffusion vs frequencies.
     
-    def run_plot_diffusion_histogram(self, desired_bin_size, plot=True):
-        self.clear_attributes()
-        self.bin_size = desired_bin_size
-        self.determine_max_min_diffusion()
-        self.diffusions_log(float(desired_bin_size))
-        self.calc_nonlogarithmic_diffusions()
-        self.determine_mean_frequency()
-        self.calc_mean_error()
-        print("normalization factor", self.normalization_factor)
-        print("mean cell freq", self.mean_frequencies)
-        print("mean cell freq %", self.mean_frequencies_percent)
-        print("mean freq error", self.mean_error_percent)
-        print("mean freq error%", self.mean_error_percent)
-        if self.background_trajectories:
-            self.diffusions_log_bg(float(desired_bin_size))
-            self.determine_mean_frequency(is_cell=False)
-            self.calc_mean_error(is_cell=False)
-            self.calc_bg_corrected_freq()
-            print("D", self.hist_diffusion)
-            print("normalization factor corr", self.normalization_factor_corrected)
-            print("corr freq", self.corrected_frequencies)
-            print("corr freq %", self.corrected_frequencies_percent)
-            print("dcorr freq", self.corrected_frequencies_error)
-            print("dcorr freq%", self.corrected_frequencies_error_percent)
-            print("mean bg freq", self.mean_frequencies_bg)
-            print("cell", self.hist_log_Ds)
-            print("BG", self.hist_log_Ds_bg)
-            print("diffusion freq", self.diffusion_frequencies)
-        if plot:
-            self.plot_bar_log_bins()
-            if self.background_trajectories:
-                self.plot_bar_log_bins_bg_corrected()
+    def run_diffusion_histogram(self, desired_bin_size, plot=True):
+        # bin size can only be something that can be converted to float (integer or float, comma separated)
+        try:
+            float(desired_bin_size)
+        except:
+            print("Insert a dot separated float or integer as bin size (e.g. 0.1).")
+        # bin size can not be 0
+        else:
+            if float(desired_bin_size) != 0.0:
+                self.clear_attributes()
+                self.bin_size = desired_bin_size
+                self.determine_max_min_diffusion()
+                self.diffusions_log(float(desired_bin_size))
+                self.calc_nonlogarithmic_diffusions()
+                self.determine_mean_frequency()
+                self.calc_mean_error()
+                print("normalization factor", self.normalization_factor)
+                print("mean cell freq", self.mean_frequencies)
+                print("mean cell freq %", self.mean_frequencies_percent)
+                print("mean freq error", self.mean_error_percent)
+                print("mean freq error%", self.mean_error_percent)
+                if self.background_trajectories:
+                    self.diffusions_log_bg(float(desired_bin_size))
+                    self.determine_mean_frequency(is_cell=False)
+                    self.calc_mean_error(is_cell=False)
+                    self.calc_bg_corrected_freq()
+                    print("D", self.hist_diffusion)
+                    print("normalization factor corr", self.normalization_factor_corrected)
+                    print("corr freq", self.corrected_frequencies)
+                    print("corr freq %", self.corrected_frequencies_percent)
+                    print("dcorr freq", self.corrected_frequencies_error)
+                    print("dcorr freq%", self.corrected_frequencies_error_percent)
+                    print("mean bg freq", self.mean_frequencies_bg)
+                    print("cell", self.hist_log_Ds)
+                    print("BG", self.hist_log_Ds_bg)
+                    print("diffusion freq", self.diffusion_frequencies)
+                if plot:
+                    self.plot_bar_log_bins()
+                    if self.background_trajectories:
+                        self.plot_bar_log_bins_bg_corrected()
+            else:
+                print("Bin size can not be zero.")
         
     def clear_attributes(self):
         """

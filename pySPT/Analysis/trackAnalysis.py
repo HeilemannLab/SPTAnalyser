@@ -121,13 +121,23 @@ class TrackAnalysis():
         print("Total trajectories:", self.total_trajectories)
 
     def run_plot_diffusion_histogram(self, desired_bin_size):
-        self.clear_attributes()
-        self.determine_max_min_diffusion()
-        self.diffusions_log(float(desired_bin_size))
-        self.calc_nonlogarithmic_diffusions()
-        self.determine_mean_frequency()
-        self.calc_mean_error()
-        self.plot_bar_log_bins()
+        # bin size can only be something that can be converted to float (integer or float, comma separated)
+        try:
+            float(desired_bin_size)
+        except:
+            print("Insert a dot separated float or integer as bin size (e.g. 0.1).")
+        # bin size can not be 0
+        else:
+            if float(desired_bin_size) != 0.0:
+                self.clear_attributes()
+                self.determine_max_min_diffusion()
+                self.diffusions_log(float(desired_bin_size))
+                self.calc_nonlogarithmic_diffusions()
+                self.determine_mean_frequency()
+                self.calc_mean_error()
+                self.plot_bar_log_bins()
+            else:
+                print("Bin size can not be zero.")
         
     def clear_attributes(self):
         """
