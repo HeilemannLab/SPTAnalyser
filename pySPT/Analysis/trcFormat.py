@@ -81,11 +81,13 @@ class TrcFormat():
                    X=self.trc_file_sorted,
                    fmt = ("%i","%i", "%.3f", "%.3f", "%i", "%.3f"),
                    header = header)
+        print(self.file_name + "saved as .swfttrc file.")
     
     def run_trc_format(self):
         self.load_localization_file()
         self.create_trc_file()
         self.sort_trc_file()
+        print("Convertion successful.")
         
         
 def main():

@@ -25,7 +25,6 @@ class WidgetTrcFormat():
         self.pixel_size_box = self.create_pixel_size_box()
         self.run_button = self.create_run_button()
         self.save_button = self.create_save_button()
-        self.clear_output = self.create_clear_output()
     
     def create_file_button(self):
         """

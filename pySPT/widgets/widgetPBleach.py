@@ -22,7 +22,6 @@ class WidgetPBleach():
         self.file_button = self.create_file_button()
         self.run_button = self.create_run_button()
         self.save_button = self.create_save_button()
-        self.clear_output = self.create_clear_output()
         self.init_k = self.create_init_k_box()
         self.integration_time = self.create_init_integration_time_box()
         

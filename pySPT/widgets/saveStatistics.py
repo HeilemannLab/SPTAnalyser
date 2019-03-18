@@ -24,8 +24,6 @@ class SaveStatistics():
         self.grp03 = []
         self.grp04 = []
         self.trc_file_hdf5 = ""  # path of file with .h5 ending
-        self.D_length = 0  # col length from log hist D
-        self.background = False  # is a background loaded?
     
     def create_h5(self, path):
         self.create_h5_name(path)
@@ -38,7 +36,6 @@ class SaveStatistics():
     def create_h5_name(self, path):     
         # splitext -> tupel with path split from .* ending. It splits at the last dot in name.
         self.trc_file_hdf5 = os.path.splitext(path)[0] + ".h5"    
-        print("self.trc_file_hdf5", self.trc_file_hdf5)
         
     def groups(self):
         self.grp00 = self.h5_file.create_group("cellInfo")
@@ -46,9 +43,10 @@ class SaveStatistics():
         self.grp04 = self.h5_file.create_group("filterInfo")
         self.grp05 = self.h5_file.create_group("diffusionHistogram")
         self.grp06 = self.h5_file.create_group("statistics")
-        if self.background:
-            self.grp02 = self.h5_file.create_group("backgroundInfo")
-            self.grp03 = self.h5_file.create_group("backgroundCounts")
+
+    def groups_bg(self):
+        self.grp02 = self.h5_file.create_group("backgroundInfo")
+        self.grp03 = self.h5_file.create_group("backgroundCounts")
         
     def cells(self, data):
         my_datatype = np.dtype([("cell name", h5py.special_dtype(vlen=str)),

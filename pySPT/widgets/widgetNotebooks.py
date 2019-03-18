@@ -189,7 +189,8 @@ def init_save_track_stats(h5_stats, track_stats, directory, folder_name, name):
     
     # if background files were loaded    
     if track_stats.background_trajectories:
-        h5_stats.background = True
+        h5_stats.groups_bg()
+        
         h5_stats.diffusion_plot_bg_normalized(len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.mean_frequencies_percent, track_stats.mean_error_percent, track_stats.corrected_frequencies_percent, track_stats.corrected_frequencies_error_percent)
 
         h5_stats.diffusion_plot_bg(len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.mean_frequencies,
