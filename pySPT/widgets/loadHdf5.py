@@ -57,11 +57,13 @@ class LoadHdf5():
         #
         self.cells = []  # list of cell objects ->cover_slip.cells -> needs entire list
         
-    def test_create_file_names(self):
-        file_name01 = "C:\\Users\\pcoffice37\\Documents\\testing_file_search\\cells\\cell_1_MMStack_Pos0.ome_MIA.h5"
-        file_name02 = "C:\\Users\\pcoffice37\\Documents\\testing_file_search\\cells\\subdirectory\\cell_2_MMStack_Pos0.ome_MIA.h5"
-        self.file_names.append(file_name01)
-        self.file_names.append(file_name02)
+# =============================================================================
+#     def test_create_file_names(self):
+#         file_name01 = "C:\\Users\\pcoffice37\\Documents\\testing_file_search\\cells\\cell_1_MMStack_Pos0.ome_MIA.h5"
+#         file_name02 = "C:\\Users\\pcoffice37\\Documents\\testing_file_search\\cells\\subdirectory\\cell_2_MMStack_Pos0.ome_MIA.h5"
+#         self.file_names.append(file_name01)
+#         self.file_names.append(file_name02)
+# =============================================================================
         
     def clear(self):
         self.file_names = []  # coverslip.cell_files, list with full path file names in loading order
@@ -402,44 +404,10 @@ class LoadHdf5():
         self.get_MSDs()
         self.get_trcs()
         self.get_locs()
-        
-#file = h5py.File(self.file_names[0], "r")
-#print(file.keys())
-#keys = [key for key in file.keys()]
-#print(keys)
-#group = file["rossier"]
-#print(group)
-#for key in group.keys():
-#print(key)
-        
-#print(h5.get("/size/size"))
-#print(type(h5.get("/size/size")))
-#df = h5.get("/size/size")
-#print(df.columns)         
-#df = h5.get("/diffusion/diffusion plots/diffusion plot 0001")
-#print(df)
-#print(df.keys())
-#print(type(df.values))            
-#data_frame_size = h5.get("size/size")         
-#df.frame["size [\u03BCm\u00b2]"]
-#print(self.hdf5[0].keys())
-        
+    
 
 def main():
-    load_h5 = LoadHdf5()
-    load_h5.test_create_file_names()
-    load_h5.read_h5()
-    load_h5.get_cell_name()
-    load_h5.count_trajectory_numbers()
-    load_h5.count_cells()
-    load_h5.get_cell_size()
-    load_h5.settings()
-    #load_h5.create_np_array(10)
-    load_h5.get_diffusion_infos2()
-    load_h5.get_rossier_statistics()
-    load_h5.rossier_plots()
-    load_h5.get_MSDs()
-    load_h5.get_trcs()
+    pass
 
 
 if __name__ == "__main__":

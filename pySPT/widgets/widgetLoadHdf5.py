@@ -36,8 +36,8 @@ class WidgetLoadHdf5():
         self.dir_box_bg = self.create_dir_box_bg()
         self.file_names_bg = []  # list of file names for bg files
         self.chosen_cell = ""
-        self.cell_options = []
-        self.trajectory_options = []
+        self.cell_options = []  # list of filtered cells for drop down menu
+        self.trajectory_options = []  # list of filtered trajectories for drop down menu
         self.drop_down_cells = self.create_drop_down_cells()
         self.drop_down_trajectories = self.create_drop_down_trajectories()
         self.plot_button = self.create_plot_button()

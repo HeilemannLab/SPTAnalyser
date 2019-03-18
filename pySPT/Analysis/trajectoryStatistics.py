@@ -21,12 +21,18 @@ class TrajectoryStatistics():
         self.cells = []  # contains lists of cell objects
         self.cell_trajectories = [] # [[],[]] contains list of cells, cells contain trajectories
         self.cell_trajectories_filtered = []  # deep copy of original cell trajectories
+        self.cell_trajectories_filtered_new = []
+        self.cell_trajectories_filtered_new_new = []
         self.cell_trajectories_index = []
+        self.cell_trajectories_index_new = []
         self.cell_trajectories_filtered_index = []  # deep copy of original cell trajectories index
         self.backgrounds = []  # background objects
         self.background_trajectories = [] # [[],[]] contains list of cells, cells contain trajectories
         self.background_trajectories_filtered = []  # deep copy of original cell trajectories
+        self.background_trajectories_filtered_new = []
+        self.background_trajectories_filtered_new_new = []
         self.background_trajectories_index = []
+        self.background_trajectories_index_new = []
         self.background_trajectories_filtered_index = []  # deep copy of original cell trajectories index
         self.filter_settings = []  # list with boolean values for immob, confined, free, analyse success, not success
         self.filtered_trc_files = []  # contains filtered trc files of cells
@@ -59,6 +65,8 @@ class TrajectoryStatistics():
         self.corrected_frequencies = []  # mean cell frequencies - mean bg frequencies
         self.corrected_frequencies_percent = []  # mean cell frequencies - mean bg frequencies
                                         # for the filter setting trajectory min length
+                                        
+        self.filtered_trajectories = []
 
     def calc_min_rossier_length(self):
         #self.tau_threshold_min_length = float(math.inf)
@@ -73,9 +81,15 @@ class TrajectoryStatistics():
         
     def default_statistics(self):
         self.cell_trajectories_filtered = []  # deep copy of original cell trajectories
+        self.cell_trajectories_filtered_new = []
+        self.cell_trajectories_filtered_new_new = []
         self.cell_trajectories_index = []
+        self.cell_trajectories_index_new = []
         self.cell_trajectories_filtered_index = []  # deep copy of original cell trajectories index
+        self.background_trajectories_filtered_new = []
+        self.background_trajectories_filtered_new_new = []
         self.background_trajectories_index = []
+        self.background_trajectories_index_new = []
         self.background_trajectories_filtered = []  # deep copy of original cell trajectories
         self.background_trajectories_filtered_index = []  # deep copy of original cell trajectories index
         self.total_trajectories = 0  # amount of trajectories in data set
@@ -116,13 +130,22 @@ class TrajectoryStatistics():
         except ValueError:
             max_D = self.get_max_D()
             print("max diffusion coefficient: {} [\u03BCm\u00b2/s]".format(max_D))
+        end1 = time.time()
+        if self.background_trajectories:
+            self.filter_thresholds(min_length, max_length, min_D, max_D, bg=True)
+        else:
+            self.filter_thresholds(min_length, max_length, min_D, max_D)
+        self.filter_type_new(filter_immob, filter_confined, filter_free,
+                         filter_analyse_successful, filter_analyse_not_successful)
+        self.create_index_lst()
+        print("New initialization took {} s".format(time.time()-start))
+        start2 = time.time()
         self.filter_length(min_length, max_length)
         self.filter_D(min_D, max_D)
-        self.filter_immob = filter_immob
         self.filter_type(filter_immob, filter_confined, filter_free,
                          filter_analyse_successful, filter_analyse_not_successful)
         self.filter_cell_trc()
-        print("Initialization took {} s".format(time.time()-start))
+        print("Initialization took {} s".format(end1-start+time.time()-start2))
 
         if filter_analyse_successful and not filter_analyse_not_successful:
             print("Filter for type determination successful only.")
@@ -195,7 +218,7 @@ class TrajectoryStatistics():
                 if min_length > trajectory.length_trajectory:
                     min_length = trajectory.length_trajectory
         return int(min_length)
-                
+        
     def filter_length(self, min_length, max_length): # max_length=default
         """
         Filter by length of trajectory (PALMTracer min_length = 20). Trajectories in the range between
@@ -229,6 +252,112 @@ class TrajectoryStatistics():
             self.cell_trajectories_filtered[cell][trajectory_index+1:]
             self.cell_trajectories_filtered_index[cell] = self.cell_trajectories_filtered_index[cell][0:trajectory_index] + \
             self.cell_trajectories_filtered_index[cell][trajectory_index+1:] 
+            
+    def filter_thresholds(self, min_length, max_length, min_diff, max_diff, bg=False):
+        for cell_index in range(len(self.cell_trajectories)):
+            filtered_cell = [trajectory for trajectory in self.cell_trajectories[cell_index] if trajectory.length_trajectory >= min_length 
+                        and trajectory.length_trajectory <= max_length
+                        and trajectory.D >= min_diff and trajectory.D <= max_diff]
+            self.cell_trajectories_filtered_new.append(filtered_cell)
+        if bg:
+            for bg_index in range(len(self.background_trajectories)):
+                filtered_bg = [trajectory for trajectory in self.background_trajectories[bg_index] if trajectory.length_trajectory >= min_length 
+                            and trajectory.length_trajectory <= max_length
+                            and trajectory.D >= min_diff and trajectory.D <= max_diff]
+                self.background_trajectories_filtered_new.append(filtered_bg)
+        
+    def filter_type_new(self, filter_immob, filter_confined, filter_free,
+                    filter_type_successful, filter_type_not_successful):
+        """
+        :param filter_immob: if checked in JNB -> True -> filter data includes immob trajectories, else False -> will be neglected.
+        """
+        # if filter was not selected, value is False
+        self.cell_trajectories_filtered_new_new = []
+        for cell_index in range(len(self.cell_trajectories)):
+            filtered_cell = []
+            filtered_cell_type = []
+            if filter_immob:
+                filtered_cell_immob = [trajectory for trajectory in self.cell_trajectories_filtered_new[cell_index] if trajectory.immobility
+                                   and not trajectory.confined and not trajectory.analyse_successful]
+                filtered_cell_type.extend(filtered_cell_immob)
+            if filter_confined:
+                filtered_cell_confined = [trajectory for trajectory in self.cell_trajectories_filtered_new[cell_index] if trajectory.confined
+                                   and not trajectory.immobility and trajectory.analyse_successful]
+                filtered_cell_type.extend(filtered_cell_confined)
+            if filter_free:
+                filtered_cell_free = [trajectory for trajectory in self.cell_trajectories_filtered_new[cell_index] if not trajectory.confined
+                                   and not trajectory.immobility and trajectory.analyse_successful]
+                filtered_cell_type.extend(filtered_cell_free)
+            if filter_type_successful:
+                filtered_cell_type_successful = [trajectory for trajectory in filtered_cell_type if trajectory.analyse_successful
+                                                 or trajectory.immobility]
+                filtered_cell.extend(filtered_cell_type_successful)
+            if filter_type_not_successful:
+                filtered_cell_type_not_successful = [trajectory for trajectory in filtered_cell_type if not trajectory.analyse_successful
+                                                     and not trajectory.immobility]
+                filtered_cell.extend(filtered_cell_type_not_successful)
+            self.cell_trajectories_filtered_new_new.append(filtered_cell)
+        #print("cell count new", len(self.cell_trajectories_filtered_new_new[0]), len(self.cell_trajectories_filtered_new_new[1]))
+        if self.background_trajectories:
+            self.background_trajectories_filtered_new_new = []
+            for bg_index in range(len(self.background_trajectories)):
+                filtered_bg = []
+                filtered_bg_type = []
+                if filter_immob:
+                    filtered_cell_immob = [trajectory for trajectory in self.background_trajectories_filtered_new[bg_index] if trajectory.immobility
+                                       and not trajectory.confined and not trajectory.analyse_successful]
+                    filtered_bg_type.extend(filtered_cell_immob)
+                if filter_confined:
+                    filtered_cell_confined = [trajectory for trajectory in self.background_trajectories_filtered_new[bg_index] if trajectory.confined
+                                       and not trajectory.immobility and trajectory.analyse_successful]
+                    filtered_bg_type.extend(filtered_cell_confined)
+                if filter_free:
+                    filtered_cell_free = [trajectory for trajectory in self.background_trajectories_filtered_new[bg_index] if not trajectory.confined
+                                       and not trajectory.immobility and trajectory.analyse_successful]
+                    filtered_bg_type.extend(filtered_cell_free)
+                if filter_type_successful:
+                    filtered_cell_type_successful = [trajectory for trajectory in filtered_bg_type if trajectory.analyse_successful
+                                                     or trajectory.immobility]
+                    filtered_bg.extend(filtered_cell_type_successful)
+                if filter_type_not_successful:
+                    filtered_cell_type_not_successful = [trajectory for trajectory in filtered_bg_type if not trajectory.analyse_successful
+                                                         and not trajectory.immobility]
+                    filtered_bg.extend(filtered_cell_type_not_successful)
+                self.background_trajectories_filtered_new_new.append(filtered_bg)
+        #print("bg count new", len(self.background_trajectories_filtered_new_new[0]), len(self.background_trajectories_filtered_new_new[1]))
+            
+# =============================================================================
+#         for cell_index in range(len(self.cell_trajectories)):
+#             for trajectory in range(len(self.cell_trajectories_filtered_new_new[cell_index])):
+#                 one_trajectory = self.cell_trajectories_filtered_new_new[cell_index][trajectory]
+#                 print(cell_index, one_trajectory.trajectory_number, one_trajectory.immobility, one_trajectory.confined, not one_trajectory.confined,
+#                       one_trajectory.analyse_successful, not one_trajectory.analyse_successful)
+# =============================================================================
+        
+    def create_index_lst(self):
+        for cell_index in range(len(self.cell_trajectories)):
+            trajectory_index = []
+            for trajectory in self.cell_trajectories_filtered_new_new[cell_index]:
+                trajectory_index.append(trajectory.trajectory_number)
+            trajectory_index_sorted = trajectory_index.sort()
+# =============================================================================
+#             print("index", trajectory_index, type(trajectory_index))
+#             print("sorted", trajectory_index_sorted)
+# =============================================================================
+            self.cell_trajectories_index_new.append(trajectory_index)
+# =============================================================================
+#         print("new cell index", self.cell_trajectories_index_new)
+# =============================================================================
+        if self.background_trajectories:
+            for bg_index in range(len(self.background_trajectories)):
+                trajectory_index_bg = []
+                for trajectory in self.background_trajectories_filtered_new_new[bg_index]:
+                    trajectory_index_bg.append(trajectory.trajectory_number)
+                #trajectory_index_bg_sorted = trajectory_index_bg.sort()
+                self.background_trajectories_index_new.append(trajectory_index_bg)
+# =============================================================================
+#             print("new bg index", self.background_trajectories_index_new)
+# =============================================================================
         
     def filter_type(self, filter_immob, filter_confined, filter_free,
                     filter_type_successful, filter_type_not_successful):
@@ -406,26 +535,30 @@ class TrajectoryStatistics():
                 self.calc_nonlogarithmic_diffusions()
                 self.determine_mean_frequency()
                 self.calc_mean_error()
-                print("normalization factor", self.normalization_factor)
-                print("mean cell freq", self.mean_frequencies)
-                print("mean cell freq %", self.mean_frequencies_percent)
-                print("mean freq error", self.mean_error_percent)
-                print("mean freq error%", self.mean_error_percent)
+# =============================================================================
+#                 print("normalization factor", self.normalization_factor)
+#                 print("mean cell freq", self.mean_frequencies)
+#                 print("mean cell freq %", self.mean_frequencies_percent)
+#                 print("mean freq error", self.mean_error_percent)
+#                 print("mean freq error%", self.mean_error_percent)
+# =============================================================================
                 if self.background_trajectories:
                     self.diffusions_log_bg(float(desired_bin_size))
                     self.determine_mean_frequency(is_cell=False)
                     self.calc_mean_error(is_cell=False)
                     self.calc_bg_corrected_freq()
-                    print("D", self.hist_diffusion)
-                    print("normalization factor corr", self.normalization_factor_corrected)
-                    print("corr freq", self.corrected_frequencies)
-                    print("corr freq %", self.corrected_frequencies_percent)
-                    print("dcorr freq", self.corrected_frequencies_error)
-                    print("dcorr freq%", self.corrected_frequencies_error_percent)
-                    print("mean bg freq", self.mean_frequencies_bg)
-                    print("cell", self.hist_log_Ds)
-                    print("BG", self.hist_log_Ds_bg)
-                    print("diffusion freq", self.diffusion_frequencies)
+# =============================================================================
+#                     print("D", self.hist_diffusion)
+#                     print("normalization factor corr", self.normalization_factor_corrected)
+#                     print("corr freq", self.corrected_frequencies)
+#                     print("corr freq %", self.corrected_frequencies_percent)
+#                     print("dcorr freq", self.corrected_frequencies_error)
+#                     print("dcorr freq%", self.corrected_frequencies_error_percent)
+#                     print("mean bg freq", self.mean_frequencies_bg)
+#                     print("cell", self.hist_log_Ds)
+#                     print("BG", self.hist_log_Ds_bg)
+#                     print("diffusion freq", self.diffusion_frequencies)
+# =============================================================================
                 if plot:
                     self.plot_bar_log_bins()
                     if self.background_trajectories:
