@@ -187,6 +187,24 @@ def init_save_track_stats(h5_stats, track_stats, directory, folder_name, name):
     
     h5_stats.create_h5(directory + "\\" + folder_name + "\\" + name)
     
+    # if background files were loaded    
+    if track_stats.background_trajectories:
+        h5_stats.background = True
+        h5_stats.diffusion_plot_bg_normalized(len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.mean_frequencies_percent, track_stats.mean_error_percent, track_stats.corrected_frequencies_percent, track_stats.corrected_frequencies_error_percent)
+
+        h5_stats.diffusion_plot_bg(len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.mean_frequencies,
+                                   track_stats.mean_error, track_stats.mean_frequencies_bg, track_stats.mean_error_bg,
+                                   track_stats.corrected_frequencies, track_stats.corrected_frequencies_error)        
+        for bg in track_stats.backgrounds:
+            bg_name = bg.name
+            bg_index = track_stats.backgrounds.index(bg)
+            h5_stats.bg_counts(bg_name, len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.diffusion_frequencies_bg[:,bg_index])
+        background_info = []
+        for i in range(len(track_stats.bg_sizes)):
+            one_bg = (track_stats.backgrounds[i].name, track_stats.bg_sizes[i])
+            background_info.append(one_bg)
+        h5_stats.backgrounds(background_info)
+    
     h5_stats.filter_info(track_stats.filter_settings, track_stats.get_min_length(), track_stats.get_max_length(), track_stats.get_min_D(),
                          track_stats.get_max_D())
     
@@ -207,22 +225,10 @@ def init_save_track_stats(h5_stats, track_stats, directory, folder_name, name):
     
     # if no bg file was loaded only mean cell frequencies are determined
     if not track_stats.background_trajectories:
+        h5_stats.diffusion_plot_normalized(len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.mean_frequencies_percent, track_stats.mean_error_percent)
+        
         h5_stats.diffusion_plot(len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.mean_frequencies,
                                    track_stats.mean_error)
-    # if background files were loaded    
-    if track_stats.background_trajectories:
-        h5_stats.diffusion_plot_bg(len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.mean_frequencies,
-                                   track_stats.mean_error, track_stats.mean_frequencies_bg, track_stats.mean_error_bg,
-                                   track_stats.corrected_frequencies, track_stats.corrected_frequencies_error)        
-        for bg in track_stats.backgrounds:
-            bg_name = bg.name
-            bg_index = track_stats.backgrounds.index(bg)
-            h5_stats.bg_counts(bg_name, len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.diffusion_frequencies_bg[:,bg_index])
-        background_info = []
-        for i in range(len(track_stats.bg_sizes)):
-            one_bg = (track_stats.backgrounds[i].name, track_stats.bg_sizes[i])
-            background_info.append(one_bg)
-        h5_stats.backgrounds(background_info)
         
     h5_stats.cells(cell_info)
 

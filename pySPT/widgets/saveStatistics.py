@@ -25,6 +25,7 @@ class SaveStatistics():
         self.grp04 = []
         self.trc_file_hdf5 = ""  # path of file with .h5 ending
         self.D_length = 0  # col length from log hist D
+        self.background = False  # is a background loaded?
     
     def create_h5(self, path):
         self.create_h5_name(path)
@@ -42,11 +43,12 @@ class SaveStatistics():
     def groups(self):
         self.grp00 = self.h5_file.create_group("cellInfo")
         self.grp01 = self.h5_file.create_group("cellCounts")
-        self.grp02 = self.h5_file.create_group("backgroundInfo")
-        self.grp03 = self.h5_file.create_group("backgroundCounts")
         self.grp04 = self.h5_file.create_group("filterInfo")
         self.grp05 = self.h5_file.create_group("diffusionHistogram")
         self.grp06 = self.h5_file.create_group("statistics")
+        if self.background:
+            self.grp02 = self.h5_file.create_group("backgroundInfo")
+            self.grp03 = self.h5_file.create_group("backgroundCounts")
         
     def cells(self, data):
         my_datatype = np.dtype([("cell name", h5py.special_dtype(vlen=str)),
@@ -80,8 +82,8 @@ class SaveStatistics():
         dset = self.grp04.create_dataset("filters", (1,1), dtype = np.dtype([("filter immobile", int),
                                                          ("filter confined", int),
                                                          ("filter free", int),
-                                                         ("filter analyse successful", int),
-                                                         ("filter analyse not successful", int),
+                                                         ("type determination successful", int),
+                                                         ("type determination not successful", int),
                                                          ("min trajectory length [frames]", int),
                                                         ("max trajectory length [frames]", int),
                                                         ("min diffusion coefficient [\u03BCm\u00b2/s]", float),
@@ -89,13 +91,12 @@ class SaveStatistics():
         dset["filter immobile"] = filter_settings[0]
         dset["filter confined"] = filter_settings[1]
         dset["filter free"] = filter_settings[2]
-        dset["filter analyse successful"] = filter_settings[3]
-        dset["filter analyse not successful"] = filter_settings[4]
+        dset["type determination successful"] = filter_settings[3]
+        dset["type determination not successful"] = filter_settings[4]
         dset["min trajectory length [frames]"] = min_length
         dset["max trajectory length [frames]"] = max_length
         dset["min diffusion coefficient [\u03BCm\u00b2/s]"] = min_diff
         dset["max diffusion coefficient [\u03BCm\u00b2/s]"] = max_diff
-
         
     def statistics(self, immobile, confined, free, trajectories_included, trajectories_excluded):
         dset = self.grp06.create_dataset("statistics", (1,1), dtype = np.dtype([("immobile [%]", float),
@@ -119,7 +120,20 @@ class SaveStatistics():
         dset["\u0394 mean frequency cells"] = dmean_cell
         
     def diffusion_plot_bg(self, number, diffusion, mean_cell, dmean_cell, mean_bg, dmean_bg, mean_cell_corr, dmean_cell_corr):
-        pass
+        dset = self.grp05.create_dataset("histogram values", (number,), dtype = np.dtype([("diffusion coefficient [\u03BCm\u00b2/s]", float),
+                                                              ("mean frequency cells", float),
+                                                              ("\u0394 mean frequency cells", float),
+                                                              ("mean frequency background", float),
+                                                              ("\u0394 mean frequency background", float),
+                                                              ("mean frequency corrected", float),
+                                                              ("\u0394 mean frequency corrected", float)]))
+        dset["diffusion coefficient [\u03BCm\u00b2/s]"] = diffusion
+        dset["mean frequency cells"] = mean_cell
+        dset["\u0394 mean frequency cells"] = dmean_cell
+        dset["mean frequency background"] = mean_bg
+        dset["\u0394 mean frequency background"] = dmean_bg
+        dset["mean frequency corrected"] = mean_cell_corr
+        dset["\u0394 mean frequency corrected"] = dmean_cell_corr
     
     def diffusion_plot_normalized(self, number, diffusion, mean_cell_percent, dmean_cell_percent):
         """
@@ -140,7 +154,7 @@ class SaveStatistics():
                                                  ("mean frequency cells [%]", float),
                                                  ("\u0394 mean frequency cells [%]", float),
                                                  ("mean frequency corrected [%]", float),
-                                                 ("\u0394 mean frequency corrected [%]", float))])
+                                                 ("\u0394 mean frequency corrected [%]", float)]))
         dset["diffusion coefficient [\u03BCm\u00b2/s]"] = diffusion
         dset["mean frequency cells [%]"] = mean_cell_percent
         dset["\u0394 mean frequency cells [%]"] = dmean_cell_percent

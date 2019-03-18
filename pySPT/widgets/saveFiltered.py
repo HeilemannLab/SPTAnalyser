@@ -52,8 +52,8 @@ class SaveFiltered():
         dset = self.grp05.create_dataset("filters", (1,1), dtype = np.dtype([("filter immobile", int),
                                                          ("filter confined", int),
                                                          ("filter free", int),
-                                                         ("filter analyse successful", int),
-                                                         ("filter analyse not successful", int),
+                                                         ("type determination successful", int),
+                                                         ("type determination not successful", int),
                                                          ("min trajectory length [frames]", int),
                                                         ("max trajectory length [frames]", int),
                                                         ("min diffusion coefficient [\u03BCm\u00b2/s]", float),
@@ -61,8 +61,8 @@ class SaveFiltered():
         dset["filter immobile"] = filter_settings[0]
         dset["filter confined"] = filter_settings[1]
         dset["filter free"] = filter_settings[2]
-        dset["filter analyse successful"] = filter_settings[3]
-        dset["filter analyse not successful"] = filter_settings[4]
+        dset["type determination successful"] = filter_settings[3]
+        dset["type determination not successful"] = filter_settings[4]
         dset["min trajectory length [frames]"] = min_length
         dset["max trajectory length [frames]"] = max_length
         dset["min diffusion coefficient [\u03BCm\u00b2/s]"] = min_diff
