@@ -89,7 +89,7 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
     print("Initialization took {} s".format(time.time()-start))
     
     
-def init_track_stats_widget_arrangement(widget11, widget21, widget31, widget41, widget51, widget12, widget22, widget32, widget42, widget52):
+def init_track_stats_widget_arrangement(widget11, widget21, widget31, widget41, widget51, widget12, widget22, widget32, widget42):
     """
     JNB Track Statistics.
     HBox are line arrangements, col/row
@@ -99,7 +99,7 @@ def init_track_stats_widget_arrangement(widget11, widget21, widget31, widget41, 
     second_line = HBox([widget21, widget22])
     third_line = HBox([widget31, widget32])
     fourth_line = HBox([widget41, widget42])
-    fifth_line = HBox([widget51, widget52])
+    fifth_line = HBox([widget51])
     return VBox([first_line, second_line, third_line, fourth_line, fifth_line])
     
 
@@ -164,8 +164,7 @@ def init_save_filtered_analysis(cover_slip, cell_index, track_stats, directory, 
     for trajectory in track_stats.cell_trajectories_filtered[cell_index]:
         h5_filtered.msd(trajectory.trajectory_number, trajectory.times, trajectory.MSDs)
         
-    h5_filtered.filter_info(track_stats.filter_settings, track_stats.get_min_length(), track_stats.get_max_length(), track_stats.get_min_D(),
-                         track_stats.get_max_D())
+    h5_filtered.filter_info(track_stats.filter_settings, track_stats.filter_thresholds_values)
     
     track_analysis.save_diff(track_stats.cell_trajectories_filtered[cell_index])
     diff_info = track_analysis.diffusion_info
@@ -206,8 +205,7 @@ def init_save_track_stats(h5_stats, track_stats, directory, folder_name, name):
             background_info.append(one_bg)
         h5_stats.backgrounds(background_info)
     
-    h5_stats.filter_info(track_stats.filter_settings, track_stats.get_min_length(), track_stats.get_max_length(), track_stats.get_min_D(),
-                         track_stats.get_max_D())
+    h5_stats.filter_info(track_stats.filter_settings, track_stats.filter_thresholds_values)
     
     h5_stats.statistics(track_stats.type_percentage()[0], track_stats.type_percentage()[1],
                          track_stats.type_percentage()[2], track_stats.total_trajectories_filtered, (track_stats.total_trajectories - track_stats.total_trajectories_filtered))

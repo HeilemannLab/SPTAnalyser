@@ -76,11 +76,10 @@ class SaveStatistics():
         dset["diffusion coefficient [\u03BCm\u00b2/s]"] = diffusion_coeff
         dset["counts / area [1/\u03BCm\u00b2]"] = counts
         
-    def filter_info(self, filter_settings, min_length, max_length, min_diff, max_diff):
+    def filter_info(self, filter_settings,filter_thresholds_values):
         dset = self.grp04.create_dataset("filters", (1,1), dtype = np.dtype([("filter immobile", int),
                                                          ("filter confined", int),
                                                          ("filter free", int),
-                                                         ("type determination successful", int),
                                                          ("type determination not successful", int),
                                                          ("min trajectory length [frames]", int),
                                                         ("max trajectory length [frames]", int),
@@ -89,12 +88,11 @@ class SaveStatistics():
         dset["filter immobile"] = filter_settings[0]
         dset["filter confined"] = filter_settings[1]
         dset["filter free"] = filter_settings[2]
-        dset["type determination successful"] = filter_settings[3]
-        dset["type determination not successful"] = filter_settings[4]
-        dset["min trajectory length [frames]"] = min_length
-        dset["max trajectory length [frames]"] = max_length
-        dset["min diffusion coefficient [\u03BCm\u00b2/s]"] = min_diff
-        dset["max diffusion coefficient [\u03BCm\u00b2/s]"] = max_diff
+        dset["type determination not successful"] = filter_settings[3]
+        dset["min trajectory length [frames]"] = filter_thresholds_values[0]
+        dset["max trajectory length [frames]"] = filter_thresholds_values[1]
+        dset["min diffusion coefficient [\u03BCm\u00b2/s]"] = filter_thresholds_values[2]
+        dset["max diffusion coefficient [\u03BCm\u00b2/s]"] = filter_thresholds_values[3]
         
     def statistics(self, immobile, confined, free, trajectories_included, trajectories_excluded):
         dset = self.grp06.create_dataset("statistics", (1,1), dtype = np.dtype([("immobile [%]", float),

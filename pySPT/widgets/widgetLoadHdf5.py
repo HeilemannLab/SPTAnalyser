@@ -50,7 +50,7 @@ class WidgetLoadHdf5():
         self.immob_type_check_box = self.create_immob_type_check_box()
         self.confined_type_check_box = self.create_confined_type_check_box()
         self.free_type_check_box = self.create_free_type_check_box()
-        self.analyse_successful_check_box = self.create_analyse_successful_check_box()
+        #self.analyse_successful_check_box = self.create_analyse_successful_check_box()
         self.analyse_not_successful_check_box = self.create_analyse_not_successful_check_box()
         self.plot_diffusions_button = self.create_plot_diffusions_button()
         # Plot diffusion histogram
@@ -286,11 +286,13 @@ class WidgetLoadHdf5():
                          disabled=False)
         return checkbox
     
-    def create_analyse_successful_check_box(self):
-        checkbox = widgets.Checkbox(value=True,
-                         description='Type determination successful',
-                         disabled=False)
-        return checkbox
+# =============================================================================
+#     def create_analyse_successful_check_box(self):
+#         checkbox = widgets.Checkbox(value=True,
+#                          description='Type determination successful',
+#                          disabled=False)
+#         return checkbox
+# =============================================================================
 
     def create_analyse_not_successful_check_box(self):
         checkbox = widgets.Checkbox(value=False,
