@@ -9,4 +9,4 @@ Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt am
 """
 
 from .preAnalysis import *
-from .Analysis import *
+from .analysis import *
