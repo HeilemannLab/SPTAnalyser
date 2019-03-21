@@ -6,7 +6,14 @@ Created on Mon Jan 14 15:40:08 2019
 
 Research Group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt am Main.
+
+P_bleach is the probability per particle and frame to bleach [0..1]. Calc k with exp decay funktion a*exp(-dt*k). With k, calc cumulative
+distribution function 1-exp(-dt*k) = probability of event in the interval [0..1], 1 = 1 frame.
 """
+
+#It can be estimated by taking
+#the inverse of the total number of frames a particle is visible, not counting the frames in
+#which it remains undetected (due to blinking)... from manual
 
 import numpy as np
 import datetime
@@ -29,7 +36,14 @@ class PBleach():
         self.kcov = 0
         #self.valid_length = 100  # trajectories > 100 are often 0 -> maybe not good for fitting
         #  made no difference for one data set
-            
+        
+    def run_p_bleach(self):
+        self.load_seg_file()
+        self.count_mjd_n_frequencies()
+        self.calc_k_bleach()
+        self.calc_decay()
+        self.plot_mjd_frequencies()
+        
     def load_seg_file(self):
         mjd_index = list(self.column_order.keys())[list(self.column_order.values()).index('"mjd"')]
         mjd_n_index = list(self.column_order.keys())[list(self.column_order.values()).index('"mjd_n"')]
@@ -189,12 +203,7 @@ class PBleach():
         else:
             print("error: could not open file %s. Make sure the folder does exist" %(out_file_name))
             
-    def run_p_bleach(self):
-        self.load_seg_file()
-        self.count_mjd_n_frequencies()
-        self.calc_k_bleach()
-        self.calc_decay()
-        self.plot_mjd_frequencies()
+
 
        
         

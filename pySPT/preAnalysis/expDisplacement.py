@@ -6,7 +6,11 @@ Created on Fri Jan 11 13:26:16 2019
 
 Research Group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt am Main.
+
+Determine how far a particle moves between frames in the x/y-plane [nm]. Fraction vs mjd [nm] -> determine the average as initial exp_displacement value.
 """
+
+# why load mjd_n??? 
 
 import datetime
 import numpy as np
@@ -58,7 +62,7 @@ class ExpDisplacement():
         mjd_no_zeros = np.ma.masked_array(self.mjd[:,0], self.mjd[:,0] == 0)
         self.average_mjd = mjd_no_zeros.mean()
         print("The expected displacement is %.3f nm." %(self.average_mjd)) 
-
+        
     def plot_mjd_frequencies(self):
         self.fig = plt.figure()
         sp = self.fig.add_subplot(1, 1, 1)  # only 1 plot

@@ -9,7 +9,6 @@ Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.
 """
 
 import numpy as np
-from . import trajectory
 from . import cell
 import time
 import os

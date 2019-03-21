@@ -32,7 +32,7 @@ class SaveFiltered():
         
     def create_h5_file(self):
         self.h5_file = h5py.File(self.trc_file_hdf5, "w")  # w- or x = Create file, fail if exists
-                        
+
     def create_h5_name(self, path):     
         # splitext -> tupel with path split from .* ending. It splits at the last dot in name.
         self.trc_file_hdf5 = os.path.splitext(path)[0] + ".h5"  

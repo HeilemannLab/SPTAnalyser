@@ -79,8 +79,7 @@ class Cell():
 # =============================================================================
 #         list(map(lambda x: x.analyse_particle(), self.trajectories))
 #         self.analysed_trajectories = self.trajectories
-# =============================================================================
-        
+# ============================================================================= 
         for trajectory in tqdm(self.trajectories):
             trajectory.analyse_particle()
         self.analysed_trajectories = self.trajectories

@@ -148,19 +148,23 @@ class Trajectory():
         if self.tau < self.tau_threshold:
             self.confined = True
             
-    def function_full_MSD_ML(self, t, r, D):
-        return (4.0*r**2.0)/3.0*(1.0-np.exp(-t*3*D/r**2.0))
+# =============================================================================
+#     def function_full_MSD_ML(self, t, r, D):
+#         return (4.0*r**2.0)/3.0*(1.0-np.exp(-t*3*D/r**2.0))
+# =============================================================================
     
     def function_full_MSD(self, t, r, tau):
         return (4.0*r**2.0)/3.0*(1.0-np.exp(-t/tau))
     
-    def fit_full_MSD_ML(self):
-        self.create_MSD_values()
-        self.r_ML = 0.16891
-        self.tau_ML = 0.01178
-        self.D_conf_ML = 3*self.tau_ML/self.r_ML**2  # used wrong formular
-        self.MSD_fit_ML[:,2] = self.function_full_MSD_ML(times, self.r_ML, self.D_conf_ML)
-        self.MSD_fit_ML[:,3] = self.MSD_fit_ML[:,1] - self.MSD_fit_ML[:,2]
+# =============================================================================
+#     def fit_full_MSD_ML(self):
+#         self.create_MSD_values()
+#         self.r_ML = 0.16891
+#         self.tau_ML = 0.01178
+#         self.D_conf_ML = 3*self.tau_ML/self.r_ML**2  # used wrong formular
+#         self.MSD_fit_ML[:,2] = self.function_full_MSD_ML(times, self.r_ML, self.D_conf_ML)
+#         self.MSD_fit_ML[:,3] = self.MSD_fit_ML[:,1] - self.MSD_fit_ML[:,2]
+# =============================================================================
         
     def plot_full_MSD_immob(self):
         """
@@ -288,14 +292,16 @@ class Trajectory():
             self.plot_full_MSD_immob()
         self.print_particle()
 
-    def save_times_MSDs_60(self):
-        out_file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\pySPT_cell_1_MMStack_Pos0\\preAnalysis\\MSD60" + "_" + str(self.molecule_number) + ".txt"
-        #out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_trc_format.txt"
-        header = "time step [s]\t MSD\t Diffusion coeff: " + str(self.D)
-        np.savetxt(out_file_name, 
-                   X=self.MSD_60,
-                   fmt = ("%.3f","%.14f"),
-                   header = header)
+# =============================================================================
+#     def save_times_MSDs_60(self):
+#         out_file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\pySPT_cell_1_MMStack_Pos0\\preAnalysis\\MSD60" + "_" + str(self.molecule_number) + ".txt"
+#         #out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_trc_format.txt"
+#         header = "time step [s]\t MSD\t Diffusion coeff: " + str(self.D)
+#         np.savetxt(out_file_name, 
+#                    X=self.MSD_60,
+#                    fmt = ("%.3f","%.14f"),
+#                    header = header)
+# =============================================================================
     
    
 def main():

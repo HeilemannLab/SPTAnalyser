@@ -226,13 +226,6 @@ class WidgetLoadHdf5():
                 tooltip = "apply filter")
         return button
     
-# =============================================================================
-#     def change_min_length_box(self):
-#         self.min_length_box.value = self.min_length 
-#         print("change", self.min_length_box.value )
-#         #self.got_dir = True
-# =============================================================================
-    
     def create_min_length_box(self, val = "min length" , desc = "Trajectory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
         """
         Box for inserting the minimum length of a trajectory.
@@ -285,14 +278,6 @@ class WidgetLoadHdf5():
                          description='Free',
                          disabled=False)
         return checkbox
-    
-# =============================================================================
-#     def create_analyse_successful_check_box(self):
-#         checkbox = widgets.Checkbox(value=True,
-#                          description='Type determination successful',
-#                          disabled=False)
-#         return checkbox
-# =============================================================================
 
     def create_analyse_not_successful_check_box(self):
         checkbox = widgets.Checkbox(value=False,
@@ -396,8 +381,5 @@ class WidgetLoadHdf5():
                 button_style="",
                 tooltip = "save statistics")
         return button
-    
 
-    
-    
     

@@ -24,11 +24,11 @@ class SaveStatistics():
         self.grp03 = []
         self.grp04 = []
         self.trc_file_hdf5 = ""  # path of file with .h5 ending
-    
+        
     def create_h5(self, path):
         self.create_h5_name(path)
         self.create_h5_file()
-        self.groups()
+        self.groups()   
         
     def create_h5_file(self):
         self.h5_file = h5py.File(self.trc_file_hdf5, "w")  # w- or x = Create file, fail if exists

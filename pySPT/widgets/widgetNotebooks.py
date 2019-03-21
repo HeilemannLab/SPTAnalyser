@@ -20,9 +20,7 @@ from ..analysis import trajectory
 from ..analysis import trackAnalysis
 import time
 import numpy as np 
-import os
 from ipywidgets import HBox, VBox
-from tqdm import tqdm_notebook as tqdm
 
 
 def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
@@ -54,7 +52,8 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
         one_cell.D_min = load_hdf5.D_mins[cell_index]
         one_cell.tau_threshold_min_length = load_hdf5.tau_min_trajectory_lengths[cell_index]
         for trajectory_index in range(0, load_hdf5.trajectory_numbers[cell_index]):
-            one_trajectory = trajectory.Trajectory(load_hdf5.locs[cell_index][trajectory_index], one_cell.tau_threshold, one_cell.dt, one_cell.dof, one_cell.D_min)
+            one_trajectory = trajectory.Trajectory(load_hdf5.locs[cell_index][trajectory_index], one_cell.tau_threshold, one_cell.dt,
+                                                   one_cell.dof, one_cell.D_min)
             one_trajectory.trajectory_number = trajectory_index+1
             one_trajectory.MSDs = load_hdf5.cells_trajectories_MSDs[cell_index][trajectory_index]
             one_trajectory.times = load_hdf5.cells_trajectories_times[cell_index][trajectory_index]
@@ -109,18 +108,15 @@ def init_save_track_analysis(cover_slip, cell_index, track_analysis):
     :param: Objects created in JNB.
     """       
     h5 = hdf5.Hdf5()
-    
     h5.create_h5(cover_slip.cell_files[cell_index])
-
     cell = cover_slip.cells[cell_index]
     one_trajectory = cover_slip.cell_trajectories[cell_index][0]  # get trajectory attributes, that are the same for every trajectory
-    h5.data_settings(cell.dt, cell.pixel_size, cell.pixel_amount, cell.size, cell.tau_threshold, cover_slip.tau_threshold_min_length, one_trajectory.fit_area, cell.dof, cell.D_min)
-    
-    h5.statistics(track_analysis.cell_type_count[cell_index][0], track_analysis.cell_type_count[cell_index][1], track_analysis.cell_type_count[cell_index][2], track_analysis.total_trajectories_cell[cell_index])
-
-
-    h5.trc(np.shape(cell.trc_file), cell.trc_file[:,0], cell.trc_file[:,1], cell.trc_file[:,2], cell.trc_file[:,3], cell.trc_file[:,4], cell.trc_file[:,5])
-    
+    h5.data_settings(cell.dt, cell.pixel_size, cell.pixel_amount, cell.size, cell.tau_threshold,
+                     cover_slip.tau_threshold_min_length, one_trajectory.fit_area, cell.dof, cell.D_min)
+    h5.statistics(track_analysis.cell_type_count[cell_index][0], track_analysis.cell_type_count[cell_index][1],
+                  track_analysis.cell_type_count[cell_index][2], track_analysis.total_trajectories_cell[cell_index])
+    h5.trc(np.shape(cell.trc_file), cell.trc_file[:,0], cell.trc_file[:,1], cell.trc_file[:,2], cell.trc_file[:,3],
+           cell.trc_file[:,4], cell.trc_file[:,5])
     for trajectory in cover_slip.cell_trajectories[cell_index]:
         plot = track_analysis.save_plots(trajectory)
         h5.data_diffusion_plots(plot[0], plot[1], plot[2], plot[3], plot[4])
@@ -129,14 +125,15 @@ def init_save_track_analysis(cover_slip, cell_index, track_analysis):
         h5.data_rossier_plots(plot[0], plot[5], plot[6], plot[7], plot[8])
     for trajectory in cover_slip.cell_trajectories[cell_index]:
         h5.msd(trajectory.trajectory_number, trajectory.times, trajectory.MSDs)
-    
     track_analysis.save_diff(cover_slip.cell_trajectories[cell_index])
     diff_info = track_analysis.diffusion_info
-    h5.data_diffusion_info(track_analysis.number_of_trajectories, diff_info[:,0], diff_info[:,1], diff_info[:,2], diff_info[:,3], diff_info[:,4], diff_info[:,5])
-
+    h5.data_diffusion_info(track_analysis.number_of_trajectories, diff_info[:,0], diff_info[:,1], diff_info[:,2], diff_info[:,3],
+                           diff_info[:,4], diff_info[:,5])
     track_analysis.save_rossier(cover_slip.cell_trajectories[cell_index])
     rossier_info = track_analysis.rossier_info
-    h5.data_rossier_info(track_analysis.number_of_trajectories, rossier_info[:,0],  rossier_info[:,1],  rossier_info[:,2],  rossier_info[:,3],  rossier_info[:,4],  rossier_info[:,5],  rossier_info[:,6],  rossier_info[:,7],  rossier_info[:,8],  rossier_info[:,9], rossier_info[:,10])
+    h5.data_rossier_info(track_analysis.number_of_trajectories, rossier_info[:,0],  rossier_info[:,1],  rossier_info[:,2],
+                         rossier_info[:,3],  rossier_info[:,4],  rossier_info[:,5],  rossier_info[:,6],  rossier_info[:,7],
+                         rossier_info[:,8],  rossier_info[:,9], rossier_info[:,10])
     
     
 def init_save_filtered_analysis(cover_slip, cell_index, track_stats, directory, folder_name):
@@ -149,12 +146,15 @@ def init_save_filtered_analysis(cover_slip, cell_index, track_stats, directory, 
     h5_filtered.create_h5(directory + "\\" + folder_name + "\\" + cell_name)
     cell = track_stats.cells[cell_index]
     one_trajectory = track_stats.cell_trajectories_filtered[cell_index][0]  # get trajectory attributes, that are the same for every trajectory
-    h5_filtered.data_settings(cell.dt, cell.pixel_size, cell.pixel_amount, cell.size, cell.tau_threshold, cell.tau_threshold_min_length, one_trajectory.fit_area, cell.dof, cell.D_min)
-    
-    h5_filtered.statistics(track_stats.cell_type_count[cell_index][0], track_stats.cell_type_count[cell_index][1], track_stats.cell_type_count[cell_index][2], track_stats.total_trajectories_filtered_cell[cell_index], (track_stats.total_trajectories_cell[cell_index]-track_stats.total_trajectories_filtered_cell[cell_index]))
-       
-    h5_filtered.trc(np.shape(track_stats.filtered_trc_files[cell_index]), track_stats.filtered_trc_files[cell_index][:,0], track_stats.filtered_trc_files[cell_index][:,1], track_stats.filtered_trc_files[cell_index][:,2], track_stats.filtered_trc_files[cell_index][:,3], track_stats.filtered_trc_files[cell_index][:,4], track_stats.filtered_trc_files[cell_index][:,5])
-    
+    h5_filtered.data_settings(cell.dt, cell.pixel_size, cell.pixel_amount, cell.size, cell.tau_threshold, cell.tau_threshold_min_length,
+                              one_trajectory.fit_area, cell.dof, cell.D_min)
+    h5_filtered.statistics(track_stats.cell_type_count[cell_index][0], track_stats.cell_type_count[cell_index][1],
+                           track_stats.cell_type_count[cell_index][2], track_stats.total_trajectories_filtered_cell[cell_index],
+                           (track_stats.total_trajectories_cell[cell_index]-track_stats.total_trajectories_filtered_cell[cell_index]))
+    h5_filtered.trc(np.shape(track_stats.filtered_trc_files[cell_index]), track_stats.filtered_trc_files[cell_index][:,0],
+                    track_stats.filtered_trc_files[cell_index][:,1], track_stats.filtered_trc_files[cell_index][:,2],
+                    track_stats.filtered_trc_files[cell_index][:,3], track_stats.filtered_trc_files[cell_index][:,4],
+                    track_stats.filtered_trc_files[cell_index][:,5])
     for trajectory in track_stats.cell_trajectories_filtered[cell_index]:
         plot = track_analysis.save_plots(trajectory)
         h5_filtered.data_diffusion_plots(plot[0], plot[1], plot[2], plot[3], plot[4])
@@ -162,17 +162,17 @@ def init_save_filtered_analysis(cover_slip, cell_index, track_stats, directory, 
         plot = track_analysis.save_plots(trajectory)
         h5_filtered.data_rossier_plots(plot[0], plot[5], plot[6], plot[7], plot[8])
     for trajectory in track_stats.cell_trajectories_filtered[cell_index]:
-        h5_filtered.msd(trajectory.trajectory_number, trajectory.times, trajectory.MSDs)
-        
+        h5_filtered.msd(trajectory.trajectory_number, trajectory.times, trajectory.MSDs)  
     h5_filtered.filter_info(track_stats.filter_settings, track_stats.filter_thresholds_values)
-    
     track_analysis.save_diff(track_stats.cell_trajectories_filtered[cell_index])
     diff_info = track_analysis.diffusion_info
-    h5_filtered.data_diffusion_info(track_analysis.number_of_trajectories, diff_info[:,0], diff_info[:,1], diff_info[:,2], diff_info[:,3], diff_info[:,4], diff_info[:,5])
-    
+    h5_filtered.data_diffusion_info(track_analysis.number_of_trajectories, diff_info[:,0], diff_info[:,1], diff_info[:,2],
+                                    diff_info[:,3], diff_info[:,4], diff_info[:,5])
     track_analysis.save_rossier(track_stats.cell_trajectories_filtered[cell_index])
     rossier_info = track_analysis.rossier_info
-    h5_filtered.data_rossier_info(track_analysis.number_of_trajectories, rossier_info[:,0],  rossier_info[:,1],  rossier_info[:,2],  rossier_info[:,3],  rossier_info[:,4],  rossier_info[:,5],  rossier_info[:,6],  rossier_info[:,7],  rossier_info[:,8],  rossier_info[:,9], rossier_info[:,10])
+    h5_filtered.data_rossier_info(track_analysis.number_of_trajectories, rossier_info[:,0],  rossier_info[:,1],  rossier_info[:,2],
+                                  rossier_info[:,3],  rossier_info[:,4],  rossier_info[:,5],  rossier_info[:,6],  rossier_info[:,7],
+                                  rossier_info[:,8],  rossier_info[:,9], rossier_info[:,10])
     
     
 def init_save_track_stats(h5_stats, track_stats, directory, folder_name, name):
@@ -181,17 +181,13 @@ def init_save_track_stats(h5_stats, track_stats, directory, folder_name, name):
     :param path: head path for statistics h5 file.
     :param name: raw base name for statistics h5 file.
     """
-    if not os.path.exists(directory + "\\" + folder_name):
-        os.makedirs(directory + "\\" + folder_name)
-    
     h5_stats.create_h5(directory + "\\" + folder_name + "\\" + name)
-    
     # if background files were loaded    
     if track_stats.background_trajectories:
         h5_stats.groups_bg()
-        
-        h5_stats.diffusion_plot_bg_normalized(len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.mean_frequencies_percent, track_stats.mean_error_percent, track_stats.corrected_frequencies_percent, track_stats.corrected_frequencies_error_percent)
-
+        h5_stats.diffusion_plot_bg_normalized(len(track_stats.hist_diffusion), track_stats.hist_diffusion,
+                                              track_stats.mean_frequencies_percent, track_stats.mean_error_percent,
+                                              track_stats.corrected_frequencies_percent, track_stats.corrected_frequencies_error_percent)
         h5_stats.diffusion_plot_bg(len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.mean_frequencies,
                                    track_stats.mean_error, track_stats.mean_frequencies_bg, track_stats.mean_error_bg,
                                    track_stats.corrected_frequencies, track_stats.corrected_frequencies_error)        
@@ -204,14 +200,11 @@ def init_save_track_stats(h5_stats, track_stats, directory, folder_name, name):
             one_bg = (track_stats.backgrounds[i].name, track_stats.bg_sizes[i])
             background_info.append(one_bg)
         h5_stats.backgrounds(background_info)
-    
     h5_stats.filter_info(track_stats.filter_settings, track_stats.filter_thresholds_values)
-    
     h5_stats.statistics(track_stats.type_percentage()[0], track_stats.type_percentage()[1],
-                         track_stats.type_percentage()[2], track_stats.total_trajectories_filtered, (track_stats.total_trajectories - track_stats.total_trajectories_filtered))
-    
+                         track_stats.type_percentage()[2], track_stats.total_trajectories_filtered,
+                         (track_stats.total_trajectories - track_stats.total_trajectories_filtered))
     h5_stats.diffusion_bin_size(track_stats.bin_size)
-    
     # cell files are always loaded
     for cell in track_stats.cells:
         cell_name = cell.name
@@ -221,14 +214,12 @@ def init_save_track_stats(h5_stats, track_stats, directory, folder_name, name):
     for i in range(len(track_stats.cell_sizes)):
         one_cell = (track_stats.cells[i].name, track_stats.cell_sizes[i])
         cell_info.append(one_cell)
-    
     # if no bg file was loaded only mean cell frequencies are determined
     if not track_stats.background_trajectories:
-        h5_stats.diffusion_plot_normalized(len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.mean_frequencies_percent, track_stats.mean_error_percent)
-        
+        h5_stats.diffusion_plot_normalized(len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.mean_frequencies_percent,
+                                           track_stats.mean_error_percent)
         h5_stats.diffusion_plot(len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.mean_frequencies,
                                    track_stats.mean_error)
-        
     h5_stats.cells(cell_info)
 
         
