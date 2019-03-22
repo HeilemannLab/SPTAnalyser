@@ -12,7 +12,7 @@ Create a cell object which creats trajectory objects. Cell contains informations
 
 import numpy as np
 from . import trajectory
-from multiprocessing import Pool
+#from multiprocessing import Pool
 from tqdm import tqdm_notebook as tqdm
 #from .analysis import trajectory
 #from pySPT.analysis import trajectory
