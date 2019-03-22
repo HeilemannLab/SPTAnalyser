@@ -10,6 +10,7 @@ Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt am
 
 
 import tkinter as tk 
+import os
 from tkinter.filedialog import askopenfilename
 from ipywidgets import widgets
 from IPython.display import display
@@ -52,12 +53,12 @@ class WidgetExpDisp():
         self.file_text_box.value=self.file_name
         self.got_file_name = True
 
-    def create_file_box(self, val = "path", desc = "Complete path"):  # val = in box, desc = infront of box
+    def create_file_box(self, val = "", desc = "Complete path"):  # val = in box, desc = infront of box
         """
         Box for inserting the path with description, alternative for file loading button.
         """
         style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder='insert path', description=str(desc), disabled=False, style = style)
         return text
     
     def change_file_box(self, change):
@@ -91,6 +92,15 @@ class WidgetExpDisp():
     def create_clear_output(self):
         clear_output()
         
+    def warning_wrong_file_path(self):
+        print("This file path does not exist.")
+        
+    def warning_wrong_file(self):
+        print("A file with false columns was loaded.")
+    
+    def is_file(self, file):
+        return os.path.isfile(file)
+
         
 def main():
     widget_exp_disp = WidgetExpDisp()

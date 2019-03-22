@@ -119,6 +119,7 @@ class LoadHdf5():
         """
         for h5 in self.hdf5:
             diffusion_group = h5["diffusion"]
+            #diffusion_infos_data = diffusion_group[("diffusionInfos")]  # new way to get keys but is slower than .value
             diffusion_infos_data = diffusion_group["diffusionInfos"].value
             self.trajectory_numbers.append(np.shape(diffusion_infos_data)[0])
         #print(self.trajectory_numbers)
@@ -150,7 +151,8 @@ class LoadHdf5():
         """
         for h5 in self.hdf5:
             settings_group = h5["settings"]
-            settings_data = settings_group["settings"].value  # [[(0.02, 158, 65536, 0.12, 0.6, 4, 0.0065)]]
+            #settings_data = settings_group[("settings")]  # [[(0.02, 158, 65536, 0.12, 0.6, 4, 0.0065)]]
+            settings_data = settings_group["settings"].value
             self.dts.append(settings_data[0][0][0])
             self.pixel_sizes.append(settings_data[0][0][1])
             self.pixel_amounts.append(settings_data[0][0][2])
@@ -180,6 +182,7 @@ class LoadHdf5():
             max_trajectory_index = self.trajectory_numbers[h5_index]
             diffusion_group = h5["diffusion"]
             diffusion_infos_data = diffusion_group["diffusionInfos"].value
+            #diffusion_infos_data = diffusion_group[("diffusionInfos")]
             length_trajectories = self.create_np_array(max_trajectory_index)
             length_MSDs = self.create_np_array(max_trajectory_index)
             for trajectory_index in range(0, max_trajectory_index):
@@ -201,6 +204,7 @@ class LoadHdf5():
             max_trajectory_index = self.trajectory_numbers[h5_index]
             diffusion_group = h5["diffusion"]
             diffusion_infos_data = diffusion_group["diffusionInfos"].value
+            #diffusion_infos_data = diffusion_group[("diffusionInfos")]
             lengths_trajectories = self.create_np_array(max_trajectory_index)
             lengths_MSDs = self.create_np_array(max_trajectory_index)
             trajectories_number = self.create_np_array(max_trajectory_index)
@@ -297,6 +301,7 @@ class LoadHdf5():
             for trajectory_index in range(0, max_trajectory_index):
                 trajectory_key = "Trajectory" + self.trajectory_number_set_digits(trajectory_index)
                 trajectory_data = MSD_group[trajectory_key].value
+                #trajectory_data = MSD_group[(trajectory_key)]
                 MSDs = np.zeros(len(trajectory_data))
                 times = np.zeros(len(trajectory_data))
                 for duration in range(0, len(trajectory_data)):
@@ -315,6 +320,7 @@ class LoadHdf5():
             h5_index = self.hdf5.index(h5)
             trc_group = h5["trc"]
             trc_group_data = trc_group["trcFile"].value
+            #trc_group_data = trc_group[("trcFile")]
             max_index = np.shape(trc_group_data)[0]
             trc = self.create_np_array(np.shape(trc_group_data)[0], 6)
             for i in range(0, max_index):
@@ -337,6 +343,7 @@ class LoadHdf5():
             for trajectory_index in range(0, max_trajectory_index):
                 rossier_plot_key = "rossierPlot" + self.trajectory_number_set_digits(trajectory_index)
                 rossier_plot_data = rossier_plots_group[rossier_plot_key].value
+                #rossier_plot_data = rossier_plots_group[(rossier_plot_key)]
                 MSD_fit = self.create_np_array(len(rossier_plot_data), 4)
                 for duration in range(0, len(rossier_plot_data)):
                     MSD_fit[duration,0] = rossier_plot_data[duration][0]  # dt
@@ -357,6 +364,7 @@ class LoadHdf5():
             for trajectory_index in range(0, max_trajectory_index):
                 diffusion_plot_key = "diffusionPlot" + self.trajectory_number_set_digits(trajectory_index)
                 diffusion_plot_data = diffusion_plots_group[diffusion_plot_key].value
+                #diffusion_plot_data = diffusion_plots_group[(diffusion_plot_key)]
                 MSD_D = self.create_np_array(len(diffusion_plot_data), 4) 
                 for duration in range(0, len(diffusion_plot_data)):
                     MSD_D[duration,0] = diffusion_plot_data[duration][0]  # dt

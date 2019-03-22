@@ -6,10 +6,11 @@ Created on Thu Jan 24 09:37:49 2019
 
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
+
+Extract the localization precision from a rapidSTORM file and build a mean value (log-transform).
 """
 
 import numpy as np
-import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 import datetime

@@ -15,7 +15,7 @@ with open("README.md", "r") as fh:
     
 setuptools.setup(name = "pySPT",
                  version = "19.03",
-                 author = "Sebastian Malkusch and Johanna Rahm",
+                 author = "Johanna Rahm and Sebastian Malkusch",
                  author_email = "johanna.rahm@stud.uni-frankfurt.de",
                  description = "a package for analysing SPT data",
                  long_description = long_description,
@@ -31,8 +31,8 @@ setuptools.setup(name = "pySPT",
                                    "ipywidgets",
                                    "IPython",
                                    "hide_code",
-                                   "tornado"
+                                   "tornado==5.1",
                                    "pandas"],
                    classifiers = ["Programming Language :: Python :: 3",
-                                  "License :: OSI Approved :: GPL-3.0 License",
+                                  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",  # "License :: OSI Approved :: GPL-3.0 License",
                                   "Operating System :: OS Independent",],)

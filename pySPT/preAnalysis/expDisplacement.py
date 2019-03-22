@@ -10,11 +10,11 @@ Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt am
 Determine how far a particle moves between frames in the x/y-plane [nm]. Fraction vs mjd [nm] -> determine the average as initial exp_displacement value.
 """
 
-# why load mjd_n??? 
 
 import datetime
 import numpy as np
 import matplotlib.pyplot as plt
+
 
 class ExpDisplacement():
     def __init__(self):
@@ -35,7 +35,7 @@ class ExpDisplacement():
         mjd_index = list(self.column_order.keys())[list(self.column_order.values()).index('"mjd"')]
         mjd_n_index = list(self.column_order.keys())[list(self.column_order.values()).index('"mjd_n"')]
         self.mjd = np.loadtxt(self.file_name, usecols = (mjd_index, mjd_n_index)) # col0 = mjd, col1 = mjd_n
-        
+
     def count_mjd_frequencies(self):
         """
         Create histogram with col0 = bins = mjd and col1 = frequencies as np.ndarray.
