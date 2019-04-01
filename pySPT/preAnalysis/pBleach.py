@@ -24,7 +24,7 @@ from scipy.optimize import curve_fit
 class PBleach():
     def __init__(self):
         self.file_name = ""
-        self.column_order = {}  # ["track_id", "mjd_n", "mjd"]
+        self.column_order = {}  # {0: '"track_id"', 4: '"mjd"', 6: '"mjd_n"'}
         self.mjds = []
         self.mjd_n_histogram = []  # mjd_n, frequencies, exp fit, resudie
         self.p_bleach_results = []  # p_bleach, k, kv

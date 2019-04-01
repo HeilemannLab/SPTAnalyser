@@ -14,9 +14,11 @@ class WidgetColumnSort():
         #self.file = []
         self.file_name = file_name
         if file_type == "rapidSTORM":
-            self.identifier_after = "syntax"  # identifier after target word
-        elif file_type == "swift":
-            self.identifier_after = "unit"
+            self.software = file_type
+            self.identifier_after = "syntax"
+        elif file_type == "thunderSTORM":
+            self.software = file_type
+            self.identifier_after = ","
         self.significant_words = significant_words
         #self.significant_words = ['"track_id"', '"mjd_n"', '"mjd"']
         self.identifier_before = "identifier"  # identifier before target word
@@ -24,7 +26,7 @@ class WidgetColumnSort():
         self.number_columns = 0
         self.sub_headers = [] # index in list = index of column in file
         self.target_words= []  # raw target words in double quotes
-        self.column_order = {}   
+        self.column_order = {}  # {0: '"track_id"', 4: '"mjd"', 6: '"mjd_n"'}
         self.correct_header = False
         
     def check_header(self):
@@ -49,9 +51,21 @@ class WidgetColumnSort():
         #self.header =  '<localizations insequence="true" repetitions="variable"><field identifier="mjd" unit=""/><field identifier="track_id" unit=""/><field identifier="mjd_n" unit=""/></localizations>'
         self.header = '<localizations insequence="true" repetitions="variable"><field identifier="Position-0-0" syntax="floating point with . for decimals and optional scientific e-notation" semantic="position in sample space in X" unit="nanometer" min="0 m" max="4.029e-005 m" /><field identifier="Position-0-0-uncertainty" syntax="floating point with . for decimals and optional scientific e-notation" semantic="position uncertainty in sample space in X" unit="nanometer" /><field identifier="Position-1-0" syntax="floating point with . for decimals and optional scientific e-notation" semantic="position in sample space in Y" unit="nanometer" min="0 m" max="4.029e-005 m" /><field identifier="Position-1-0-uncertainty" syntax="floating point with . for decimals and optional scientific e-notation" semantic="position uncertainty in sample space in Y" unit="nanometer" /><field identifier="ImageNumber-0-0" syntax="integer" semantic="frame number" unit="frame" min="0 fr" max="999 fr" /><field identifier="Amplitude-0-0" syntax="floating point with . for decimals and optional scientific e-notation" semantic="emission strength" unit="A/D count" /><field identifier="PSFWidth-0-0" syntax="floating point with . for decimals and optional scientific e-notation" semantic="PSF FWHM in X" unit="nanometer" /><field identifier="PSFWidth-1-0" syntax="floating point with . for decimals and optional scientific e-notation" semantic="PSF FWHM in Y" unit="nanometer" /><field identifier="FitResidues-0-0" syntax="floating point with . for decimals and optional scientific e-notation" semantic="fit residue chi square value" unit="dimensionless" /><field identifier="LocalBackground-0-0" syntax="floating point with . for decimals and optional scientific e-notation" semantic="local background" unit="A/D count" /></localizations>'
                 
-    def sub_header(self):
+    def ts_sub_headers(self):
+        self.sub_headers = self.header.split(",")
+        self.sub_headers[-1] = self.sub_headers[-1][:-1]  # get rid of the new line character for the last sub_header
+    
+    def ts_create_column_order(self):
         """
-        Create list with sub headers in order of columns.
+        thunderSTORM: Add sub header index and value to dictionary.
+        """
+        for i in self.sub_headers:
+            if i in self.significant_words:
+                self.column_order.update({self.sub_headers.index(i):i})
+        
+    def rs_sub_headers(self):
+        """
+        rapidSTORM: Create list with sub headers in order of columns.
         """
         cut_header = self.header
         while cut_header.find(self.identifier_before) != -1:
@@ -63,7 +77,10 @@ class WidgetColumnSort():
         self.sub_headers.pop(0)
         self.number_columns = len(self.sub_headers)
         
-    def get_words(self):
+    def rs_get_words(self):
+        """
+        rapidSTORM
+        """
         #cut_header = self.sub_headers
         for i in range(0, len(self.sub_headers)):
             sub_header = self.sub_headers[i]
@@ -71,7 +88,10 @@ class WidgetColumnSort():
             target_word = sub_header[1:word_end_index]
             self.target_words.append(target_word)
     
-    def column_index(self):
+    def rs_column_index(self):
+        """
+        rapidSTORM
+        """
         for target_word in self.target_words:
             for word in self.significant_words:
                 if word in target_word:
@@ -80,9 +100,13 @@ class WidgetColumnSort():
                         self.column_order[self.target_words.index(target_word)] = word
         
     def run_column_sort(self):
-        self.sub_header()
-        self.get_words()
-        self.column_index()
+        if self.software == "thunderSTORM":
+            self.ts_sub_headers()
+            self.ts_create_column_order()
+        elif self.software == "rapidSTORM":
+            self.rs_sub_headers()
+            self.rs_get_words()
+            self.rs_column_index()
         
         
 def main():

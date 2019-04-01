@@ -14,13 +14,15 @@ Determine how far a particle moves between frames in the x/y-plane [nm]. Fractio
 import datetime
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 
 class ExpDisplacement():
     def __init__(self):
+        self.software = ""  # either rapidSTORM or thunderSTORM
         self.file_name = ""
-        self.column_order = {}  # ["track_id", "mjd", "mjd_n"]
-        self.mjd = []
+        self.column_order = {}  # {0: '"track_id"', 4: '"mjd"', 6: '"mjd_n"'}
+        self.mjd = []  # mjd/mjd_n
         self.mjd_histogram = []
         self.average_mjd = 0
         self.fig = []
@@ -34,7 +36,15 @@ class ExpDisplacement():
         # get the key for a certain value
         mjd_index = list(self.column_order.keys())[list(self.column_order.values()).index('"mjd"')]
         mjd_n_index = list(self.column_order.keys())[list(self.column_order.values()).index('"mjd_n"')]
-        self.mjd = np.loadtxt(self.file_name, usecols = (mjd_index, mjd_n_index)) # col0 = mjd, col1 = mjd_n
+        if self.software == "thunderSTORM":
+            df = pd.read_csv(self.file_name)
+            df_mjd = df.iloc[:,mjd_index]  # get csv columns by index
+            df_mjd_n = df.iloc[:,mjd_n_index]
+            self.mjd = np.zeros([np.shape(df)[0], 2])
+            self.mjd[:,0] = df_mjd  # create numpy array with col0 = mjd and col1 = mjd_n
+            self.mjd[:,1] = df_mjd_n
+        elif self.software == "rapidSTORM":
+            self.mjd = np.loadtxt(self.file_name, usecols = (mjd_index, mjd_n_index)) # col0 = mjd, col1 = mjd_n
 
     def count_mjd_frequencies(self):
         """
