@@ -20,9 +20,11 @@ import datetime
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from scipy.optimize import curve_fit
+import pandas as pd
 
 class PBleach():
     def __init__(self):
+        self.software = ""  # either thunderSTORM or rapidSTORM
         self.file_name = ""
         self.column_order = {}  # {0: '"track_id"', 4: '"mjd"', 6: '"mjd_n"'}
         self.mjds = []
@@ -45,18 +47,26 @@ class PBleach():
         self.plot_mjd_frequencies()
         
     def load_seg_file(self):
-        mjd_index = list(self.column_order.keys())[list(self.column_order.values()).index('"mjd"')]
         mjd_n_index = list(self.column_order.keys())[list(self.column_order.values()).index('"mjd_n"')]
-        self.mjds = np.loadtxt(self.file_name, usecols = (mjd_index, mjd_n_index)) # col0 = mjd, col1 = mjd_n
+        if self.software == "thunderSTORM":
+            df = pd.read_csv(self.file_name)
+            df_mjd_n = df.iloc[:,mjd_n_index]
+            self.mjds = np.zeros(np.shape(df)[0])
+            self.mjds = df_mjd_n  # create numpy array with col0 = mjd and col1 = mjd_n            
+        elif self.software == "rapidSTORM":
+            self.mjds = np.loadtxt(self.file_name, usecols = (mjd_n_index))  # col0 = mjd_n
 
     def count_mjd_n_frequencies(self):
         """
         Create histogram with bins = mjd_n and frequencies as np.ndarray.
         Multiply the bins with camera integration time -> [s].
+        col(0) = frames
+        col(1) = frames * dt
+        col(2) = frequencies
         """
-        max_bin = self.mjds[:,1].max()  # max mjd_n value
+        max_bin = self.mjds.max()  # max mjd_n value
         bin_size = int(max_bin)  # divides the bin range in sizes -> desired bin = max_bin/bin_size
-        hist = np.histogram(self.mjds[:,1],
+        hist = np.histogram(self.mjds,
                             range = (0, max_bin),
                             bins = bin_size,
                             density = True)
@@ -94,8 +104,8 @@ class PBleach():
         (1) The initial k value is needed to determine a k with its covarianz matrix.
         (2) Calculate the cumulative distribution function -> equals p_bleach.
         """
-        #init_k = float(init_k)
-        init_a = self.mjd_n_histogram[0,1]
+        #init_a = self.mjd_n_histogram[0,1] #old version
+        init_a = self.mjd_n_histogram[:,2].max()
         #  if one would like to neglect trajectories > valid_length for fitting a and k because most of them are 0 for one data set
         #[self.a, self.k], self.kcov = curve_fit(self.exp_decay_func, self.mjd_n_histogram[:self.valid_length,0], self.mjd_n_histogram[:self.valid_length,1], p0 = (init_a, init_k), method = "lm") #func, x, y, 
         [self.a, self.k], self.kcov = curve_fit(self.exp_decay_func, self.mjd_n_histogram[:,1], self.mjd_n_histogram[:,2], p0 = (init_a, self.init_k), method = "lm") #func, x, y, 
