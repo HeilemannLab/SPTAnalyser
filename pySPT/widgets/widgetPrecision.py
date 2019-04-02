@@ -18,12 +18,22 @@ from IPython.display import clear_output
 
 class WidgetPrecision():
     def __init__(self):
+        self.software_button = self.create_software_button()
         self.file_name = ""
         self.got_file_name = False
         self.file_text_box = self.create_file_box()
         self.file_button = self.create_file_button()
         self.run_button = self.create_run_button()
         self.save_button = self.create_save_button()
+
+    def create_software_button(self):
+        """
+        Radiobutton to choose between rapidSTORM and thunderSTORM.
+        """
+        button = widgets.RadioButtons(
+                options = ["thunderSTORM", "rapidSTORM"],
+                disabled = False)
+        return button
     
     def create_file_button(self):
         """
@@ -44,7 +54,10 @@ class WidgetPrecision():
         root = tk.Tk()  # window class
         root.withdraw()  # close the window 
         root.update()  # close the window
-        root.name = askopenfilename(title="Import tracked.seg file", filetypes=(("text files", "*.txt"),("all files", "*.*")))
+        if self.software_button.value == "thunderSTORM":
+            root.name = askopenfilename(title="Import tracked.seg file", filetypes=(("csv files", "*.csv"),("all files", "*.*")))
+        else:
+            root.name = askopenfilename(title="Import tracked.seg file", filetypes=(("text files", "*.txt"),("all files", "*.*")))
         self.file_name = root.name
         root.update()
         root.destroy()
@@ -87,6 +100,12 @@ class WidgetPrecision():
                 #icon='check')
         return button
 
+    def warning_wrong_file_path(self):
+        print("This file path does not exist.")
+        
+    def warning_wrong_file(self):
+        print("A file with false columns was loaded.")
+        
     def create_clear_output(self):
         clear_output()
         

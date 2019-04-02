@@ -7,16 +7,19 @@ Created on Thu Jan 24 09:37:49 2019
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
-Extract the localization precision from a rapidSTORM file and build a mean value (log-transform).
+Extract the localization precision from a rapidSTORM (x and y) or thunderSTORM (x and y are the same -> 1 value) file
+and build a mean value (log-transform).
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 import datetime
+import pandas as pd
 
 class Precision():
     def __init__(self):
+        self.software = ""  # either rapidSTORM or thunderSTORM
         self.file_name = ""
         self.column_order = {}
         self.position_uncertainties = []  # uncertainties of x and y
@@ -31,17 +34,52 @@ class Precision():
         self.init_mu = 0.
         self.init_sigma = 0.
         
+    def run_precision(self):
+        """
+        Different functions for thunderSTORM and rapidSTORM because thunderSTORM has 1 uncertainty value in the x/y-plane, 
+        rapidSTORM has uncertainty values for x and y respectively.
+        """
+        self.load_localization_file()
+        if self.software == "thunderSTORM":
+            self.ts_log_columns()
+            self.hist_x()
+            self.hist_x_log()
+            self.gauss_fit()
+            self.plot_hist(self.position_uncertainties_hist_x[:,0], self.position_uncertainties_hist_x[:,1], 0.5)
+            self.plot_hist(self.position_uncertainties_hist_log_x[:,0], self.position_uncertainties_hist_log_x[:,1], 0.05, 
+                           fit=True, fit_data = self.position_uncertainties_hist_log_x[:,2], log = True)          
+        elif self.software == "rapidSTORM":
+            self.rs_log_columns()
+            self.hist_x()
+            self.hist_x_log()
+            self.hist_y()
+            self.hist_y_log()
+            self.gauss_fit()
+            self.plot_hist(self.position_uncertainties_hist_x[:,0], self.position_uncertainties_hist_x[:,1], 0.5, direction = "x")
+            self.plot_hist(self.position_uncertainties_hist_y[:,0], self.position_uncertainties_hist_y[:,1], 0.5, direction = "y")
+            self.plot_hist(self.position_uncertainties_hist_log_x[:,0], self.position_uncertainties_hist_log_x[:,1], 0.05, 
+                           fit=True, fit_data = self.position_uncertainties_hist_log_x[:,2], log = True, direction = "x")     
+            self.plot_hist(self.position_uncertainties_hist_log_y[:,0], self.position_uncertainties_hist_log_y[:,1], 0.05, 
+                           fit=True, fit_data = self.position_uncertainties_hist_log_y[:,2], log = True, direction = "y")
+        
     def load_localization_file(self):
         """
         Insert position uncertainties of x and y.
         position_uncertainties col0 = x
         position_uncertainties col1 = y
         """
-        x_uncertainty_index = list(self.column_order.keys())[list(self.column_order.values()).index('"Position-0-0-uncertainty"')]
-        y_uncertainty_index = list(self.column_order.keys())[list(self.column_order.values()).index('"Position-1-0-uncertainty"')]
-        self.position_uncertainties = np.loadtxt(self.file_name, usecols = (x_uncertainty_index, y_uncertainty_index)) # col0 = x uncertainty, col1 = y uncertainty
-            
-    def log_columns(self):
+        if self.software == "thunderSTORM":
+            uncertainty_index = list(self.column_order.keys())[list(self.column_order.values()).index('"uncertainty [nm]"')]
+            file = pd.read_csv(self.file_name)
+            file_uncertainty = file.iloc[:,uncertainty_index] 
+            self.position_uncertainties = np.zeros([np.shape(file)[0],2])
+            self.position_uncertainties[:,0] = file_uncertainty
+        elif self.software == "rapidSTORM":
+            x_uncertainty_index = list(self.column_order.keys())[list(self.column_order.values()).index('"Position-0-0-uncertainty"')]
+            y_uncertainty_index = list(self.column_order.keys())[list(self.column_order.values()).index('"Position-1-0-uncertainty"')]
+            self.position_uncertainties = np.loadtxt(self.file_name, usecols = (x_uncertainty_index, y_uncertainty_index)) # col0 = x uncertainty, col1 = y uncertainty
+                
+    def rs_log_columns(self):
         """
         Natural logarithm of position uncertainties x and y.
         position_uncertainties_log col0 = ln(x)
@@ -52,6 +90,16 @@ class Precision():
         log_y = np.log(self.position_uncertainties[:,1])
         self.position_uncertainties_log[:,0] = log_x
         self.position_uncertainties_log[:,1] = log_y
+        
+    def ts_log_columns(self):
+        """
+        Natural logarithm of position uncertainties x and y.
+        position_uncertainties_log col0 = ln(x)
+        position_uncertainties_log col1 = ln(y)
+        """
+        self.position_uncertainties_log = np.zeros([np.size(self.position_uncertainties[:,0]),2])
+        log = np.log(self.position_uncertainties[:,0])
+        self.position_uncertainties_log[:,0] = log
         
     def hist_x(self):
         """
@@ -131,7 +179,7 @@ class Precision():
         :return: gaus function
         """
         #A, mu, sigma = p
-        return A*np.exp(-(x-mu)**2/2.*sigma**2)
+        return A*np.exp(-(x-mu)**2/(2.*sigma**2))
     
     def gauss_fit(self): 
         self.init_a = self.position_uncertainties_hist_log_x[:,1].max()
@@ -144,18 +192,20 @@ class Precision():
         self.position_uncertainties_hist_log_x[:,2] = self.gauss_func(self.position_uncertainties_hist_log_x[:,0],
                                             coeff_x[0], coeff_x[1], coeff_x[2])  # fit
         self.position_uncertainties_hist_log_x[:,3] = self.position_uncertainties_hist_log_x[:,1] - self.position_uncertainties_hist_log_x[:,2]  # residues
-        
-        coeff_y, var_matrix_y = curve_fit(self.gauss_func, self.position_uncertainties_hist_log_y[:,0],
-                                          self.position_uncertainties_hist_log_y[:,1],
-                                          p0=(self.init_a, self.init_mu, self.init_sigma))
-        self.position_uncertainties_hist_log_y[:,2] = self.gauss_func(self.position_uncertainties_hist_log_y[:,0],
-                                              coeff_y[0], coeff_y[1], coeff_y[2])  # fit
-        self.position_uncertainties_hist_log_y[:,3] = self.position_uncertainties_hist_log_y[:,1] - self.position_uncertainties_hist_log_y[:,2]  # residues
         self.mean_x = np.exp(coeff_x[1])
-        self.mean_y = np.exp(coeff_y[1])
-        print("The mean position uncertainty is %.3f nm in x and %.3f nm in y direction." %(self.mean_x, self.mean_y))
+        if self.software == "thunderSTORM":
+            print("The mean position uncertainty is %.3f nm in the x/y-plane." %(self.mean_x))
+        if self.software == "rapidSTORM":
+            coeff_y, var_matrix_y = curve_fit(self.gauss_func, self.position_uncertainties_hist_log_y[:,0],
+                                              self.position_uncertainties_hist_log_y[:,1],
+                                              p0=(self.init_a, self.init_mu, self.init_sigma))
+            self.position_uncertainties_hist_log_y[:,2] = self.gauss_func(self.position_uncertainties_hist_log_y[:,0],
+                                                  coeff_y[0], coeff_y[1], coeff_y[2])  # fit
+            self.position_uncertainties_hist_log_y[:,3] = self.position_uncertainties_hist_log_y[:,1] - self.position_uncertainties_hist_log_y[:,2]  # residues
+            self.mean_y = np.exp(coeff_y[1])
+            print("The mean position uncertainty is %.3f nm in x and %.3f nm in y direction." %(self.mean_x, self.mean_y))
         
-    def plot_hist(self, x_axis, y_axis, width, fit=False, fit_data=[], colour="gray", fit_style="--c"):
+    def plot_hist(self, x_axis, y_axis, width, fit=False, fit_data=[], colour="gray", fit_style="--c", log = False, direction = False):
         fig = plt.figure()
         sp = fig.add_subplot(1, 1, 1)  # only 1 plot
         sp.bar(x_axis, y_axis, 
@@ -166,9 +216,20 @@ class Precision():
         if fit:
             sp.plot(x_axis, fit_data, fit_style, label = "gauss fit")  # "b--" change colour, line style "m-" ...
         sp.legend()
-        sp.set_title("Histogram of position uncertainties in y direction")
-        sp.set_xlabel("Position uncertainty [nm]")
         sp.set_ylabel("Fraction")
+        if log and direction:
+            sp.set_title("Histogram of logarithmic position uncertainties in {} direction".format(direction))
+            sp.set_xlabel("Position uncertainty")
+        if not log and direction:
+            sp.set_title("Histogram of position uncertainties in {} direction".format(direction))
+            sp.set_xlabel("Position uncertainty [nm]")
+        if log and not direction:
+            sp.set_title("Histogram of logarithmic position uncertainties")
+            sp.set_xlabel("Position uncertainty")
+        if not log and not direction:
+            sp.set_title("Histogram of position uncertainties")
+            sp.set_xlabel("Position uncertainty [nm]")
+            
         #plt.savefig(out_file_name)
         plt.show()  # print the graph
         
@@ -187,8 +248,12 @@ class Precision():
             month = str(0) + month
         if len(day) == 1:
             day = str(0) + day
-        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_x_frequencies.txt" # System independent?
-        header = "Position uncertainty [nm]\t fraction\t"
+        if self.software == "thunderSTORM":
+            out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_frequencies.txt" # System independent?
+            header = "Localization uncertainty [nm]\t fraction\t"
+        elif self.software == "rapidSTORM":
+            out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_x_frequencies.txt" # System independent?
+            header = "Localization uncertainty x [nm]\t fraction\t"
         np.savetxt(out_file_name, 
                    X=self.position_uncertainties_hist_x,
                    fmt = ("%.1f","%.4e"),
@@ -210,7 +275,7 @@ class Precision():
         if len(day) == 1:
             day = str(0) + day
         out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_y_frequencies.txt" # System independent?
-        header = "Position uncertainty [nm]\t fraction\t"
+        header = "Localization uncertainty y [nm]\t fraction\t"
         np.savetxt(out_file_name, 
                    X=self.position_uncertainties_hist_y,
                    fmt = ("%.1f","%.4e"),
@@ -231,8 +296,12 @@ class Precision():
             month = str(0) + month
         if len(day) == 1:
             day = str(0) + day
-        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_ln_x_frequencies.txt" # System independent?
-        header = "ln(position uncertainty) \t fraction\t exponential fit\t residues\t"
+        if self.software == "thunderSTORM":
+            out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_ln_frequencies.txt" # System independent?
+            header = "ln(localization uncertainty) \t fraction\t gauss fit\t residues\t"
+        elif self.software == "rapidSTORM":
+            out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_ln_x_frequencies.txt" # System independent?
+            header = "ln(localization uncertainty) x \t fraction\t gauss fit\t residues\t"
         np.savetxt(out_file_name, 
                    X=self.position_uncertainties_hist_log_x,
                    fmt = ("%.2f","%.4e","%.4e","%.4e"),
@@ -254,7 +323,7 @@ class Precision():
         if len(day) == 1:
             day = str(0) + day
         out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_ln_y_frequencies.txt" # System independent?
-        header = "ln(position uncertainty) \t fraction\t exponential fit\t residues\t "
+        header = "ln(localization uncertainty) y \t fraction\t gauss fit\t residues\t "
         np.savetxt(out_file_name, 
                    X=self.position_uncertainties_hist_log_y,
                    fmt = ("%.2f","%.4e","%.4e","%.4e"),
@@ -276,34 +345,28 @@ class Precision():
         out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty.txt"
         file = open(out_file_name, 'w')
         if not (file.closed):
-            file.write("localization_uncertainty x in nm\t localization_uncertainty y in nm\n")
-            file.write("%.4e\t%.4e\n" %(self.mean_x, self.mean_y))
+            if self.software == "thunderSTORM":
+                file.write("localization uncertainty in nm\n")
+                file.write("%.4e\n" %(self.mean_x))
+            elif self.software == "rapidSTORM":
+                file.write("localization uncertainty x in nm\t localization uncertainty y in nm\n")
+                file.write("%.4e\t%.4e\n" %(self.mean_x, self.mean_y))
             file.close()
         else:
             print("error: could not open file %s. Make sure the folder does exist" %(out_file_name))
-
-    def run_precision(self):
-        self.load_localization_file()
-        self.log_columns()
-        self.hist_x()
-        self.hist_x_log()
-        self.hist_y()
-        self.hist_y_log()
-        self.gauss_fit()
-        self.plot_hist(self.position_uncertainties_hist_x[:,0], self.position_uncertainties_hist_x[:,1], 0.5)
-        self.plot_hist(self.position_uncertainties_hist_y[:,0], self.position_uncertainties_hist_y[:,1], 0.5)
-        self.plot_hist(self.position_uncertainties_hist_log_x[:,0], self.position_uncertainties_hist_log_x[:,1], 0.05, 
-                       fit=True, fit_data = self.position_uncertainties_hist_log_x[:,2])     
-        self.plot_hist(self.position_uncertainties_hist_log_y[:,0], self.position_uncertainties_hist_log_y[:,1], 0.05, 
-                       fit=True, fit_data = self.position_uncertainties_hist_log_y[:,2])
+        
         
     def save_precision(self, directory, base_name):
         #directory = directory
         #base_name = base_name
-        self.save_x_hist(directory, base_name)
-        self.save_y_hist(directory, base_name)
-        self.save_x_hist_log(directory, base_name)
-        self.save_y_hist_log(directory, base_name)
+        if self.software == "thunderSTORM":
+            self.save_x_hist(directory, base_name)
+            self.save_x_hist_log(directory, base_name)
+        elif self.software == "rapidSTORM":
+            self.save_x_hist(directory, base_name)
+            self.save_y_hist(directory, base_name)
+            self.save_x_hist_log(directory, base_name)
+            self.save_y_hist_log(directory, base_name)
         self.save_fit_results(directory, base_name)
 
 

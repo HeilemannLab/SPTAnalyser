@@ -54,7 +54,15 @@ class WidgetColumnSort():
     def ts_sub_headers(self):
         self.sub_headers = self.header.split(",")
         self.sub_headers[-1] = self.sub_headers[-1][:-1]  # get rid of the new line character for the last sub_header
-    
+# =============================================================================
+#         for sub_header in self.sub_headers:  # get rid of the unit (because it can differ) 
+#             if "[" in sub_header:
+#                 sub_header_idx = self.sub_headers.index(sub_header)
+#                 slice_index = sub_header.index("[") - 1
+#                 sub_header = sub_header[:slice_index] + '"'
+#                 self.sub_headers[sub_header_idx] = sub_header
+# =============================================================================
+
     def ts_create_column_order(self):
         """
         thunderSTORM: Add sub header index and value to dictionary.
