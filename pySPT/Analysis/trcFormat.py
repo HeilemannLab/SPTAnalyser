@@ -7,14 +7,18 @@ Created on Fri Jan 25 14:14:32 2019
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
-Convert a tracked rapidSTORM file into .trc format (like PALMTracer).
+Convert a rapidSTORM localization .txt or thunderSTORM localization .csv file into .trc format (like PALMTracer).
+trc starts counting from 1, localizations in px, intensity in adc.
 """
 
 import numpy as np
 import datetime
+import pandas as pd
 
 class TrcFormat():
     def __init__(self):
+        self.software = ""  # either thunderSTORM or rapidSTORM
+        self.column_order = {}
         self.file_name = ""
         self.loaded_file = []
         self.trc_file = []
@@ -30,14 +34,45 @@ class TrcFormat():
         col3 = y
         col4 = intensity
         """
-        # No smart column loading available, because of current swift header handling (190204).
-        try:
-            self.loaded_file = np.loadtxt(self.file_name, usecols = (10, 4, 0, 2, 5))  # seg_id, image_number, x-position, y-position, intensity
-            self.create_trc_file()
-            self.sort_trc_file()
-            print("Convertion successful.")
-        except IndexError:
-            print("Wrong input file. Check if the tracked swift file has following columns: Position-0-0, Position-0-0-uncertainty, Position-1-0, Position-1-0-uncertainty, ImageNumber-0-0, Amplitude-0-0, PSFWidth-0-0, PSFWidth-1-0, FitResidues-0-0, LocalBackground-0-0, seg_id, track_id.")
+# =============================================================================
+#         # No smart column loading available, because of current swift header handling (190204).
+#         try:
+#             self.loaded_file = np.loadtxt(self.file_name, usecols = (10, 4, 0, 2, 5))  # seg_id, image_number, x-position, y-position, intensity
+#             self.create_trc_file()
+#             self.sort_trc_file()
+#             print("Convertion successful.")
+#         except IndexError:
+#             print("Wrong input file. Check if the tracked swift file has following columns: Position-0-0, Position-0-0-uncertainty, Position-1-0, Position-1-0-uncertainty, ImageNumber-0-0, Amplitude-0-0, PSFWidth-0-0, PSFWidth-1-0, FitResidues-0-0, LocalBackground-0-0, seg_id, track_id.")
+#         
+# =============================================================================
+        if self.software == "thunderSTORM":
+            x_index = list(self.column_order.keys())[list(self.column_order.values()).index('"x [nm]"')]
+            y_index = list(self.column_order.keys())[list(self.column_order.values()).index('"y [nm]"')]
+            seg_id_index = list(self.column_order.keys())[list(self.column_order.values()).index('"seg_id"')]
+            frame_index = list(self.column_order.keys())[list(self.column_order.values()).index('"frame"')]
+            intensity_index = list(self.column_order.keys())[list(self.column_order.values()).index('"intensity [ADU]"')]
+            file = pd.read_csv(self.file_name)
+            file_x = file.iloc[:,x_index] 
+            file_y = file.iloc[:,y_index] 
+            file_seg_id = file.iloc[:,seg_id_index] 
+            file_frame = file.iloc[:,frame_index] 
+            file_intensity = file.iloc[:,intensity_index] 
+            self.loaded_file = np.zeros([np.shape(file)[0],5])
+            self.loaded_file[:,0] = file_seg_id
+            self.loaded_file[:,1] = file_frame
+            self.loaded_file[:,2] = file_x
+            self.loaded_file[:,3] = file_y
+            self.loaded_file[:,4] = file_intensity
+        elif self.software == "rapidSTORM":
+            x_index = list(self.column_order.keys())[list(self.column_order.values()).index('"Position-0-0"')]
+            y_index = list(self.column_order.keys())[list(self.column_order.values()).index('"Position-1-0"')]
+            seg_id_index = list(self.column_order.keys())[list(self.column_order.values()).index('"seg_id"')]
+            frame_index = list(self.column_order.keys())[list(self.column_order.values()).index('"ImageNumber-0-0"')]
+            intensity_index = list(self.column_order.keys())[list(self.column_order.values()).index('"Amplitude-0-0"')]
+            self.loaded_file = np.loadtxt(self.file_name, usecols = (seg_id_index, frame_index, x_index, y_index, intensity_index)) # col0 = x uncertainty, col1 = y uncertainty
+        self.create_trc_file()
+        self.sort_trc_file()
+        print("Convertion successful.")
         
     def create_trc_file(self):
         """
@@ -82,7 +117,7 @@ class TrcFormat():
             day = str(0) + day
         #out_file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\pySPT_cell_1_MMStack_Pos0\\preAnalysis\\sorted.txt"
         out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_trc_format.trc"
-        header = "seg_id\t frame\t x [pixel]\t y [pixel]\t placeholder\t intensity\t"
+        header = "seg_id\t frame\t x [pixel]\t y [pixel]\t placeholder\t intensity [ADC]\t"
         np.savetxt(out_file_name, 
                    X=self.trc_file_sorted,
                    fmt = ("%i","%i", "%.3f", "%.3f", "%i", "%.3f"),
