@@ -368,7 +368,28 @@ class Precision():
             self.save_x_hist_log(directory, base_name)
             self.save_y_hist_log(directory, base_name)
         self.save_fit_results(directory, base_name)
-
+        print("Results are saved.")
+        
+    def save_hmm_microscope(self, directory, px_size, integration_time):
+        """
+        For the HMM-analysis a microscope file for each cell is needed which containes the localization uncertainty,
+        camera pixel size and integration time. This file will be saved in the pySPT preAnalysis folder per cell optionally.
+        """
+        if self.software == "thunderSTORM":
+            loc_uncertainty = self.mean_x
+        elif self.software == "rapidSTORM":
+            loc_uncertainty = (self.mean_x + self.mean_y) / 2
+        out_file_name = directory + "\ " + "microscope.txt"
+        file = open(out_file_name, 'w')
+        if not (file.closed):
+            file.write("# SMLMS Microscope File \n")
+            file.write("# pxl Size[nm] \n")
+            file.write("# integration Time [s] \n")
+            file.write("# localization precision [nm] \n")
+            file.write("%.6e \n" %(float(px_size)))
+            file.write("%.6e \n" %(float(integration_time)))
+            file.write("%.6e \n" %(loc_uncertainty))
+        
 
 def main():
     file_name = "C:\\Users\\pcoffice37\\Documents\\rapidStorm_loc\\cell_17_MMStack_Pos0.ome.txt"  # testing file name

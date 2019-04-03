@@ -24,6 +24,9 @@ class WidgetPrecision():
         self.file_text_box = self.create_file_box()
         self.file_button = self.create_file_button()
         self.run_button = self.create_run_button()
+        self.camera_pixel_size_box = self.create_camera_pixel_size_box()
+        self.camera_integration_time_box = self.create_camera_integration_time_box()
+        self.check_microscope = self.create_check_microscope()
         self.save_button = self.create_save_button()
 
     def create_software_button(self):
@@ -88,6 +91,37 @@ class WidgetPrecision():
                 #icon='check')
         return button
     
+        self.camera_pixel_size_box = self.create_camera_pixel_size_box()
+        self.camera_pixel_amount_box = self.create_camera_pixel_amount_box()
+        self.camera_integration_time_box = self.create_camera_integration_time_box()
+        
+    def create_camera_integration_time_box(self, val = "0.02", desc = "Camera integration time [s]"):
+        """
+        Box for inserting the camera integration time for tau threshold calculation.
+        """
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text
+    
+    def create_camera_pixel_size_box(self, val = "158", desc = "Pixel size [nm]"):
+        """
+        Box for inserting the pixel size in nm of the camera.
+        """
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text
+    
+    def create_check_microscope(self):
+        """
+        For HMM-analysis a microscope file with camera px size, integration time and localization
+        precision [nm] is needed. If True, file will be saved.
+        """
+        check_box = widgets.Checkbox(
+                value=True,
+                description='Save microscope file for HMM analysis?',
+                disabled=False)
+        return check_box
+
     def create_save_button(self):
         """
         Button to save the results, has an on click event.
