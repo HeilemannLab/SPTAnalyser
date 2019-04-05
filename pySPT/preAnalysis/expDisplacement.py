@@ -143,6 +143,7 @@ class ExpDisplacement():
     def save_exp_displacement(self, directory, base_name):
         self.save_exp_disp(directory, base_name)
         self.save_mjd_frequencies(directory, base_name)
+        print("Results are saved.")
         
 
 def main():

@@ -179,7 +179,8 @@ class PBleach():
                    X=self.mjd_n_histogram,
                    fmt = ("%i","%.4e","%.4e","%.4e", "%.4e"),
                    header = header)   
-            
+        print("Results are saved.")    
+        
     def save_fit_results(self, directory, base_name):
         """
         Output file with p_bleach, k, kv.

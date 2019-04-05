@@ -69,7 +69,7 @@ class Precision():
         position_uncertainties col1 = y
         """
         if self.software == "thunderSTORM":
-            uncertainty_index = list(self.column_order.keys())[list(self.column_order.values()).index('"uncertainty [nm]"')]
+            uncertainty_index = list(self.column_order.keys())[list(self.column_order.values()).index('"uncertainty_xy [nm]"')]
             file = pd.read_csv(self.file_name)
             file_uncertainty = file.iloc[:,uncertainty_index] 
             self.position_uncertainties = np.zeros([np.shape(file)[0],2])

@@ -24,8 +24,17 @@ class WidgetTrcFormat():
         self.file_text_box = self.create_file_box()
         self.file_button = self.create_file_button()
         self.pixel_size_box = self.create_pixel_size_box()
+        self.min_track_length_box = self.create_min_track_length_box()
         self.run_button = self.create_run_button()
         self.save_button = self.create_save_button()
+        
+    def create_min_track_length_box(self, val = "2", desc = "Min track length"):
+        """
+        Box for inserting the minimal track length for tau threshold calculation.
+        """
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text
         
     def create_software_button(self):
         """

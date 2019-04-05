@@ -24,6 +24,7 @@ class TrcFormat():
         self.trc_file = []
         self.trc_file_sorted = []
         self.pixel_size = 158  # PALMTracer stores localizations as pixel -> converting factor is needed because rapidSTORM localizes in nm
+        self.min_track_length = 2  # min track length
                
     def load_localization_file(self):
         """
@@ -50,7 +51,7 @@ class TrcFormat():
             y_index = list(self.column_order.keys())[list(self.column_order.values()).index('"y [nm]"')]
             seg_id_index = list(self.column_order.keys())[list(self.column_order.values()).index('"seg_id"')]
             frame_index = list(self.column_order.keys())[list(self.column_order.values()).index('"frame"')]
-            intensity_index = list(self.column_order.keys())[list(self.column_order.values()).index('"intensity [ADU]"')]
+            intensity_index = list(self.column_order.keys())[list(self.column_order.values()).index('"intensity [photon]"')]
             file = pd.read_csv(self.file_name)
             file_x = file.iloc[:,x_index] 
             file_y = file.iloc[:,y_index] 
@@ -72,6 +73,7 @@ class TrcFormat():
             self.loaded_file = np.loadtxt(self.file_name, usecols = (seg_id_index, frame_index, x_index, y_index, intensity_index)) # col0 = x uncertainty, col1 = y uncertainty
         self.create_trc_file()
         self.sort_trc_file()
+        self.filter_trc_file()
         print("Convertion successful.")
         
     def create_trc_file(self):
@@ -86,7 +88,10 @@ class TrcFormat():
         """
         self.trc_file = np.zeros([np.size(self.loaded_file[:,0]),6])
         seg_id = np.add(self.loaded_file[:,0],1)  # trc count starts at 1
-        frame = np.add(self.loaded_file[:,1],1)
+        if self.software == "rapidSTORM":  # rapidSTORM starts frame counting at 0, thunderSTORM & PALMTracer at 1
+            frame = np.add(self.loaded_file[:,1],1)
+        elif self.software == "thunderSTORM":
+            frame = self.loaded_file[:,1]
         position_x = np.divide(self.loaded_file[:,2], int(self.pixel_size))
         position_y = np.divide(self.loaded_file[:,3], int(self.pixel_size))
         intensity = self.loaded_file[:,4]
@@ -104,6 +109,47 @@ class TrcFormat():
         values = list(map(tuple,self.trc_file))  # convert np.ndarrays to tuples
         structured_array = np.array(values, dtype=dtype)  # create structured array
         self.trc_file_sorted = np.sort(structured_array, order=["seg_id", "frame"])  # sort by dtype name
+    
+    def filter_trc_file(self):
+        """
+        Throw all trajectories < self.min_track_length out & index continuously starting from 1.
+        """        
+        if self.min_track_length < 2:
+            self.min_track_length = 2
+        #print(self.trc_file_sorted)
+        #print(type(self.trc_file_sorted), type(self.trc_file_sorted[0]))
+        max_trajectory_index = 0
+        for i in self.trc_file_sorted:
+            if int(i[0]) > max_trajectory_index:
+                max_trajectory_index = int(i[0])
+        #print("max index", max_trajectory_index)
+        trajectory_index = 0
+        while trajectory_index < max_trajectory_index:
+            step_count = 0
+            same_trajectory = True
+            while same_trajectory:
+                if not self.trc_file_sorted[trajectory_index + step_count][0] == self.trc_file_sorted[trajectory_index + step_count + 1][0]:
+                    #print("sc", step_count)
+                    #print(self.trc_file_sorted[trajectory_index + step_count], self.trc_file_sorted[trajectory_index + step_count + 1])
+                    #print("tr", trajectory_index)
+                    trajectory_index += step_count + 1
+                    #print("tr+sc", trajectory_index)
+                    break
+                step_count += 1
+                #self.trc_file_sorted[trajectory_index][0] = trajectory_index + 1
+            if step_count + 1 < int(self.min_track_length):
+                trajectory_index = trajectory_index - step_count - 1
+                for i in range(step_count+1):
+                    #print("tr + i", trajectory_index, i)
+                    self.trc_file_sorted = np.delete(self.trc_file_sorted, trajectory_index, 0)
+        #print(self.trc_file_sorted)
+        continuous_index = 1
+        for i in range(np.size(self.trc_file_sorted)):
+            if self.trc_file_sorted[i][0] == self.trc_file_sorted[i+1][0]:
+                self.trc_file_sorted[i][0] = continuous_index
+            else:
+                continuous_index += 1
+                       
         
     def save_trc_file(self, directory, base_name):
         now = datetime.datetime.now()
@@ -117,7 +163,7 @@ class TrcFormat():
             day = str(0) + day
         #out_file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\pySPT_cell_1_MMStack_Pos0\\preAnalysis\\sorted.txt"
         out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_trc_format.trc"
-        header = "seg_id\t frame\t x [pixel]\t y [pixel]\t placeholder\t intensity [ADC]\t"
+        header = "seg_id\t frame\t x [pixel]\t y [pixel]\t placeholder\t intensity [photon]\t"
         np.savetxt(out_file_name, 
                    X=self.trc_file_sorted,
                    fmt = ("%i","%i", "%.3f", "%.3f", "%i", "%.3f"),
