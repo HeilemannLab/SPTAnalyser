@@ -208,7 +208,7 @@ class PBleach():
 # =============================================================================
         file = open(out_file_name, 'w')
         if not (file.closed):
-            file.write("p_bleach\t k [1/s]\t variance of k [1/s\u00b2]\n")
+            file.write("# p_bleach\t k [1/s]\t variance of k [1/s\u00b2]\n")
             file.write("%.4e\t%.4e\t%.4e\n" %(self.p_bleach, self.k, self.kcov[1,1]))
             file.close()
         else:

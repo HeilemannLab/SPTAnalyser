@@ -22,7 +22,8 @@ class TrcFormat():
         self.file_name = ""
         self.loaded_file = []
         self.trc_file = []
-        self.trc_file_sorted = []
+        self.trc_file_sorted = []  # the localized file is sorted by (1) frame (2) track_id
+        self.trc_filtered = []  # all trajectories < min track length are neglected
         self.pixel_size = 158  # PALMTracer stores localizations as pixel -> converting factor is needed because rapidSTORM localizes in nm
         self.min_track_length = 2  # min track length
                
@@ -74,7 +75,7 @@ class TrcFormat():
         self.create_trc_file()
         self.sort_trc_file()
         self.filter_trc_file()
-        print("Convertion successful.")
+        
         
     def create_trc_file(self):
         """
@@ -86,7 +87,7 @@ class TrcFormat():
         col4 = 0, random col with same integer
         col5 = intensity
         """
-        self.trc_file = np.zeros([np.size(self.loaded_file[:,0]),6])
+        self.trc_file = np.zeros([np.size(self.loaded_file[:,0]),7])
         seg_id = np.add(self.loaded_file[:,0],1)  # trc count starts at 1
         if self.software == "rapidSTORM":  # rapidSTORM starts frame counting at 0, thunderSTORM & PALMTracer at 1
             frame = np.add(self.loaded_file[:,1],1)
@@ -100,12 +101,13 @@ class TrcFormat():
         self.trc_file[:,2] = position_x
         self.trc_file[:,3] = position_y
         self.trc_file[:,5] = intensity
+
         
     def sort_trc_file(self):
         """
         Sort trc_file by (1) seg id, (2) frame. 
         """
-        dtype = [("seg_id", int), ("frame", int), ("position_x", float), ("position_y", float), ("0", int), ("intensity", float)]
+        dtype = [("seg_id", int), ("frame", int), ("position_x", float), ("position_y", float), ("0", int), ("intensity", float), ("track_length", int)]
         values = list(map(tuple,self.trc_file))  # convert np.ndarrays to tuples
         structured_array = np.array(values, dtype=dtype)  # create structured array
         self.trc_file_sorted = np.sort(structured_array, order=["seg_id", "frame"])  # sort by dtype name
@@ -113,43 +115,51 @@ class TrcFormat():
     def filter_trc_file(self):
         """
         Throw all trajectories < self.min_track_length out & index continuously starting from 1.
-        """        
-        if self.min_track_length < 2:
+        """       
+        # minimum track length has to be at least 2, because otherwise no HMM is possible.
+        if int(self.min_track_length) < 2:
             self.min_track_length = 2
-        #print(self.trc_file_sorted)
-        #print(type(self.trc_file_sorted), type(self.trc_file_sorted[0]))
+        # determine the max trajectory index
         max_trajectory_index = 0
         for i in self.trc_file_sorted:
             if int(i[0]) > max_trajectory_index:
                 max_trajectory_index = int(i[0])
-        #print("max index", max_trajectory_index)
-        trajectory_index = 0
-        while trajectory_index < max_trajectory_index:
-            step_count = 0
-            same_trajectory = True
-            while same_trajectory:
-                if not self.trc_file_sorted[trajectory_index + step_count][0] == self.trc_file_sorted[trajectory_index + step_count + 1][0]:
-                    #print("sc", step_count)
-                    #print(self.trc_file_sorted[trajectory_index + step_count], self.trc_file_sorted[trajectory_index + step_count + 1])
-                    #print("tr", trajectory_index)
-                    trajectory_index += step_count + 1
-                    #print("tr+sc", trajectory_index)
-                    break
-                step_count += 1
-                #self.trc_file_sorted[trajectory_index][0] = trajectory_index + 1
-            if step_count + 1 < int(self.min_track_length):
-                trajectory_index = trajectory_index - step_count - 1
-                for i in range(step_count+1):
-                    #print("tr + i", trajectory_index, i)
-                    self.trc_file_sorted = np.delete(self.trc_file_sorted, trajectory_index, 0)
-        #print(self.trc_file_sorted)
-        continuous_index = 1
-        for i in range(np.size(self.trc_file_sorted)):
+        step_count = 0   
+        # determine the trajectory lengths and insert the value in the 6th column for all steps of one trajectory
+        for i in range(len(self.trc_file_sorted)-1):
             if self.trc_file_sorted[i][0] == self.trc_file_sorted[i+1][0]:
-                self.trc_file_sorted[i][0] = continuous_index
+                step_count += 1
             else:
-                continuous_index += 1
-                       
+                for frame in range(step_count+1):  # the last column is the duration of the track
+                    self.trc_file_sorted[i-frame][6] = step_count+1
+                step_count = 0
+        # filter for trajectories with lengths > min length
+        self.trc_filtered = list(filter(lambda row: row[6] > int(self.min_track_length), self.trc_file_sorted))
+# =============================================================================
+#         out_file_name = "C:\\Users\\pcoffice37\\Documents\\thunderSTORM\\swift_analysis\\pySPT_cell01_fp1\\analysis\\trc_format_01.trc"
+#         header = "seg_id\t frame\t x [pixel]\t y [pixel]\t placeholder\t intensity [photon]\t"
+#         np.savetxt(out_file_name, 
+#                    X=self.trc_filtered,
+#                    fmt = ("%i","%i", "%.3f", "%.3f", "%i", "%.3f", "%.3f"),
+#                    header = header)
+# =============================================================================
+        # get rid of last column with track_length (easier with rows being lists instead of np.voids)
+        self.trc_filtered = list(map(lambda row: list(row)[:6], self.trc_filtered)) 
+        # continuously index the trajectories starting from 1
+        continuous_index = 1
+        for i in range(len(self.trc_filtered)-1):
+            #print("i", i, self.trc_filtered[i][0])
+            if self.trc_filtered[i][0] == self.trc_filtered[i+1][0]:
+                self.trc_filtered[i][0] = continuous_index
+            else:
+                self.trc_filtered[i][0] = continuous_index
+                continuous_index += 1 
+        try:
+            self.trc_filtered[len(self.trc_filtered)-1][0] = self.trc_filtered[len(self.trc_filtered)-2][0] # the last entry can't compare the following entry because it is the last. It will get the index from the entry before
+        # because the min length has to be >= 2. Therefore the index has to be the same as the entry before.#
+            print("Conversion successful.")
+        except IndexError:
+            print("All trajecoties are shorter as the minimum trajectory length inserted, please select a smaller minimum threshold.")
         
     def save_trc_file(self, directory, base_name):
         now = datetime.datetime.now()
@@ -165,10 +175,21 @@ class TrcFormat():
         out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_trc_format.trc"
         header = "seg_id\t frame\t x [pixel]\t y [pixel]\t placeholder\t intensity [photon]\t"
         np.savetxt(out_file_name, 
-                   X=self.trc_file_sorted,
+                   X=self.trc_filtered,
                    fmt = ("%i","%i", "%.3f", "%.3f", "%i", "%.3f"),
                    header = header)
+        
+        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_trc_format_min_length.txt"        
+        file = open(out_file_name, 'w')
+        file.write("# min track length\n")
+        file.write("%i" %(int(self.min_track_length)))
+        file.close()
+
+        
         print(self.file_name + " saved as .trc file.")
+        
+        
+        
         
         
 def main():
