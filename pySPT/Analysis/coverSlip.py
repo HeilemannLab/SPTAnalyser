@@ -62,7 +62,7 @@ class CoverSlip():
             one_cell.name = raw_base_name
             if self.roi_file:
                 for file in roi_file:
-                    if raw_base_name in file[0]:
+                    if one_cell.name in file[0]:
                         one_cell.size = file[1]            
             trc_file = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 4, 5))  # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = place holder (int), col 5 = intensity
             #self.trc_file = trc_file ????????????

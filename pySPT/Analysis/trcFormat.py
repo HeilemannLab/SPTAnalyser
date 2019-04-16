@@ -134,15 +134,13 @@ class TrcFormat():
                     self.trc_file_sorted[i-frame][6] = step_count+1
                 step_count = 0
         # filter for trajectories with lengths > min length
-        self.trc_filtered = list(filter(lambda row: row[6] > int(self.min_track_length), self.trc_file_sorted))
-# =============================================================================
-#         out_file_name = "C:\\Users\\pcoffice37\\Documents\\thunderSTORM\\swift_analysis\\pySPT_cell01_fp1\\analysis\\trc_format_01.trc"
-#         header = "seg_id\t frame\t x [pixel]\t y [pixel]\t placeholder\t intensity [photon]\t"
-#         np.savetxt(out_file_name, 
-#                    X=self.trc_filtered,
-#                    fmt = ("%i","%i", "%.3f", "%.3f", "%i", "%.3f", "%.3f"),
-#                    header = header)
-# =============================================================================
+        self.trc_filtered = list(filter(lambda row: row[6] >= int(self.min_track_length), self.trc_file_sorted))
+        out_file_name = "C:\\Users\\pcoffice37\\Documents\\thunderSTORM\\swift_analysis\\pySPT_cell01_fp1\\analysis\\trc_format_filtered.trc"
+        header = "seg_id\t frame\t x [pixel]\t y [pixel]\t placeholder\t intensity [photon]\t"
+        np.savetxt(out_file_name, 
+                   X=self.trc_filtered,
+                   fmt = ("%i","%i", "%.3f", "%.3f", "%i", "%.3f", "%.3f"),
+                   header = header)
         # get rid of last column with track_length (easier with rows being lists instead of np.voids)
         self.trc_filtered = list(map(lambda row: list(row)[:6], self.trc_filtered)) 
         # continuously index the trajectories starting from 1
@@ -172,14 +170,13 @@ class TrcFormat():
         if len(day) == 1:
             day = str(0) + day
         #out_file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\pySPT_cell_1_MMStack_Pos0\\preAnalysis\\sorted.txt"
-        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_trc_format.trc"
-        header = "seg_id\t frame\t x [pixel]\t y [pixel]\t placeholder\t intensity [photon]\t"
+        out_file_name = directory + "\\" + year + month + day + "_" + base_name + "_trc_format.trc"
+        #header = "seg_id\t frame\t x [pixel]\t y [pixel]\t placeholder\t intensity [photon]\t"
         np.savetxt(out_file_name, 
                    X=self.trc_filtered,
-                   fmt = ("%i","%i", "%.3f", "%.3f", "%i", "%.3f"),
-                   header = header)
+                   fmt = ("%i","%i", "%.3f", "%.3f", "%i", "%.3f"))
         
-        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_trc_format_min_length.txt"        
+        out_file_name = directory + "\\" + year + month + day + "_" + base_name + "_trc_format_min_length.txt"        
         file = open(out_file_name, 'w')
         file.write("# min track length\n")
         file.write("%i" %(int(self.min_track_length)))
