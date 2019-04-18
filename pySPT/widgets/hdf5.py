@@ -151,13 +151,13 @@ class Hdf5():
                                                       ("x position [\u03BCm]", float),
                                                       ("y position [\u03BCm]", float),
                                                       ("placeholder", int),
-                                                      ("intensity [A/D count]", float)]))
+                                                      ("intensity [photon]", float)]))
         dset["trajectory id"] = trajectory_id
         dset["frame"] = frame
         dset["x position [\u03BCm]"] = x
         dset["y position [\u03BCm]"] = y
         dset["placeholder"] = placeholder
-        dset["intensity [A/D count]"] = intensity
+        dset["intensity [photon]"] = intensity
         
     def msd(self, trajectory_number, dt, MSD):
         trajectory_number = str(int(trajectory_number))
