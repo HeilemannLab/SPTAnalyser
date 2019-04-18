@@ -40,7 +40,6 @@ class Trajectory():
         self.tau = 0.01  # fit for free confined
         self.dtau = 10.0
         self.D_conf = 0.01  # confinded diffusion
-        self.original_D = 0.0  # testing purpose
         self.dD_conf = 0.0# never determined
         self.r = 0.01  # confinement radius
         self.dr = 0.0
@@ -94,9 +93,7 @@ class Trajectory():
         self.D = slope/self.dof
         [chisq, p] = chisquare(self.MSD_D[:,1], self.function_linear_fit(self.MSD_D[:,0], slope, intercept))
         self.chi_D = chisq
-        #self.original_D = self.D
         if not (self.D > 1.0*10**(-5.0)):
-            self.original_D = self.D  # testing the D value
             self.D = 1.0*10**(-5.0)
         self.dD = std_err/self.dof
         self.MSD_0 = intercept
@@ -271,7 +268,7 @@ class Trajectory():
     def print_particle(self):
         print("Number:", int(self.trajectory_number))
         print("Trajectory length:", int(self.length_trajectory))
-        print("Diffusion coefficient: {} \u03BCm\u00b2/s original D {}".format(self.D, self.original_D))
+        print("Diffusion coefficient: {} \u03BCm\u00b2/s".format(self.D))
         print("MSD0: {} \u03BCm\u00b2".format(self.MSD_0))
         print("chi\u00b2 linear fit: {} \u03BCm\u2074".format(self.chi_D))
         print("Type immobile:", self.immobility)
