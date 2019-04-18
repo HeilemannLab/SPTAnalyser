@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 import datetime
 import pandas as pd
+import seaborn as sns
 
 class Precision():
     def __init__(self):
@@ -206,6 +207,7 @@ class Precision():
             print("The mean position uncertainty is %.3f nm in x and %.3f nm in y direction." %(self.mean_x, self.mean_y))
         
     def plot_hist(self, x_axis, y_axis, width, fit=False, fit_data=[], colour="gray", fit_style="--c", log = False, direction = False):
+        #sns.set()
         fig = plt.figure()
         sp = fig.add_subplot(1, 1, 1)  # only 1 plot
         sp.bar(x_axis, y_axis, 
