@@ -135,12 +135,14 @@ class TrcFormat():
                 step_count = 0
         # filter for trajectories with lengths > min length
         self.trc_filtered = list(filter(lambda row: row[6] >= int(self.min_track_length), self.trc_file_sorted))
-        out_file_name = "C:\\Users\\pcoffice37\\Documents\\thunderSTORM\\swift_analysis\\pySPT_cell01_fp1\\analysis\\trc_format_filtered.trc"
-        header = "seg_id\t frame\t x [pixel]\t y [pixel]\t placeholder\t intensity [photon]\t"
-        np.savetxt(out_file_name, 
-                   X=self.trc_filtered,
-                   fmt = ("%i","%i", "%.3f", "%.3f", "%i", "%.3f", "%.3f"),
-                   header = header)
+# =============================================================================
+#         out_file_name = "C:\\Users\\pcoffice37\\Documents\\thunderSTORM\\swift_analysis\\pySPT_cell01_fp1\\analysis\\trc_format_filtered.trc"
+#         header = "seg_id\t frame\t x [pixel]\t y [pixel]\t placeholder\t intensity [photon]\t"
+#         np.savetxt(out_file_name, 
+#                    X=self.trc_filtered,
+#                    fmt = ("%i","%i", "%.3f", "%.3f", "%i", "%.3f", "%.3f"),
+#                    header = header)
+# =============================================================================
         # get rid of last column with track_length (easier with rows being lists instead of np.voids)
         self.trc_filtered = list(map(lambda row: list(row)[:6], self.trc_filtered)) 
         # continuously index the trajectories starting from 1

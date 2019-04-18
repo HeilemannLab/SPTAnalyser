@@ -65,9 +65,9 @@ class WidgetTrcFormat():
         root.withdraw()  # close the window 
         root.update()  # close the window
         if self.software_button.value == "thunderSTORM":
-            root.name = askopenfilename(title="Import tracked.seg file", filetypes=(("csv files", "*.csv"),("all files", "*.*")))
+            root.name = askopenfilename(title="Import tracked.loc file", filetypes=(("csv files", "*.csv"),("all files", "*.*")))
         elif self.software_button.value == "rapidSTORM":
-            root.name = askopenfilename(title="Import tracked.seg file", filetypes=(("text files", "*.txt"),("all files", "*.*")))
+            root.name = askopenfilename(title="Import tracked.loc file", filetypes=(("text files", "*.txt"),("all files", "*.*")))
         self.file_name = root.name
         root.update()
         root.destroy()
