@@ -9,4 +9,4 @@ Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.
 """
 
 
-__all__ = ["trcFormat", "trajectory", "cell", "trajectoryStatistics", "coverSlip", "trackAnalysis", "backgroundAnalysis"]
+__all__ = ["trcFormat", "trajectory", "cell", "trajectoryStatistics", "coverSlip", "trackAnalysis", "backgroundAnalysis", "mergeHdf5"]
