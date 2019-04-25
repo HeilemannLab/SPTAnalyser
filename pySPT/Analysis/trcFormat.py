@@ -11,9 +11,11 @@ Convert a rapidSTORM localization .txt or thunderSTORM localization .csv file in
 trc starts counting from 1, localizations in px, intensity in adc.
 """
 
+
 import numpy as np
 import datetime
 import pandas as pd
+
 
 class TrcFormat():
     def __init__(self):

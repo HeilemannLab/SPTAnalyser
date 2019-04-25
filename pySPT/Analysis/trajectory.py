@@ -85,6 +85,9 @@ class Trajectory():
         if diffusion is 2D -> D = slope/4, if 3D D = slope/6 ...
         """
         self.MSD_D = np.zeros([4,4])
+        print("msds:4", self.MSDs[:4], np.shape(self.MSDs[:4]))
+        print("msd_d", self.MSD_D, np.shape(self.MSD_D))
+
         self.MSD_D[:,1] = self.MSDs[:4]
         self.MSD_D[:,0] = [1*self.dt, 2*self.dt, 3*self.dt, 4*self.dt]
         slope, intercept, r_value, p_value, std_err = linregress(self.MSD_D[:,0], self.MSD_D[:,1])

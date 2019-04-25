@@ -25,7 +25,7 @@ class WidgetMergeHdf5():
         self.load_archive_box = self.create_load_archive_box()
         self.archive_file_name = ""
         self.merge_button = self.create_merge_button()
-        self.save_button = self.create_save_button()
+        self.merged_name_box = self.create_merged_name_box()
         
     def create_load_hdf5_button(self):
         """
@@ -83,6 +83,14 @@ class WidgetMergeHdf5():
         text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
         return text
     
+    def create_merged_name_box(self, val = "merged", desc = "Name"):
+        """
+        Box for inserting the file path of the archive file created for each cell in the HMM analysis.
+        """
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text
+    
     def open_archive_file(self, b):
         """
         Give the file button opening powers.
@@ -104,21 +112,13 @@ class WidgetMergeHdf5():
         Button to merge hdf5 and archive file.
         """
         button = widgets.Button(
-                description='merge',
+                description='merge & save',
                 disabled=False,
                 button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='merge files')
+                tooltip='merge & save files')
                 #icon='check')
         return button
     
-    def create_save_button(self):
-        """
-        Button to save the merged files as a new hdf5 file.
-        """
-        button = widgets.Button(
-                description='save',
-                disabled=False,
-                button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='save merged files as hdf5')
-                #icon='check')
-        return button
+
+    def create_clear_output(self):
+        clear_output()
