@@ -194,7 +194,7 @@ class MergeHdf5():
     def add_obervation_alphabet(self):
         archive_hmm_group = self.archive_file["hmm"]
         archive_observation_alphabet_dataset = archive_hmm_group["observation alphabet"]
-        self.hdf5_file.create_dataset("/hmm/observationAlpabet", data = archive_observation_alphabet_dataset)
+        self.hdf5_file.create_dataset("/hmm/observationAlphabet", data = archive_observation_alphabet_dataset)
         
     def add_observation_matrix(self):
         archive_hmm_group = self.archive_file["hmm"]
