@@ -36,8 +36,7 @@ class PBleach():
         self.a = 0.01
         self.k = 0.01
         self.kcov = 0
-        #self.valid_length = 100  # trajectories > 100 are often 0 -> maybe not good for fitting
-        #  made no difference for one data set
+        self.ignore_points = 0  # number of points to ignore for the exp. fit
         
     def run_p_bleach(self):
         self.load_seg_file()
@@ -45,6 +44,7 @@ class PBleach():
         self.calc_k_bleach()
         self.calc_decay()
         self.plot_mjd_frequencies()
+
         
     def load_seg_file(self):
         mjd_n_index = list(self.column_order.keys())[list(self.column_order.values()).index('"mjd_n"')]
@@ -75,7 +75,15 @@ class PBleach():
         np.multiply(self.mjd_n_histogram[:,0], float(self.dt), self.mjd_n_histogram [:,1])
         #self.mjd_n_histogram [:,1] = self.mjd_n_histogram[:,0]*self.dt  # col1 = s
         self.mjd_n_histogram [:,2] = hist[0][:]  # col2 = frequencies
-        self.normalized_mjd_ns()  # normalize the histogram by the sum
+        # The first frequency is the sum of all mjd_ns, then the mjd_n = 1 is substracted, new sum is build and mjd_n = 2 is substracted ... 
+        decay_frequency = np.zeros(np.size(self.mjd_n_histogram[:,2]))
+        frequency_sum = np.sum(self.mjd_n_histogram[:,2])
+        decay_frequency[0] = frequency_sum
+        for i in range(np.size(self.mjd_n_histogram[:,2])-1):
+            frequency_sum -= self.mjd_n_histogram[i,2]
+            decay_frequency[i+1] = frequency_sum
+        self.mjd_n_histogram[:,2] = decay_frequency/np.sum(self.mjd_n_histogram[self.ignore_points:,2])
+        #self.normalized_mjd_ns()  # normalize the histogram by the sum
         
     def normalized_mjd_ns(self):
         """
@@ -105,10 +113,10 @@ class PBleach():
         (2) Calculate the cumulative distribution function -> equals p_bleach.
         """
         #init_a = self.mjd_n_histogram[0,1] #old version
-        init_a = self.mjd_n_histogram[:,2].max()
+        init_a = self.mjd_n_histogram[self.ignore_points:,2].max()
         #  if one would like to neglect trajectories > valid_length for fitting a and k because most of them are 0 for one data set
         #[self.a, self.k], self.kcov = curve_fit(self.exp_decay_func, self.mjd_n_histogram[:self.valid_length,0], self.mjd_n_histogram[:self.valid_length,1], p0 = (init_a, init_k), method = "lm") #func, x, y, 
-        [self.a, self.k], self.kcov = curve_fit(self.exp_decay_func, self.mjd_n_histogram[:,1], self.mjd_n_histogram[:,2], p0 = (init_a, self.init_k), method = "lm") #func, x, y, 
+        [self.a, self.k], self.kcov = curve_fit(self.exp_decay_func, self.mjd_n_histogram[self.ignore_points:,1], self.mjd_n_histogram[self.ignore_points:,2], p0 = (init_a, self.init_k), method = "lm") #func, x, y, "lm"
         self.p_bleach = self.cum_exp_decay_func(self.dt, self.k)
         print("Results: p_bleach = %.3f, k = %.4e, kv = %.4e" %(self.p_bleach, self.k, self.kcov[1,1]))  # Output for Jupyter Notebook File
         
@@ -117,13 +125,13 @@ class PBleach():
         col3 = exp decay func, with bins and calculated k value.
         col4 = residues of fit -> (values - fit).
         """
-        self.mjd_n_histogram [:,3] = self.exp_decay_func(self.mjd_n_histogram[:,0], self.a, self.k)
-        self.mjd_n_histogram [:,4] = self.mjd_n_histogram [:,2] - self.mjd_n_histogram [:,3]
-    
+        self.mjd_n_histogram [self.ignore_points:,3] = self.exp_decay_func(self.mjd_n_histogram[self.ignore_points:,1], self.a, self.k)
+        self.mjd_n_histogram [self.ignore_points:,4] = self.mjd_n_histogram [self.ignore_points:,2] - self.mjd_n_histogram [self.ignore_points:,3]
+        
     def plot_mjd_frequencies(self):
-        x1, x2 = 0, self.mjd_n_histogram[:,1].max()  # x1 = min, x2 = max
-        sp1_y1, sp1_y2 = 0, self.mjd_n_histogram[:,2].max()
-        sp2_y1, sp2_y2 = self.mjd_n_histogram[:,4].min(), self.mjd_n_histogram[:,4].max()
+        x1, x2 = 0, self.mjd_n_histogram[self.ignore_points:,1].max()  # x1 = min, x2 = max
+        sp1_y1, sp1_y2 = 0, self.mjd_n_histogram[self.ignore_points:,2].max()
+        sp2_y1, sp2_y2 = self.mjd_n_histogram[self.ignore_points:,4].min(), self.mjd_n_histogram[self.ignore_points:,4].max()
         #fig = plt.figure()
         gridspec.GridSpec(4,4)  # set up supbplot grid 
         sp_1 = plt.subplot2grid((4,4), (0,0), colspan=4, rowspan=3)  # start left top = (0,0) = (row,column)
@@ -133,12 +141,12 @@ class PBleach():
                         top=False,  # ticks along the top edge are off
                         labelbottom=False) # labels along the bottom edge are off
         #sp_1 = fig.add_subplot(2, 1, 1)  # (row, column, index)
-        sp_1.bar(self.mjd_n_histogram [:,1], self.mjd_n_histogram [:,2], 
+        sp_1.bar(self.mjd_n_histogram [self.ignore_points:,1], self.mjd_n_histogram [self.ignore_points:,2], 
                align = "center",
                width = self.dt,
                color = "gray",
                label = "fraction")  # (x, height of the bars, width of bars)
-        sp_1.plot(self.mjd_n_histogram [:,1], self.mjd_n_histogram [:,3], "--c", label = "exp fit")  # "b--" change colour, line style "m-" ...
+        sp_1.plot(self.mjd_n_histogram [self.ignore_points:,1], self.mjd_n_histogram [self.ignore_points:,3], "--c", label = "exp fit")  # "b--" change colour, line style "m-" ...
         sp_1.legend()
         sp_1.set_title("Distribution of particle duration")
         #sp_1.set_xlabel("Number of data points used in MJD calculation")
@@ -146,9 +154,9 @@ class PBleach():
         sp_1.axis((x1, x2, sp1_y1, sp1_y2))
         sp_2 = plt.subplot2grid((4,4), (3,0), colspan=4, rowspan=1)
         #sp_2 = fig.add_subplot(2, 1, 2) 
-        residue_line = np.zeros(len(self.mjd_n_histogram [:,1]))
-        sp_2.plot(self.mjd_n_histogram[:,1], residue_line, ":", color = "0.75")        
-        sp_2.plot(self.mjd_n_histogram [:,1], self.mjd_n_histogram [:,4], "*", color = "0.5", label= "residues")
+        residue_line = np.zeros(len(self.mjd_n_histogram [self.ignore_points:,1]))
+        sp_2.plot(self.mjd_n_histogram[self.ignore_points:,1], residue_line, ":", color = "0.75")        
+        sp_2.plot(self.mjd_n_histogram [self.ignore_points:,1], self.mjd_n_histogram [self.ignore_points:,4], "*", color = "0.5", label= "residues")
         sp_2.legend()
         sp_2.set_ylabel("Residue")
         sp_2.set_xlabel("Duration of tracks [s]")  # Number of data points used in MJD calculation
@@ -208,8 +216,8 @@ class PBleach():
 # =============================================================================
         file = open(out_file_name, 'w')
         if not (file.closed):
-            file.write("# p_bleach\t k [1/s]\t variance of k [1/s\u00b2]\n")
-            file.write("%.4e\t%.4e\t%.4e\n" %(self.p_bleach, self.k, self.kcov[1,1]))
+            file.write("# p_bleach\t k [1/s]\t variance of k [1/s\u00b2]\t number of points masked\n")
+            file.write("%.4e\t%.4e\t%.4e\t%d\n" %(self.p_bleach, self.k, self.kcov[1,1], self.ignore_points))
             file.close()
         else:
             print("error: could not open file %s. Make sure the folder does exist" %(out_file_name))

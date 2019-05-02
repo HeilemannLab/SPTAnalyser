@@ -25,6 +25,7 @@ class WidgetPBleach():
         self.save_button = self.create_save_button()
         self.init_k = self.create_init_k_box()
         self.integration_time = self.create_init_integration_time_box()
+        self.ignore_points = self.create_ignore_points_box()
         
     def create_software_button(self):
         """
@@ -65,6 +66,14 @@ class WidgetPBleach():
         self.got_file_name = True
         
     def create_file_box(self, val = "path", desc = "Complete path"):  # val = in box, desc = infront of box
+        """
+        Box for inserting the path with description, alternative for file loading button.
+        """
+        style = {'description_width': 'initial'}  # display too long desc
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text
+    
+    def create_ignore_points_box(self, val = "0", desc = "Number of points"):  # val = in box, desc = infront of box
         """
         Box for inserting the path with description, alternative for file loading button.
         """

@@ -132,6 +132,8 @@ def main():
     cover_slip = []
     cover_slip.append(hmm_cell01)
     cover_slip.append(hmm_cell02)
+    get_cell_names(cover_slip)
+    get_AIC(cover_slip)
     calc_mean_hmm_pi(cover_slip)
     calc_mean_physmod_pi(cover_slip)
     calc_mean_tp(cover_slip)
@@ -139,19 +141,45 @@ def main():
     plot_jd(hmm_cell01)
     plot_D(cover_slip)
 
+
 # visualization
 
 number_of_states = 3
 colour_palett = ["orangered", "royalblue", "forestgreen", "darkmagenta", "orange"]
 
+def get_cell_names(cover_slip):
+    cell_names = []
+    for cell in cover_slip:
+        cell_names.append(cell.hmm_cell_name)
+    print("Cell names: ", cell_names)
+
+def get_AIC(cover_slip):
+    aic_values = np.zeros(len(cover_slip))
+    for cell in cover_slip:
+        cell_index = cover_slip.index(cell)
+        aic_values[cell_index] = cell.aic
+    print("AIC values: ", aic_values)
+
 def plot_D(cover_slip):
-    diffusion_coef_values = np.zeros((number_of_states, len(cover_slip)))
-    # create matrix with rows = states, columns = cells
+    mean_diff_coeff = np.zeros(number_of_states)
+    diff_coeffs = np.zeros(number_of_states)
+    print(diff_coeffs)
+    print(mean_diff_coeff)
+    np.zeros((number_of_states, len(cover_slip)))
     for state in range(number_of_states):
-        for cell in cover_slip:
-            cell_index = cover_slip.index(cell)
-            diffusion_coef_values[state][cell_index] = cell.diffusion_coef[state][0]
-    print(diffusion_coef_values)
+        diff_cell = np.zeros()
+        
+    # create matrix with rows = states, columns = cells
+# =============================================================================
+#     for state in range(number_of_states):
+#         #diff_cell = 
+#         for cell in cover_slip:
+#             cell_index = cover_slip.index(cell)
+#             diffusion_coef_values[state][cell_index] = cell.diffusion_coef[state][0]
+#     print("HMM D: ", diffusion_coef_values)
+# =============================================================================
+    
+    
     
 def plot_jd(cell):
     pass
