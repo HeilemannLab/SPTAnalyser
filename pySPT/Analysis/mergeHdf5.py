@@ -18,18 +18,14 @@ import os
 
 
 class MergeHdf5():
-    def __init__(self, archive_path, hdf5_path, merged_raw_base_name):
+    def __init__(self, hdf5_path, archive_path, save_path):
         """
         archive_file: Open the h5 archive file in read mode.
-        merged_file_name: Create a file name based on the h5 file name with _merged.h5 eding.
-        hdf5_file: Copy the h5 file, rename it to the merged_file_name, open it in edit mode.
+        hdf5_file: Copy the h5 file, rename it based on tail name of save_paths, open it in edit mode.
         """
         self.archive_file = h5py.File(archive_path, "r")
-        merged_file_name = os.path.splitext(os.path.split(hdf5_path)[1])[0] + "_" + merged_raw_base_name + os.path.splitext(os.path.split(hdf5_path)[1])[1]
-        new_hdf5_path = copyfile(hdf5_path, os.path.split(hdf5_path)[0] + "\\" + merged_file_name)
-        self.new_path = os.path.split(hdf5_path)[0] + "\\" + merged_file_name  # only printing purpose
-        self.hdf5_file = h5py.File(new_hdf5_path, "r+")  # maybe a instead of r+
-        #hdf5_path.close()
+        new_hdf5_file = copyfile(hdf5_path, save_path)
+        self.hdf5_file = h5py.File(new_hdf5_file, "r+")  # maybe a instead of r+
     
     def create_missing_groups(self):
         self.hdf5_file.create_group("judi")
@@ -224,7 +220,7 @@ class MergeHdf5():
         self.add_observation_matrix()
         self.add_transition_matrix()
         self.close()
-        print("Merging successful, a new .h5 file was created: ", self.new_path)
+
     
 # =============================================================================
 # def main():

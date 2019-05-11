@@ -24,8 +24,10 @@ class WidgetMergeHdf5():
         self.load_archive_button = self.create_load_archive_button()
         self.load_archive_box = self.create_load_archive_box()
         self.archive_file_name = ""
+        self.save_path_button = self.create_save_path_button()
+        self.save_path_box = self.create_save_path_box()
+        self.save_file_name = ""
         self.merge_button = self.create_merge_button()
-        self.merged_name_box = self.create_merged_name_box()
         
     def create_load_hdf5_button(self):
         """
@@ -54,7 +56,7 @@ class WidgetMergeHdf5():
         root = tk.Tk()  # window class
         root.withdraw()  # close the window 
         root.update()  # close the window
-        root.name = askopenfilename(title="Import hdf5 file", filetypes=(("text files", "*.h5"),("all files", "*.*")))
+        root.name = askopenfilename(title="Import hdf5 path info", filetypes=(("text files", "*.txt"),("all files", "*.*")))
         self.hdf5_file_name = root.name
         root.update()
         root.destroy()
@@ -82,14 +84,42 @@ class WidgetMergeHdf5():
         style = {"description_width": "initial"}
         text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
         return text
+
+    def create_save_path_button(self):
+        """
+        Button to load the file.
+        """
+        button = widgets.Button(
+                description='browse',
+                disabled=False,
+                button_style='', # 'success', 'info', 'warning', 'danger' or ''
+                tooltip='browse for file')
+                #icon='check')
+        return button
     
-    def create_merged_name_box(self, val = "merged", desc = "Name"):
+    def create_save_path_box(self, val = "", desc = "Insert path"):
         """
         Box for inserting the file path of the archive file created for each cell in the HMM analysis.
         """
         style = {"description_width": "initial"}
         text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
         return text
+    
+    def change_save_box(self, change):
+        self.save_file_name = self.save_path_box.value  
+    
+    def open_save_paths(self, b):
+        """
+        Give the file button opening powers.
+        """
+        root = tk.Tk()  # window class
+        root.withdraw()  # close the window 
+        root.update()  # close the window
+        root.name = askopenfilename(title="Import save path info", filetypes=(("text files", "*.txt"),("all files", "*.*")))
+        self.save_file_name = root.name
+        root.update()
+        root.destroy()
+        self.save_path_box.value = self.save_file_name
     
     def open_archive_file(self, b):
         """
@@ -98,7 +128,7 @@ class WidgetMergeHdf5():
         root = tk.Tk()  # window class
         root.withdraw()  # close the window 
         root.update()  # close the window
-        root.name = askopenfilename(title="Import archive file", filetypes=(("text files", "*.h5"),("all files", "*.*")))
+        root.name = askopenfilename(title="Import archive path info", filetypes=(("text files", "*.txt"),("all files", "*.*")))
         self.archive_file_name = root.name
         root.update()
         root.destroy()

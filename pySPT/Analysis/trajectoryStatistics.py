@@ -140,9 +140,9 @@ class TrajectoryStatistics():
             print("Filter for type determination successful only.")
         elif filter_analyse_not_successful:
             print("Include type determination not successful.")
-        print("%.1f %% are immobile" %(self.type_percentage()[0]))
-        print("%.1f %% are confined" %(self.type_percentage()[1]))
-        print("%.1f %% are free" %(self.type_percentage()[2]))        
+        print("%.2f %% are immobile" %(self.type_percentage()[0]))
+        print("%.2f %% are confined" %(self.type_percentage()[1]))
+        print("%.2f %% are free" %(self.type_percentage()[2]))        
         if self.total_trajectories_filtered == 0:
             print("The selection excludes all data.")
         print("Trajectories included:", self.total_trajectories_filtered)

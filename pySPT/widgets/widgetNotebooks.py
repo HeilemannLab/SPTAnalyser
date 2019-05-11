@@ -18,9 +18,27 @@ from . import saveFiltered
 from ..analysis import cell  # two dots for switching the folder
 from ..analysis import trajectory
 from ..analysis import trackAnalysis
+from ..analysis import mergeHdf5
 import time
 import numpy as np 
 from ipywidgets import HBox, VBox
+
+def init_merge_hdf5_path_handler(h5_paths, archive_paths, save_paths):
+    """
+    Opens the txt files that contain all paths in a list and iterates through
+    the files, creating mergeHdf5 instances for merge & saving.
+    """
+    start = time.time()
+    h5_file = open(h5_paths, "r")
+    archive_file = open(archive_paths, "r")
+    save_file = open(save_paths, "r")
+    for line_h5, line_archive, line_save in zip(h5_file, archive_file, save_file):
+        # get rid of new line character in the end of each line
+        line_h5_strip, line_archive_strip, line_save_strip = line_h5.rstrip(), line_archive.rstrip(), line_save.rstrip()
+        merge_hdf5 = mergeHdf5.MergeHdf5(line_h5_strip, line_archive_strip, line_save_strip)
+        merge_hdf5.run()
+    print("Merging successful!")
+    print("Initialization took {} s".format(time.time()-start))
 
 
 def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
