@@ -176,7 +176,7 @@ def main():
     plot_number_of_locs(number_of_locs, cover_slip)
     #state_transition_diagram(mean_pi, mean_tp, dmean_pi, dmean_tp, diffusions, ddiffusions)
     print("mean pi based on frequencies : ", mean_pi)
-    plot_bar(mean_pi, "probability",
+    plot_bar(mean_pi, diffusions,
              "State distribution based on frequency of states",
              error=dmean_pi, y_error=True)
     
@@ -326,16 +326,18 @@ def plot_pie(values, title_name, label, mean_pi):
 def plot_bar(bars, label_name, title_name, error=None, y_error=False):
     x = np.arange(len(bars))
     x_name = [i+1 for i in range(number_of_states)]
+    label_name = list(map(lambda x: str(x)[:5]+" \u00B5m\u00B2/s", label_name))
     fig, ax = plt.subplots()
+    ax.set_xticklabels(label_name)
     ax.set_axisbelow(True)
     ax.grid(linestyle=':', alpha=0.5)
     ax.set_ylim(0,1)
     if y_error:
-        plt.bar(x, bars, yerr=error, capsize=5, edgecolor="black", color=colour_palett[:number_of_states])  # label=label_name
+        plt.bar(x, bars, yerr=error, capsize=5, edgecolor="black", color=colour_palett[:number_of_states], label=label_name)  # label=label_name
         plt.xticks(x, x_name)
     else:
         plt.bar(x, bars, capsize=5, edgecolor="black", color=colour_palett[:number_of_states])
-    #plt.legend()
+    plt.legend()
     plt.title(title_name)
     plt.show()
 
@@ -465,7 +467,15 @@ def tp_percentage_rounded(tp):
             tp = tp / 10**(exponent-2)
             return tp
         exponent += 1
-
+        
+def tp_px_mapping(tp, min_log=-5, min_px=0.5, max_px=5):
+    log_tp = np.log10(tp)
+    if log_tp <= min_log:
+        return min_px
+    log_tp -= min_log  # positive range
+    log_tp /= -min_log  # 0-1
+    return max_px*log_tp + min_px*(1-log_tp)
+    
 def state_transition_diagram(mean_diff, mean_tp, dmean_diff, dmean_tp, diffusions, ddiffusions):
  
     min_node_size = 0.5
@@ -475,8 +485,9 @@ def state_transition_diagram(mean_diff, mean_tp, dmean_diff, dmean_tp, diffusion
     dot = Digraph(comment="State Transition Diagram")
     float_precision = "%.3f"
     float_precision_np = int(float_precision[2])+2
-    float_precision_states = 2
-    float_precision_tp = 2
+    
+    var_width = True
+    colored_edges = True
     mean_diff_rounded = [str(tp_percentage_rounded(x)) for x in mean_diff]
     mean_diff_size = list(map(lambda x: str(float_precision % (float(x)*mult_with_node_size)**(0.5)), mean_diff))
     diffusions = list(map(lambda x: str(float_precision % x), diffusions))
@@ -492,12 +503,10 @@ def state_transition_diagram(mean_diff, mean_tp, dmean_diff, dmean_tp, diffusion
             #label_name = " " + mean_tp_str[column][row][:float_precision_np]
             label_name = str(tp_percentage_rounded(mean_tp[column][row]))+"%"
             tp = mean_tp[row][column]
-            tp_transparency = "FF"#hex(int(np.round(tp * 255)))[2:]
             
             dot.edge(str(column+1), str(row+1), label=" "+label_name,
-                     color=gv_edge_color_gradient(colour_palett_hex[column], colour_palett_hex[row], 25),
-                     fontsize=edge_fontsize, style="filled")
-
+                     color=(gv_edge_color_gradient(colour_palett_hex[column], colour_palett_hex[row], 25) if colored_edges else "black"),
+                     fontsize=edge_fontsize, style="filled", penwidth=(str(tp_px_mapping(tp)) if var_width else "1"))
     dot.render('test-output/round-table.gv', view=True)
     
 
