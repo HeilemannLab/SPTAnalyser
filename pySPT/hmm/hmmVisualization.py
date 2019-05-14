@@ -139,8 +139,14 @@ def main():
 #         cell_path = "C:\\Users\\pcoffice37\\Documents\\Datasets_MET_ML\\Fab_MET_data\\160404_coverslip5_Fab-Atto647N_025nM_in_IM\\160404_CS5_restingMET_pBleach_new\\HMM\\160404_CS5_restingMET\\cell" + str(i) +"_3States.h5"
 #         Fab_CS5_paths.append(cell_path)    
 # =============================================================================
+    
+    D_min_zero = False
+    
     for i in range(1, 21):
-        cell_path = "C:\\Users\\pcoffice37\\Documents\\Datasets_MET_ML\\Fab_MET_data\\160404_coverslip5_Fab-Atto647N_025nM_in_IM\\160404_CS5_restingMET_pBleach_new\\HMM\\160404_CS5_restingMET_Dmin\\cell" + str(i) + "_3States.h5"
+        if D_min_zero:
+            cell_path = "C:\\Users\\pcoffice37\\Documents\\Datasets_MET_ML\\Fab_MET_data\\160404_coverslip5_Fab-Atto647N_025nM_in_IM\\160404_CS5_restingMET_pBleach_new\\HMM\\160404_CS5_restingMET_Dmin0\\cell" + str(i) + "_3States_Dmin0.h5"
+        else:
+            cell_path = "C:\\Users\\pcoffice37\\Documents\\Datasets_MET_ML\\Fab_MET_data\\160404_coverslip5_Fab-Atto647N_025nM_in_IM\\160404_CS5_restingMET_pBleach_new\\HMM\\160404_CS5_restingMET_Dmin\\cell" + str(i) + "_3States.h5"
         Fab_CS5_paths.append(cell_path)
     print(Fab_CS5_paths)
     
@@ -183,6 +189,7 @@ def main():
     plot_pie(mean_pi, "State distribution based on frequency of states", diffusions, mean_pi)
     print("mean tp values: ", mean_tp)
     state_transition_diagram(mean_pi, mean_tp, dmean_pi, dmean_tp, diffusions, ddiffusions)
+    print("mean diff", diffusions)
 
 
 
@@ -486,8 +493,8 @@ def state_transition_diagram(mean_diff, mean_tp, dmean_diff, dmean_tp, diffusion
     float_precision = "%.3f"
     float_precision_np = int(float_precision[2])+2
     
-    var_width = True
-    colored_edges = True
+    var_width = False
+    colored_edges = False
     mean_diff_rounded = [str(tp_percentage_rounded(x)) for x in mean_diff]
     mean_diff_size = list(map(lambda x: str(float_precision % (float(x)*mult_with_node_size)**(0.5)), mean_diff))
     diffusions = list(map(lambda x: str(float_precision % x), diffusions))
@@ -507,7 +514,7 @@ def state_transition_diagram(mean_diff, mean_tp, dmean_diff, dmean_tp, diffusion
             dot.edge(str(column+1), str(row+1), label=" "+label_name,
                      color=(gv_edge_color_gradient(colour_palett_hex[column], colour_palett_hex[row], 25) if colored_edges else "black"),
                      fontsize=edge_fontsize, style="filled", penwidth=(str(tp_px_mapping(tp)) if var_width else "1"))
-    dot.render('test-output/round-table.gv', view=True)
+    dot.render('test-output/Dmin.gv', view=True)
     
 
 def gv_edge_color_gradient(c1, c2, res=50):

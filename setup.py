@@ -14,7 +14,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
     
 setuptools.setup(name = "pySPT",
-                 version = "02.05",
+                 version = "14.05",
                  author = "Johanna Rahm and Sebastian Malkusch",
                  author_email = "johanna.rahm@stud.uni-frankfurt.de",
                  description = "a package for analysing SPT data",
