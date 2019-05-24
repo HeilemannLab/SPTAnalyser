@@ -18,7 +18,7 @@ from . import saveFiltered
 from ..analysis import cell  # two dots for switching the folder
 from ..analysis import trajectory
 from ..analysis import trackAnalysis
-from ..analysis import mergeHdf5
+from ..hmm import mergeHdf5
 import time
 import numpy as np 
 from ipywidgets import HBox, VBox

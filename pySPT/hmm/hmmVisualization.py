@@ -43,6 +43,8 @@ class HMMCell():
         self.weight_coef = []
         # trc
         self.trc = []  # numpy.ndarray with numpy.voids
+        #cell size
+        self.cell_size = 0.0
         # groups
         self.group_msd = self.hmm_cell_hdf5["MSD"]
         self.group_diffusion = self.hmm_cell_hdf5["diffusion"]
@@ -53,6 +55,7 @@ class HMMCell():
         self.group_settings = self.hmm_cell_hdf5["settings"]
         self.group_statistics = self.hmm_cell_hdf5["statistics"]
         self.group_trc = self.hmm_cell_hdf5["trc"]
+        self.group_settings = self.hmm_cell_hdf5["settings"]
 
 
     def get_statistics_info(self):
@@ -110,6 +113,10 @@ class HMMCell():
 
     def close_hdf5_file(self):
         self.hmm_cell_hdf5.close()
+        
+    def get_cell_size(self):
+        dset_settings = self.group_settings["settings"]
+        self.cell_size = dset_settings[0][0][3]
 
     def run(self):
         self.get_statistics_info()
@@ -120,6 +127,7 @@ class HMMCell():
         self.get_weight_coef()
         self.get_diffusion_coef()
         self.get_trc()
+        self.get_cell_size()
         self.close_hdf5_file()
 
 
@@ -140,13 +148,8 @@ def main():
 #         Fab_CS5_paths.append(cell_path)    
 # =============================================================================
     
-    D_min_zero = False
-    
     for i in range(1, 21):
-        if D_min_zero:
-            cell_path = "C:\\Users\\pcoffice37\\Documents\\Datasets_MET_ML\\Fab_MET_data\\160404_coverslip5_Fab-Atto647N_025nM_in_IM\\160404_CS5_restingMET_pBleach_new\\HMM\\160404_CS5_restingMET_Dmin0\\cell" + str(i) + "_3States_Dmin0.h5"
-        else:
-            cell_path = "C:\\Users\\pcoffice37\\Documents\\Datasets_MET_ML\\Fab_MET_data\\160404_coverslip5_Fab-Atto647N_025nM_in_IM\\160404_CS5_restingMET_pBleach_new\\HMM\\160404_CS5_restingMET_Dmin\\cell" + str(i) + "_3States.h5"
+        cell_path = "C:\\Users\\pcoffice37\\Documents\\Datasets_MET_ML\\Fab_MET_data\\160404_coverslip5_Fab-Atto647N_025nM_in_IM\\160404_CS5_restingMET_pBleach_new\\HMM\\160404_CS5_restingMET_Dmin0\\cell" + str(i) + "_3States_Dmin0.h5"
         Fab_CS5_paths.append(cell_path)
     print(Fab_CS5_paths)
     
@@ -178,8 +181,8 @@ def main():
     single_diffusions = calc_D(cover_slip)[2]
     plot_D_boxplot(single_diffusions)
     plot_D(single_diffusions, cover_slip)
-    number_of_locs = calc_number_of_locs(cover_slip)
-    plot_number_of_locs(number_of_locs, cover_slip)
+    loc_density = calc_loc_density(cover_slip)
+    plot_loc_density(loc_density, cover_slip)
     #state_transition_diagram(mean_pi, mean_tp, dmean_pi, dmean_tp, diffusions, ddiffusions)
     print("mean pi based on frequencies : ", mean_pi)
     plot_bar(mean_pi, diffusions,
@@ -198,8 +201,8 @@ def main():
 number_of_states = 3
 number_of_cells = 12
 #np.set_printoptions(precision=3)
-colour_palett = ["orangered", "royalblue", "forestgreen", "darkmagenta",  "orange"]
-colour_palett_hex = ["#ff4500", "#4169e1", "#228b22", "#8b008b",  "#ffa500"]
+colour_palett = ["royalblue", "forestgreen", "darkorange", "darkmagenta", "orangered"]
+colour_palett_hex = ["#4169e1", "#228b22", "#ff8c00", "#8b008b", "#ff4500"]
 colour_palett_rgba = [i+"80" for i in colour_palett_hex] # "#%2x%2x%2x%2x"; alpha channel hex opacity values: https://medium.com/@magdamiu/android-transparent-colors-a2d55a9b4e66
 
 def get_cell_names(cover_slip):
@@ -294,26 +297,26 @@ def plot_D_boxplot(diff_coeffs):
     #     flier.set(marker='o', color='#e7298a', alpha=0.5)
     plt.show()
 
-def calc_number_of_locs(cover_slip):
+def calc_loc_density(cover_slip):
     """
     Number of localizations included for trajectory building (not quite the density, but gives an impression).
     """
-    number_locs = np.zeros(len(cover_slip))
+    loc_density = np.zeros(len(cover_slip))
     for cell in cover_slip:
-        number_locs[cover_slip.index(cell)] = np.shape(cell.trc)[0]
-    return number_locs
+        loc_density[cover_slip.index(cell)] = np.shape(cell.trc)[0]/cell.cell_size
+    return loc_density
     
-def plot_number_of_locs(number_locs, cover_slip):
+def plot_loc_density(loc_density, cover_slip):
     x = [i+1 for i in range(len(cover_slip))]
     fig = plt.figure()
-    plt.title("Number of localizations per cell movie included in analysis")
+    plt.title("Number of localizations per cell and \u00B5m\u00B2")
     ax = fig.add_subplot(111)
     ax.set_axisbelow(True)
     ax.grid(linestyle=':', alpha=0.5)
     plt.xticks(np.arange(1, len(cover_slip)+1, step=1))
-    plt.plot(x, number_locs, "o", color="darkslategray")
+    plt.plot(x, loc_density, "o", color="darkslategray")
     #plt.plot(x, number_locs, "-", alpha=0.5, color="darkslategray")
-    plt.ylabel("Number of localizations")
+    plt.ylabel("Localization density [1/\u00B5m\u00B2]")
     plt.xlabel("Cell number")
     plt.show()
 
@@ -493,8 +496,8 @@ def state_transition_diagram(mean_diff, mean_tp, dmean_diff, dmean_tp, diffusion
     float_precision = "%.3f"
     float_precision_np = int(float_precision[2])+2
     
-    var_width = False
-    colored_edges = False
+    var_width = True
+    colored_edges = True
     mean_diff_rounded = [str(tp_percentage_rounded(x)) for x in mean_diff]
     mean_diff_size = list(map(lambda x: str(float_precision % (float(x)*mult_with_node_size)**(0.5)), mean_diff))
     diffusions = list(map(lambda x: str(float_precision % x), diffusions))

@@ -148,7 +148,7 @@ class PBleach():
                label = "fraction")  # (x, height of the bars, width of bars)
         sp_1.plot(self.mjd_n_histogram [self.ignore_points:,1], self.mjd_n_histogram [self.ignore_points:,3], "--c", label = "exp fit")  # "b--" change colour, line style "m-" ...
         sp_1.legend()
-        sp_1.set_title("Distribution of particle duration")
+        sp_1.set_title("Amount of tracks existing after time lag")
         #sp_1.set_xlabel("Number of data points used in MJD calculation")
         sp_1.set_ylabel("Fraction")
         sp_1.axis((x1, x2, sp1_y1, sp1_y2))
@@ -159,7 +159,7 @@ class PBleach():
         sp_2.plot(self.mjd_n_histogram [self.ignore_points:,1], self.mjd_n_histogram [self.ignore_points:,4], "*", color = "0.5", label= "residues")
         sp_2.legend()
         sp_2.set_ylabel("Residue")
-        sp_2.set_xlabel("Duration of tracks [s]")  # Number of data points used in MJD calculation
+        sp_2.set_xlabel("time lag [s]")  # Number of data points used in MJD calculation
         sp_2.axis((x1, x2, sp2_y1, sp2_y2))
         plt.show() 
         
