@@ -92,12 +92,12 @@ class Hdf5():
         dset["chi\u00b2 [\u03BCm\u2074]"] = chi2
         dset["length [nm]"] = length
         
-    def data_diffusion_plots(self, trajectory_number, dt, MSD, fit, residues):  #"diffusion plot {}".format(str(trajectory_number))
+    def data_diffusion_plots(self, trajectory_number, dt, MSD, fit, residues, points_D_fit):  #"diffusion plot {}".format(str(trajectory_number))
         # for correct order of numbering, fill the trajectory number with 000 -> 0001, 0002 ... 
         trajectory_number = str(int(trajectory_number))
         while len(trajectory_number) < 4:
             trajectory_number = "0" + trajectory_number        
-        dset = self.subgrp02.create_dataset("diffusionPlot{}".format(trajectory_number), (4,), dtype = np.dtype([("dt [s]", float),
+        dset = self.subgrp02.create_dataset("diffusionPlot{}".format(trajectory_number), (points_D_fit,), dtype = np.dtype([("dt [s]", float),
                                             ("MSD [\u03BCm\u00b2]", float),
                                             ("linear fit [\u03BCm\u00b2]", float),
                                             ("residues [\u03BCm\u00b2]", float)]))

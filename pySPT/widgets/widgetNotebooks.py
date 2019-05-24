@@ -120,7 +120,7 @@ def init_track_stats_widget_arrangement(widget11, widget21, widget31, widget41, 
     return VBox([first_line, second_line, third_line, fourth_line, fifth_line])
     
 
-def init_save_track_analysis(cover_slip, cell_index, track_analysis):
+def init_save_track_analysis(cover_slip, cell_index, track_analysis, points_D_fit):
     """
     JNB: track Analysis, saving.
     :param: Objects created in JNB.
@@ -137,7 +137,7 @@ def init_save_track_analysis(cover_slip, cell_index, track_analysis):
            cell.trc_file[:,4], cell.trc_file[:,5])
     for trajectory in cover_slip.cell_trajectories[cell_index]:
         plot = track_analysis.save_plots(trajectory)
-        h5.data_diffusion_plots(plot[0], plot[1], plot[2], plot[3], plot[4])
+        h5.data_diffusion_plots(plot[0], plot[1], plot[2], plot[3], plot[4], int(points_D_fit))
     for trajectory in cover_slip.cell_trajectories[cell_index]:
         plot = track_analysis.save_plots(trajectory)
         h5.data_rossier_plots(plot[0], plot[5], plot[6], plot[7], plot[8])
