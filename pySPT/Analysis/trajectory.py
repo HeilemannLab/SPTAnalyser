@@ -18,7 +18,7 @@ from scipy.optimize import curve_fit
 import matplotlib.gridspec as gridspec
 
 class Trajectory():
-    def __init__(self, locs, tau_thresh, camera_dt, degree, min_D):
+    def __init__(self, locs, tau_thresh, camera_dt, degree, min_D, points_D):
         self.trajectory_number = 0  # equals first column of localization
         self.MSDs = []  # stores all MSD values
         self.times = []  # stores all time steps for MSD values
@@ -47,6 +47,7 @@ class Trajectory():
         self.immobility = False
         self.confined = True  # if confinded false -> free true
         self.analyse_successful = True
+        self.points_fit_D = points_D  # number of points that will be fittet to extract D
         # only to compare with ML origin results
         self.MSD_fit_ML= []  # comparing with origin fit
         self.D_conf_ML = 0.0
@@ -78,15 +79,39 @@ class Trajectory():
         self.times = np.arange(1, self.length_MSD+1, 1.0)
         self.times[:] = self.times[:] * self.dt
             
+# =============================================================================
+#     def calc_diffusion(self):
+#         """
+#         Calculate diffusion coefficient based on first 4 MSD values
+#         times = first 4 time distances for MSD calculation -> *dt
+#         if diffusion is 2D -> D = slope/4, if 3D D = slope/6 ...
+#         """
+#         self.MSD_D = np.zeros([4,4])
+#         self.MSD_D[:,1] = self.MSDs[:4]
+#         self.MSD_D[:,0] = [1*self.dt, 2*self.dt, 3*self.dt, 4*self.dt]
+#         slope, intercept, r_value, p_value, std_err = linregress(self.MSD_D[:,0], self.MSD_D[:,1])
+#         self.MSD_D[:,2] = self.function_linear_fit(self.MSD_D[:,0], slope, intercept)
+#         self.MSD_D[:,3] = self.MSD_D[:,1] - self.MSD_D[:,2]
+#         self.D = slope/self.dof
+#         [chisq, p] = chisquare(self.MSD_D[:,1], self.function_linear_fit(self.MSD_D[:,0], slope, intercept))
+#         self.chi_D = chisq
+#         if not (self.D > 1.0*10**(-5.0)):
+#             self.D = 1.0*10**(-5.0)
+#         self.dD = std_err/self.dof
+#         self.MSD_0 = intercept
+#         self.dMSD_0 = ""
+# =============================================================================
+        
     def calc_diffusion(self):
         """
         Calculate diffusion coefficient based on first 4 MSD values
         times = first 4 time distances for MSD calculation -> *dt
         if diffusion is 2D -> D = slope/4, if 3D D = slope/6 ...
         """
-        self.MSD_D = np.zeros([4,4])
-        self.MSD_D[:,1] = self.MSDs[:4]
-        self.MSD_D[:,0] = [1*self.dt, 2*self.dt, 3*self.dt, 4*self.dt]
+        self.MSD_D = np.zeros([self.points_fit_D,4])
+        self.MSD_D[:,1] = self.MSDs[:self.points_fit_D]
+        for i in range(self.points_fit_D):
+            self.MSD_D[i,0] = (i+1)*self.dt
         slope, intercept, r_value, p_value, std_err = linregress(self.MSD_D[:,0], self.MSD_D[:,1])
         self.MSD_D[:,2] = self.function_linear_fit(self.MSD_D[:,0], slope, intercept)
         self.MSD_D[:,3] = self.MSD_D[:,1] - self.MSD_D[:,2]

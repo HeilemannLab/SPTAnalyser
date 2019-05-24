@@ -37,7 +37,8 @@ class CoverSlip():
         self.tau_threshold = 0.0  # hand down to cell -> trajectory
         self.dof = 0.0  # hand down to cell -> trajectory
         self.D_min = 0.0  # hand down to cell -> trajectory
-
+        self.points_fit_D = 4  # hand down to cell -> trajectory
+        
     def calc_tau_threshold(self):
         self.tau_threshold = float(self.tau_threshold_min_length)*float(self.dt)*0.6*0.5
 
@@ -74,6 +75,7 @@ class CoverSlip():
             one_cell.pixel_size = float(self.pixel_size)
             one_cell.dof = float(self.dof)
             one_cell.D_min = float(self.D_min)
+            one_cell.points_fit_D = int(self.points_fit_D)
             one_cell.create_trajectories()
             one_cell.cell_size()
             one_cell.analyse_trajectories()

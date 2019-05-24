@@ -30,6 +30,7 @@ class Cell():
         self.dt = 0.0   # hand down to trajectory
         self.dof = 0.0  # hand down to trajectory
         self.D_min = 0.0  # hand down to trajectory
+        self.points_fit_D = 4  # hand down to trajectory
         self.tau_threshold_min_length = 0.0 
         
     @staticmethod
@@ -60,7 +61,7 @@ class Cell():
             idx = self.trc_file[:,0] == trajectory_number
             localizations = self.trc_file[idx,:]
             if not (localizations.size==0):
-                self.trajectories.append(trajectory.Trajectory(localizations, self.tau_threshold, self.dt, self.dof, self.D_min))
+                self.trajectories.append(trajectory.Trajectory(localizations, self.tau_threshold, self.dt, self.dof, self.D_min, self.points_fit_D))
                 
     def cell_size(self):
         """

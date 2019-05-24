@@ -35,6 +35,7 @@ class WidgetTrackAnalysis():
         self.min_track_length_box = self.create_min_track_length_box()
         self.dof_box = self.create_dof_box()
         self.D_min_box = self.create_D_min_box()
+        self.points_D_fit_box = self.create_points_D_fit_box()
         self.run_button = self.create_run_button()
         self.chosen_cell = ""
         self.cell_options = []
@@ -116,7 +117,7 @@ class WidgetTrackAnalysis():
                 button_style='', # 'success', 'info', 'warning', 'danger' or ''
                 tooltip='browse for roi')
                 #icon='check')
-        return button        
+        return button      
 
     def open_roi(self, b):
         root = tk.Tk()
@@ -161,6 +162,11 @@ class WidgetTrackAnalysis():
         text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
         return text
     
+    def create_points_D_fit_box(self, val = "4", desc = "Number of points fitted for D"):
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text
+        
     def create_D_min_box(self, val = "0.0065", desc = "Minimal detectable D  [\u03BCm\u00b2/s]"):
         """
         Box for inserting the camera integration time for tau threshold calculation.
