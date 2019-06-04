@@ -85,7 +85,6 @@ class WidgetTrackAnalysis():
             if name.endswith(self.suffix):
                 if not any(x in name for x in self.masked_words):
                     self.file_names.append(os.path.join(root, name))
-        print(self.file_names)
                 
     def create_dir_button(self):
         """
