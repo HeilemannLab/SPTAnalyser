@@ -19,7 +19,7 @@ from tqdm import tqdm_notebook as tqdm
 
 class Cell():
     def __init__(self):
-        self.trc_file = []  # col0 = trajectory, col1 = frames, col2 = x, col3 = y, col4 = intensity ~ trc file
+        self.trc_file = []  # col0 = track id, col1 = frames, col2 = x, col3 = y, col4 = placeholder, col5 = intensity, col6 = seg id ~ trc file
         self.trajectories = []  # contains trajectory objects
         self.analysed_trajectories = []  # contains analysed trajectory objects
         self.pixel_size = 158  # [nm] multiply with palmtracer in nm -> *10^-3 micrometer!
@@ -32,6 +32,7 @@ class Cell():
         self.D_min = 0.0  # hand down to trajectory
         self.points_fit_D = 4  # hand down to trajectory
         self.tau_threshold_min_length = 0.0 
+        self.seg_id = True  # if True the seg id will be loaded as trajectory id, else the track id will be loaded
         
     @staticmethod
     def analyse_trajectory(self, trajectory):
@@ -54,9 +55,13 @@ class Cell():
     def create_trajectories(self):
         """
         Create list with trajectory objects from a trc file.
+        Convert x & y positions from px to nm.
         """
         self.trc_file[:,2] = np.multiply(self.trc_file[:,2], int(self.pixel_size)*10**(-3))
         self.trc_file[:,3] = np.multiply(self.trc_file[:,3], int(self.pixel_size)*10**(-3))
+        # choose the trajectory id (seg or track id) and insert it as first column
+        if self.seg_id:
+            self.trc_file[:,0] = self.trc_file[:,6]
         for trajectory_number in range(int(self.trc_file[:,0].min()), int(self.trc_file[:,0].max())+1):    
             idx = self.trc_file[:,0] == trajectory_number
             localizations = self.trc_file[idx,:]

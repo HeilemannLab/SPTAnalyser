@@ -130,11 +130,11 @@ def init_save_track_analysis(cover_slip, cell_index, track_analysis, points_D_fi
     cell = cover_slip.cells[cell_index]
     one_trajectory = cover_slip.cell_trajectories[cell_index][0]  # get trajectory attributes, that are the same for every trajectory
     h5.data_settings(cell.dt, cell.pixel_size, cell.pixel_amount, cell.size, cell.tau_threshold,
-                     cover_slip.tau_threshold_min_length, one_trajectory.fit_area, cell.dof, cell.D_min)
+                     cover_slip.tau_threshold_min_length, one_trajectory.fit_area, cell.dof, cell.D_min, cell.seg_id)
     h5.statistics(track_analysis.cell_type_count[cell_index][0], track_analysis.cell_type_count[cell_index][1],
                   track_analysis.cell_type_count[cell_index][2], track_analysis.total_trajectories_cell[cell_index])
     h5.trc(np.shape(cell.trc_file), cell.trc_file[:,0], cell.trc_file[:,1], cell.trc_file[:,2], cell.trc_file[:,3],
-           cell.trc_file[:,4], cell.trc_file[:,5])
+           cell.trc_file[:,4], cell.trc_file[:,5], cell.trc_file[:,6])
     for trajectory in cover_slip.cell_trajectories[cell_index]:
         plot = track_analysis.save_plots(trajectory)
         h5.data_diffusion_plots(plot[0], plot[1], plot[2], plot[3], plot[4], int(points_D_fit))

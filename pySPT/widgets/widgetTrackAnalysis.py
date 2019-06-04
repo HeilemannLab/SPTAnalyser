@@ -19,6 +19,8 @@ from IPython.display import clear_output
 class WidgetTrackAnalysis():
     def __init__(self):
         self.data_set_dir = ""
+        self.ignore_words_box = self.create_ignore_words_box()
+        self.masked_words = []
         self.file_names = []
         self.suffix = ".trc"
         self.dir_button = self.create_dir_button()
@@ -44,9 +46,29 @@ class WidgetTrackAnalysis():
         self.drop_down_trajectories = self.create_drop_down_trajectories()
         self.plot_button = self.create_plot_button()
         self.save_button = self.create_save_button()
+        self.trajectory_id_button = self.create_trajectory_id_button()
         # Plot diffusion histogram
         self.bin_size_box = self.create_bin_size_box()
         self.plot_diff_button = self.create_plot_diff_button()
+        
+    def create_ignore_words_box(self, val = "hmm", desc = "Mask words"):
+        """
+        The string in the box contains words that lead to not loading a file if one of the words is contained.
+        Commaseparate mask words.
+        """
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text       
+        
+    def create_trajectory_id_button(self):
+        """
+        Radiobutton to choose between seg id or track id,
+        id is used for diffusion type analysis.
+        """
+        button = widgets.RadioButtons(
+                options = ["seg id", "track id"],
+                disabled = False)
+        return button
    
     def searchSubFolders(self, dirName):
         if (dirName):
@@ -55,10 +77,15 @@ class WidgetTrackAnalysis():
                 self.extendList(root, files)
                 
     def extendList(self, root, files):
+        # create mask word list
+        ignore_words = self.ignore_words_box.value.replace(" ", "")
+        self.masked_words = ignore_words.split(",")                
         for name in files:
             #if name.endswith(self.suffix) and "background" not in name:
             if name.endswith(self.suffix):
-                self.file_names.append(os.path.join(root, name))
+                if not any(x in name for x in self.masked_words):
+                    self.file_names.append(os.path.join(root, name))
+        print(self.file_names)
                 
     def create_dir_button(self):
         """

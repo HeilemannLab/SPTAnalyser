@@ -38,9 +38,19 @@ class CoverSlip():
         self.dof = 0.0  # hand down to cell -> trajectory
         self.D_min = 0.0  # hand down to cell -> trajectory
         self.points_fit_D = 4  # hand down to cell -> trajectory
+        self.seg_id = True  # hand down to cell
         
     def calc_tau_threshold(self):
         self.tau_threshold = float(self.tau_threshold_min_length)*float(self.dt)*0.6*0.5
+    
+    def seg_id_boolean(self):
+        """
+        The return of the radio button is a string, convert it to boolean.
+        """
+        if self.seg_id == "seg id":
+            self.seg_id = True
+        elif self.seg_id == "track id":
+            self.seg_id = False
 
     def create_cells(self):
         """
@@ -48,6 +58,7 @@ class CoverSlip():
         objects from e.g. CoverSlip Class.
         """
         start = time.time()
+        self.seg_id_boolean()
         self.calc_tau_threshold()
         if self.roi_file:  # if no roi file path was inserted, no file can be loaded  
             roi_file = np.genfromtxt(self.roi_file, dtype=None, delimiter=",", skip_header=3, encoding=None)
@@ -64,10 +75,12 @@ class CoverSlip():
             if self.roi_file:
                 for file in roi_file:
                     if one_cell.name in file[0]:
-                        one_cell.size = file[1]            
-            trc_file = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 4, 5))  # col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = place holder (int), col 5 = intensity
+                        one_cell.size = file[1]      
+            # col0 = track id, col1 = frames, col2 = x, col3 = y, col4 = place holder (int), col 5 = intensity, col 6 = seg id
+            trc_file = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 4, 5, 6))  
             #self.trc_file = trc_file ????????????
             one_cell.trc_file = trc_file
+            one_cell.seg_id = self.seg_id
             one_cell.tau_threshold_min_length = self.tau_threshold_min_length
             one_cell.tau_threshold = float(self.tau_threshold)
             one_cell.dt = float(self.dt)
