@@ -63,15 +63,18 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
         one_cell.pixel_size = load_hdf5.pixel_sizes[cell_index]
         one_cell.pixel_amount = load_hdf5.pixel_amounts[cell_index]
         one_cell.size = load_hdf5.cell_sizes[cell_index]
+        #one_cell.points_fit_D = load_hdf5.points_fit_D[cell_index]
         one_cell.name = load_hdf5.names[cell_index]
         one_cell.tau_threshold = load_hdf5.tau_thresholds[cell_index]
         one_cell.dt = load_hdf5.dts[cell_index]
         one_cell.dof = load_hdf5.dofs[cell_index]
         one_cell.D_min = load_hdf5.D_mins[cell_index]
+        one_cell.seg_id = load_hdf5.seg_ids[cell_index]
+        one_cell.points_fit_D = load_hdf5.points_fit_Ds[cell_index]
         one_cell.tau_threshold_min_length = load_hdf5.tau_min_trajectory_lengths[cell_index]
         for trajectory_index in range(0, load_hdf5.trajectory_numbers[cell_index]):
             one_trajectory = trajectory.Trajectory(load_hdf5.locs[cell_index][trajectory_index], one_cell.tau_threshold, one_cell.dt,
-                                                   one_cell.dof, one_cell.D_min)
+                                                   one_cell.dof, one_cell.D_min, one_cell.points_fit_D)
             one_trajectory.trajectory_number = trajectory_index+1
             one_trajectory.MSDs = load_hdf5.cells_trajectories_MSDs[cell_index][trajectory_index]
             one_trajectory.times = load_hdf5.cells_trajectories_times[cell_index][trajectory_index]
@@ -165,14 +168,14 @@ def init_save_filtered_analysis(cover_slip, cell_index, track_stats, directory, 
     cell = track_stats.cells[cell_index]
     one_trajectory = track_stats.cell_trajectories_filtered[cell_index][0]  # get trajectory attributes, that are the same for every trajectory
     h5_filtered.data_settings(cell.dt, cell.pixel_size, cell.pixel_amount, cell.size, cell.tau_threshold, cell.tau_threshold_min_length,
-                              one_trajectory.fit_area, cell.dof, cell.D_min)
+                              one_trajectory.fit_area, cell.dof, cell.D_min, cell.seg_id)
     h5_filtered.statistics(track_stats.cell_type_count[cell_index][0], track_stats.cell_type_count[cell_index][1],
                            track_stats.cell_type_count[cell_index][2], track_stats.total_trajectories_filtered_cell[cell_index],
                            (track_stats.total_trajectories_cell[cell_index]-track_stats.total_trajectories_filtered_cell[cell_index]))
     h5_filtered.trc(np.shape(track_stats.filtered_trc_files[cell_index]), track_stats.filtered_trc_files[cell_index][:,0],
                     track_stats.filtered_trc_files[cell_index][:,1], track_stats.filtered_trc_files[cell_index][:,2],
                     track_stats.filtered_trc_files[cell_index][:,3], track_stats.filtered_trc_files[cell_index][:,4],
-                    track_stats.filtered_trc_files[cell_index][:,5])
+                    track_stats.filtered_trc_files[cell_index][:,5], track_stats.filtered_trc_files[cell_index][:,6])
     for trajectory in track_stats.cell_trajectories_filtered[cell_index]:
         plot = track_analysis.save_plots(trajectory)
         h5_filtered.data_diffusion_plots(plot[0], plot[1], plot[2], plot[3], plot[4])

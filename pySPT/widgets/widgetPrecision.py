@@ -58,9 +58,9 @@ class WidgetPrecision():
         root.withdraw()  # close the window 
         root.update()  # close the window
         if self.software_button.value == "thunderSTORM":
-            root.name = askopenfilename(title="Import tracked.loc file", filetypes=(("csv files", "*.csv"),("all files", "*.*")))
+            root.name = askopenfilename(title="Import .csv file", filetypes=(("csv files", "*.csv"),("all files", "*.*")))
         else:
-            root.name = askopenfilename(title="Import tracked.loc file", filetypes=(("text files", "*.txt"),("all files", "*.*")))
+            root.name = askopenfilename(title="Import .txt file", filetypes=(("text files", "*.txt"),("all files", "*.*")))
         self.file_name = root.name
         root.update()
         root.destroy()

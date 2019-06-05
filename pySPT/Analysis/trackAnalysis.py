@@ -155,7 +155,7 @@ class TrackAnalysis():
         """
         for cell in self.cell_trajectories:
             for trajectory in cell:
-                if trajectory.D < self.min_D and trajectory.D > 0:  # 
+                if trajectory.D < self.min_D and trajectory.D > 0:  
                     self.min_D = trajectory.D
                 if trajectory.D > self.max_D:
                     self.max_D = trajectory.D

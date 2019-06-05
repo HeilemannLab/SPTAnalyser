@@ -30,6 +30,7 @@ class TrcFormat():
         self.trc_filtered = []  # all trajectories < min track length are neglected
         self.pixel_size = 158  # PALMTracer stores localizations as pixel -> converting factor is needed because rapidSTORM localizes in nm
         self.min_track_length = 2  # min track length
+        self.trajectory_id = 0  # the min track length will be applied to trajectory id 0 = track id or 6 = seg id
                
     def load_localization_file(self):
         """
@@ -71,9 +72,21 @@ class TrcFormat():
             intensity_index = list(self.column_order.keys())[list(self.column_order.values()).index('"Amplitude-0-0"')]
             self.loaded_file = np.loadtxt(self.file_name, usecols = (track_id_index, frame_index, x_index, y_index,
                                                                      intensity_index, seg_id_index)) 
+        self.convert_trajectory_id()
         self.create_trc_file()
         self.sort_trc_file()
         self.filter_trc_file()
+        
+    def convert_trajectory_id(self):
+        """
+        The trajectory id is a string value from the trajectory id radiobutton.
+        seg id is converted to int 6, track id is converted to int 0.
+        The integers represent the column id.
+        """
+        if self.trajectory_id == "seg id":
+            self.trajectory_id = 6
+        elif self.trajectory_id == "track id":
+            self.trajectory_id = 0
         
     def create_trc_file(self):
         """
@@ -122,12 +135,12 @@ class TrcFormat():
         # determine the max trajectory index
         max_trajectory_index = 0
         for i in self.trc_file_sorted:
-            if int(i[0]) > max_trajectory_index:
-                max_trajectory_index = int(i[0])      
+            if int(i[self.trajectory_id]) > max_trajectory_index:
+                max_trajectory_index = int(i[self.trajectory_id])      
         step_count = 0   
         # determine the trajectory lengths and insert the value in the 7th column for all steps of one trajectory
         for i in range(len(self.trc_file_sorted)-1):
-            if self.trc_file_sorted[i][0] == self.trc_file_sorted[i+1][0]:
+            if self.trc_file_sorted[i][self.trajectory_id] == self.trc_file_sorted[i+1][self.trajectory_id]:
                 step_count += 1
             else:
                 for frame in range(step_count+1):  # the last column is the duration of the track

@@ -80,7 +80,7 @@ class SaveFiltered():
         dset["trajectories excluded"] = trajectories_excluded
 
         
-    def data_settings(self, dt, pixelsize, pixelamount, cell_size, tau_threshold, tau_min_length, fit_area, dof, dloc_dyn):
+    def data_settings(self, dt, pixelsize, pixelamount, cell_size, tau_threshold, tau_min_length, fit_area, dof, dloc_dyn, seg_bool):
         dset = self.grp04.create_dataset("settings", (1,1), dtype = np.dtype([("dt [s]", float),
                                                       ("pixelsize [nm]", int),
                                                       ("pixel amount", int),
@@ -89,7 +89,9 @@ class SaveFiltered():
                                                       ("tau min trajectory length", float),
                                                       ("fit area", float),
                                                       ("dof", int),
-                                                      ("\u0394 loc dyn [\u03BCm\u00b2/s]", float)]))
+                                                      ("\u0394 loc dyn [\u03BCm\u00b2/s]", float),
+                                                      ("track id", int),
+                                                      ("seg id", int)]))
         dset["dt [s]"] = dt
         dset["pixelsize [nm]"] = pixelsize
         dset["pixel amount"] = pixelamount
@@ -99,6 +101,8 @@ class SaveFiltered():
         dset["fit area"] = fit_area
         dset["dof"] = dof
         dset["\u0394 loc dyn [\u03BCm\u00b2/s]"] = dloc_dyn
+        dset["track id"] = not seg_bool
+        dset["seg id"] = seg_bool
         
     def data_diffusion_info(self, number, trajectory_id, diffusion_coeff, ddiffusion_coeff, MSD_0, chi2, length):
         dset = self.grp02.create_dataset("diffusionInfos", (number,), dtype = np.dtype([("trajectory id", int),
@@ -166,19 +170,21 @@ class SaveFiltered():
         dset["chi\u00b2 [\u03BCm\u2074]"] = chi2
         self.h5_file.close()
 
-    def trc(self, shape, trajectory_id, frame, x, y, placeholder, intensity):
-        dset = self.grp00.create_dataset("trcFile", (shape[0],), dtype = np.dtype([("trajectory id", int),
+    def trc(self, shape, trajectory_id, frame, x, y, placeholder, intensity, seg_id):
+        dset = self.grp00.create_dataset("trcFile", (shape[0],), dtype = np.dtype([("track id", int),
                                                       ("frame", int),
                                                       ("x position [\u03BCm]", float),
                                                       ("y position [\u03BCm]", float),
                                                       ("placeholder", int),
-                                                      ("intensity [photon]", float)]))
-        dset["trajectory id"] = trajectory_id
+                                                      ("intensity [photon]", float),
+                                                      ("seg id", int)]))
+        dset["track id"] = trajectory_id
         dset["frame"] = frame
         dset["x position [\u03BCm]"] = x
         dset["y position [\u03BCm]"] = y
         dset["placeholder"] = placeholder
         dset["intensity [photon]"] = intensity
+        dset["seg id"] = seg_id
         
     def msd(self, trajectory_number, dt, MSD):
         trajectory_number = str(int(trajectory_number))

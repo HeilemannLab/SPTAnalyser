@@ -23,12 +23,13 @@ class WidgetTrcFormat():
         self.got_file_name = False
         self.file_text_box = self.create_file_box()
         self.file_button = self.create_file_button()
+        self.trajectory_id_button = self.create_trajectory_id_button()
         self.pixel_size_box = self.create_pixel_size_box()
         self.min_track_length_box = self.create_min_track_length_box()
         self.run_button = self.create_run_button()
         self.save_button = self.create_save_button()
         
-    def create_min_track_length_box(self, val = "2", desc = "Min track length"):
+    def create_min_track_length_box(self, val = "2", desc = "Min trajectory length"):
         """
         Box for inserting the minimal track length for tau threshold calculation.
         """
@@ -65,9 +66,9 @@ class WidgetTrcFormat():
         root.withdraw()  # close the window 
         root.update()  # close the window
         if self.software_button.value == "thunderSTORM":
-            root.name = askopenfilename(title="Import tracked.loc file", filetypes=(("csv files", "*.csv"),("all files", "*.*")))
+            root.name = askopenfilename(title="Import tracked.csv file", filetypes=(("csv files", "*.csv"),("all files", "*.*")))
         elif self.software_button.value == "rapidSTORM":
-            root.name = askopenfilename(title="Import tracked.loc file", filetypes=(("text files", "*.txt"),("all files", "*.*")))
+            root.name = askopenfilename(title="Import tracked.txt file", filetypes=(("text files", "*.txt"),("all files", "*.*")))
         self.file_name = root.name
         root.update()
         root.destroy()
@@ -85,6 +86,16 @@ class WidgetTrcFormat():
     def change_file_box(self, change):
         self.file_name = self.file_text_box.value  
         self.got_file_name = True
+        
+    def create_trajectory_id_button(self):
+        """
+        Radiobutton to choose between segid or trackid. The min trajaectory length
+        will be applied to the chosen id.
+        """
+        button = widgets.RadioButtons(
+                options = ["seg id", "track id"],
+                disabled = False)
+        return button
         
     def create_pixel_size_box(self, val = "158", desc = "pixel size in nm"): 
         """

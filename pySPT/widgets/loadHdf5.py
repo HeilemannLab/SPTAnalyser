@@ -30,6 +30,8 @@ class LoadHdf5():
         self.fit_areas = []  # -> trajectory.fit_area
         self.dofs = []  # -> trajectory.dof
         self.D_mins = []  # -> trajectory.D_min
+        self.seg_ids = []
+        self.points_fit_Ds = []
         # diffusion infos
         self.cells_lengths_trajectories = []  # 
         self.cells_lengths_MSDs = []  # 
@@ -80,6 +82,8 @@ class LoadHdf5():
         self.fit_areas = []  # -> trajectory.fit_area
         self.dofs = []  # -> trajectory.dof
         self.D_mins = []  # -> trajectory.D_min
+        self.seg_ids = []  # cell.seg_id
+        self.points_fit_Ds = []
         # diffusion infos
         self.cells_lengths_trajectories = []  # 
         self.cells_lengths_MSDs = []  # 
@@ -144,7 +148,16 @@ class LoadHdf5():
                     raw_base_name += i   
             self.names.append(raw_base_name)
         #print("names", self.names)
-           
+        
+    def get_points_fit_Ds(self):
+        """
+        The length of the diffusion plot equals the number of points used for the diffusion fit.
+        """
+        for h5 in self.hdf5:
+            diffusion_group = h5["diffusion"]
+            diffusionPlots_group = diffusion_group["diffusionPlots"]
+            self.points_fit_Ds.append(len(diffusionPlots_group["diffusionPlot0001"].value))
+            
     def settings(self):
         """
         Handling pixel size & amount.
@@ -162,6 +175,7 @@ class LoadHdf5():
             self.fit_areas.append(settings_data[0][0][6])
             self.dofs.append(settings_data[0][0][7])
             self.D_mins.append(settings_data[0][0][8])
+            self.seg_ids.append(settings_data[0][0][10])
         #print("settings", self.dts, self.pixel_sizes, self.pixel_amounts, self.tau_thresholds, self.fit_areas, self.dofs, self.D_mins)
         
     def create_np_array(self, length, columns=1):
@@ -314,7 +328,7 @@ class LoadHdf5():
         
     def get_trcs(self):
         """
-        Create a trc file as np arrays for each cell. Do I even need it? Wrong unit.
+        Create a trc file as np arrays for each cell.
         """
         for h5 in self.hdf5:
             h5_index = self.hdf5.index(h5)
@@ -322,14 +336,15 @@ class LoadHdf5():
             trc_group_data = trc_group["trcFile"].value
             #trc_group_data = trc_group[("trcFile")]
             max_index = np.shape(trc_group_data)[0]
-            trc = self.create_np_array(np.shape(trc_group_data)[0], 6)
+            trc = self.create_np_array(np.shape(trc_group_data)[0], 7)
             for i in range(0, max_index):
-                trc[i,0] = trc_group_data[i][0]  # trajectory id
+                trc[i,0] = trc_group_data[i][0]  # track id
                 trc[i,1] = trc_group_data[i][1]  # frame
                 trc[i,2] = trc_group_data[i][2]  # x position
                 trc[i,3] = trc_group_data[i][3]  # y position
                 trc[i,4] = trc_group_data[i][4]  # place holder
                 trc[i,5] = trc_group_data[i][5]  # intensity
+                trc[i,6] = trc_group_data[i][6]  # seg id
             self.trc_files.append(trc)
         #print(self.trc_files)
         
@@ -412,7 +427,7 @@ class LoadHdf5():
         self.get_MSDs()
         self.get_trcs()
         self.get_locs()
-    
+        self.get_points_fit_Ds()
 
 def main():
     pass

@@ -176,7 +176,7 @@ class TrajectoryStatistics():
     
     def get_min_D(self):
         """
-        Min diffusion coefficient of trajectory.
+        Min diffusion coefficient of trajectory. 
         :return: int of min diffusion coefficient.
         """
         min_D = math.inf
@@ -421,11 +421,12 @@ class TrajectoryStatistics():
         
     def determine_max_min_diffusion(self):
         """
-        Create np array with log10(D) and D. -> min and max values can be determined over that.
+        Create np array with log10(D) and D. -> min and max values can be determined over that. 
+        The min value has to be positive, because logarithm of value <= 0 are not defined.
         """
         for cell in self.cell_trajectories:
             for trajectory in cell:
-                if trajectory.D < self.min_D:
+                if trajectory.D < self.min_D and trajectory.D > 0:
                     self.min_D = trajectory.D
                 if trajectory.D > self.max_D:
                     self.max_D = trajectory.D
@@ -451,7 +452,8 @@ class TrajectoryStatistics():
             log_Ds = np.zeros(len(self.cell_trajectories_filtered[cell_index]))
             cell_size = self.cell_sizes[cell_index]
             for trajectory_index in range(0, len(self.cell_trajectories_filtered[cell_index])):
-                log_Ds[trajectory_index] =  np.log10(self.cell_trajectories_filtered[cell_index][trajectory_index].D)
+                if self.cell_trajectories_filtered[cell_index][trajectory_index].D > 0:
+                    log_Ds[trajectory_index] =  np.log10(self.cell_trajectories_filtered[cell_index][trajectory_index].D)
             self.calc_diffusion_frequencies(log_Ds, desired_bin_size, cell_size) 
         
     def calc_diffusion_frequencies(self, log_diff, desired_bin, size, is_cell=True):
