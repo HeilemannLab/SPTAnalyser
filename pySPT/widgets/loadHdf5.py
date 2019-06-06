@@ -46,6 +46,7 @@ class LoadHdf5():
         self.cells_trajectories_r = []  # traujectoty.r
         self.cells_trajectories_dr = []  # trajectory.dr
         self.cells_trajectories_Dconf = []  # trajectory.D_conf
+        self.cells_trajectories_dDconf = []
         self.cells_trajectories_chi2_rossier = []  # trajectory.dD_conf
         self.cells_trajectories_analyse_successful = []  # trajectory.analyse_successful
         self.cells_trajectories_type = []
@@ -98,6 +99,7 @@ class LoadHdf5():
         self.cells_trajectories_r = []  # traujectoty.r
         self.cells_trajectories_dr = []  # trajectory.dr
         self.cells_trajectories_Dconf = []  # trajectory.D_conf
+        self.cells_trajectories_dDconf = []  # trajectory.dD_conf
         self.cells_trajectories_chi2_rossier = []  # trajectory.dD_conf
         self.cells_trajectories_analyse_successful = []  # trajectory.analyse_successful
         self.cells_trajectories_type = []
@@ -268,6 +270,7 @@ class LoadHdf5():
             trajectories_r = self.create_np_array(max_trajectory_index)
             trajectories_dr = self.create_np_array(max_trajectory_index)
             trajectories_dconf = self.create_np_array(max_trajectory_index)
+            trajectories_ddconf = self.create_np_array(max_trajectory_index)
             trajectories_chi_msd = self.create_np_array(max_trajectory_index)
             trajectories_type = self.create_np_array(max_trajectory_index, 3)
             for trajectory_index in range(0, max_trajectory_index):
@@ -280,7 +283,8 @@ class LoadHdf5():
                 r = rossier_statistics_data[trajectory_index][7]
                 dr = rossier_statistics_data[trajectory_index][8]
                 dconf = rossier_statistics_data[trajectory_index][9]
-                chi_msd = rossier_statistics_data[trajectory_index][10]
+                ddconf = rossier_statistics_data[trajectory_index][10]
+                chi_msd = rossier_statistics_data[trajectory_index][11]
                 trajectories_type[trajectory_index][0] = trajectory_immob
                 trajectories_type[trajectory_index][1] = trajectory_confined
                 trajectories_type[trajectory_index][2] = trajectory_free
@@ -290,6 +294,7 @@ class LoadHdf5():
                 trajectories_r[trajectory_index] = r
                 trajectories_dr[trajectory_index] = dr
                 trajectories_dconf[trajectory_index] = dconf
+                trajectories_ddconf[trajectory_index] = ddconf
                 trajectories_chi_msd[trajectory_index] = chi_msd
             self.cells_trajectories_analyse_successful.append(trajectories_analyse_successful)
             self.cells_trajectories_tau.append(trajectories_tau)
@@ -297,6 +302,7 @@ class LoadHdf5():
             self.cells_trajectories_r.append(trajectories_r)
             self.cells_trajectories_dr.append(trajectories_dr)
             self.cells_trajectories_Dconf.append(trajectories_dconf)
+            self.cells_trajectories_dDconf.append(trajectories_dconf)
             self.cells_trajectories_chi2_rossier.append(trajectories_chi_msd)
             self.cells_trajectories_type.append(trajectories_type)
 
@@ -428,6 +434,7 @@ class LoadHdf5():
         self.get_trcs()
         self.get_locs()
         self.get_points_fit_Ds()
+
 
 def main():
     pass

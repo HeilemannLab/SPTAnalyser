@@ -87,18 +87,20 @@ class MergeHdf5():
                 else:
                     trc_new_values[i].append(archive_molecules_dataset[j][i])
         del hdf5_trc_group["trcFile"]
-        dset = hdf5_trc_group.create_dataset("trcFile", (shape,), dtype = np.dtype([("trajectory id", int),
+        dset = hdf5_trc_group.create_dataset("trcFile", (shape,), dtype = np.dtype([("track id", int),
                                                       ("frame", int),
                                                       ("x position [\u03BCm]", float),
                                                       ("y position [\u03BCm]", float),
                                                       ("state", int),
-                                                      ("intensity [photon]", float)]))
-        dset["trajectory id"] = trc_new_values[0]
+                                                      ("intensity [photon]", float),
+                                                      ("seg id", float)]))
+        dset["track id"] = trc_new_values[0]
         dset["frame"] = trc_new_values[1]
         dset["x position [\u03BCm]"] = trc_new_values[2]
         dset["y position [\u03BCm]"] = trc_new_values[3]
         dset["state"] = trc_new_values[4]
         dset["intensity [photon]"] = trc_new_values[5]
+        dset["seg id"] = trc_new_values[6]
         
     def add_roi_dataset_to_settings(self):
         archive_settings_group = self.archive_file["settings"]

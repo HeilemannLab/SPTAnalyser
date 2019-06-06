@@ -24,6 +24,7 @@ import time
 import numpy as np 
 from ipywidgets import HBox, VBox
 
+
 def init_merge_hdf5_path_handler(h5_paths, archive_paths, save_paths):
     """
     Opens the txt files that contain all paths in a list and iterates through
@@ -39,7 +40,7 @@ def init_merge_hdf5_path_handler(h5_paths, archive_paths, save_paths):
         merge_hdf5 = mergeHdf5.MergeHdf5(line_h5_strip, line_archive_strip, line_save_strip)
         merge_hdf5.run()
     print("Merging successful!")
-    print("Initialization took {} s".format(time.time()-start))
+    print("Duration: %.2f s"%time.time()-start)
 
 
 def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
@@ -92,6 +93,7 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
             one_trajectory.tau = load_hdf5.cells_trajectories_tau[cell_index][trajectory_index][0]
             one_trajectory.dtau = load_hdf5.cells_trajectories_dtau[cell_index][trajectory_index][0]
             one_trajectory.D_conf = load_hdf5.cells_trajectories_Dconf[cell_index][trajectory_index][0]
+            one_trajectory.dD_conf = load_hdf5.cells_trajectories_dDconf[cell_index][trajectory_index][0]
             one_trajectory.r = load_hdf5.cells_trajectories_r[cell_index][trajectory_index][0]
             one_trajectory.dr = load_hdf5.cells_trajectories_dr[cell_index][trajectory_index][0]
             one_trajectory.immobility = bool(load_hdf5.cells_trajectories_type[cell_index][trajectory_index][0])
@@ -194,7 +196,7 @@ def init_save_filtered_analysis(cover_slip, cell_index, track_stats, directory, 
     rossier_info = track_analysis.rossier_info
     h5_filtered.data_rossier_info(track_analysis.number_of_trajectories, rossier_info[:,0],  rossier_info[:,1],  rossier_info[:,2],
                                   rossier_info[:,3],  rossier_info[:,4],  rossier_info[:,5],  rossier_info[:,6],  rossier_info[:,7],
-                                  rossier_info[:,8],  rossier_info[:,9], rossier_info[:,10])
+                                  rossier_info[:,8],  rossier_info[:,9], rossier_info[:,10], rossier_info[:,11])
     
 
 def init_save_filtered_trc(track_stats, directory, folder):

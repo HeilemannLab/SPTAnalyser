@@ -78,7 +78,6 @@ class SaveFiltered():
         dset["free [%]"] = free
         dset["trajectories included"] = trajectories_included
         dset["trajectories excluded"] = trajectories_excluded
-
         
     def data_settings(self, dt, pixelsize, pixelamount, cell_size, tau_threshold, tau_min_length, fit_area, dof, dloc_dyn, seg_bool):
         dset = self.grp04.create_dataset("settings", (1,1), dtype = np.dtype([("dt [s]", float),
@@ -146,7 +145,7 @@ class SaveFiltered():
         dset["rossier fit [\u03BCm\u00b2]"] = fit
         dset["residues [\u03BCm\u00b2]"] = residues
         
-    def data_rossier_info(self, number, trajectory_id, type_immobile, type_confined, type_free, analyse_success, tau, dtau, r, dr, dconfined, chi2):
+    def data_rossier_info(self, number, trajectory_id, type_immobile, type_confined, type_free, analyse_success, tau, dtau, r, dr, dconfined, ddconfined, chi2):
         dset = self.grp03.create_dataset("rossierStatistics", (number,), dtype = np.dtype([("trajectory id", int),
                                                            ("type immobile", int),
                                                            ("type confined", int),("type free", int),
@@ -155,7 +154,8 @@ class SaveFiltered():
                                                            ("\u0394 tau [s]", float),
                                                            ("r [\u03BCm]", float),
                                                            ("\u0394 r [\u03BCm]", float),
-                                                           ("Diffusion confined [\u03BCm\u00b2/s]", float),
+                                                           ("D confined [\u03BCm\u00b2/s]", float),
+                                                           ("\u0394 D confined [\u03BCm\u00b2/s]", float),
                                                            ("chi\u00b2 [\u03BCm\u2074]", float)]))
         dset["trajectory id"] = trajectory_id
         dset["type immobile"] = type_immobile
@@ -166,7 +166,8 @@ class SaveFiltered():
         dset["\u0394 tau [s]"] = dtau
         dset["r [\u03BCm]"] = r
         dset["\u0394 r [\u03BCm]"] = dr
-        dset["Diffusion confined [\u03BCm\u00b2/s]"] = dconfined
+        dset["D confined [\u03BCm\u00b2/s]"] = dconfined
+        dset["\u0394 D confined [\u03BCm\u00b2/s]"] = ddconfined
         dset["chi\u00b2 [\u03BCm\u2074]"] = chi2
         self.h5_file.close()
 
