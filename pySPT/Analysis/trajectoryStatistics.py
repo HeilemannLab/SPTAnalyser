@@ -58,7 +58,8 @@ class TrajectoryStatistics():
         self.corrected_frequencies_error_percent = []
         self.tau_threshold_min_length = float(math.inf)  # from all cells, the min rossier length will be set as the default value
         self.corrected_frequencies = []  # mean cell frequencies - mean bg frequencies
-        self.corrected_frequencies_percent = []  # mean cell frequencies - mean bg frequencies                        
+        self.corrected_frequencies_percent = []  # mean cell frequencies - mean bg frequencies   
+        self.sigma_dyns = []  # dynamic localization error, based on filtered trajectories             
 
     def calc_min_rossier_length(self):
         #self.tau_threshold_min_length = float(math.inf)
@@ -88,6 +89,7 @@ class TrajectoryStatistics():
         self.total_trajectories = 0  # amount of trajectories in data set
         self.total_trajectories_cell = []  # list with amount of total trajectories per cell 
         self.cell_type_count = []
+        self.sigma_dyns = []
         
     def run_statistics(self, min_length, max_length, min_D, max_D, filter_immob, filter_confined,
                        filter_free, filter_analyse_not_successful):
@@ -129,6 +131,7 @@ class TrajectoryStatistics():
         self.filter_type(filter_immob, filter_confined, filter_free, filter_analyse_not_successful)
         self.sort_filtered_trajectories()
         self.create_index_lst()
+        self.calc_sigma_dyns()
         print("Initialization took {} s".format(time.time()-start))
         if filter_immob:
             print("Filter for immobile.")
@@ -574,11 +577,23 @@ class TrajectoryStatistics():
         """
         np_array = np.zeros((length,columns))
         return np_array
+    
+    def calc_sigma_dyns(self):
+        """
+        Based on filtered trajectories, a new dynamic localization error is calculated.
+        Parameters: Mean D, mean MSD_0 per cell & loc, dt.
+        """
+        for cell_idx in range(len(self.cell_trajectories_filtered)):
+            self.cell_trajectories_filtered
+            dof = self.cell_trajectories_filtered[cell_idx][0].dof
+            dt = self.cell_trajectories_filtered[cell_idx][0].dt
+            mean_D = np.mean([track.D for track in self.cell_trajectories_filtered[cell_idx]])
+            mean_MSD_0 = np.mean([track.MSD_0 for track in self.cell_trajectories_filtered[cell_idx]])
+            sigma_dyn = math.sqrt((mean_MSD_0+(4/3)*mean_D*dt)/dof)
+            self.sigma_dyns.append(sigma_dyn)
+        print(self.sigma_dyns)
         
-
-
-
-        
+      
  
     
 def main():

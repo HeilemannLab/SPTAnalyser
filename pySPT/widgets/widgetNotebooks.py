@@ -172,7 +172,7 @@ def init_save_filtered_analysis(cover_slip, cell_index, track_stats, directory, 
     cell = track_stats.cells[cell_index]
     one_trajectory = track_stats.cell_trajectories_filtered[cell_index][0]  # get trajectory attributes, that are the same for every trajectory
     h5_filtered.data_settings(cell.dt, cell.pixel_size, cell.pixel_amount, cell.size, cell.tau_threshold, cell.tau_threshold_min_length,
-                              one_trajectory.fit_area, cell.dof, cell.D_min, cell.sigma_dyn, cell.seg_id)
+                              one_trajectory.fit_area, cell.dof, cell.D_min, track_stats.sigma_dyns[cell_index], cell.seg_id)
     h5_filtered.statistics(track_stats.cell_type_count[cell_index][0], track_stats.cell_type_count[cell_index][1],
                            track_stats.cell_type_count[cell_index][2], track_stats.total_trajectories_filtered_cell[cell_index],
                            (track_stats.total_trajectories_cell[cell_index]-track_stats.total_trajectories_filtered_cell[cell_index]))
