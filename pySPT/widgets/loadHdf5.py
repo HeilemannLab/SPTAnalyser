@@ -25,6 +25,7 @@ class LoadHdf5():
         self.tau_min_trajectory_lengths = []
         self.pixel_sizes = []  # list of pixel sizes -> cell.pixel_size
         self.pixel_amounts = []  # list of amount of pixel of detector -> cell.pixel_amount
+        self.sigma_dyns = []  # -> cell.sigma_dyn
         self.dts = []  # integration times -> trajectory.dt
         self.tau_thresholds = []  # -> trajectory.tau_threshold
         self.fit_areas = []  # -> trajectory.fit_area
@@ -78,6 +79,7 @@ class LoadHdf5():
         self.tau_min_trajectory_lengths = []
         self.pixel_sizes = []  # list of pixel sizes -> cell.pixel_size
         self.pixel_amounts = []  # list of amount of pixel of detector -> cell.pixel_amount
+        self.sigma_dyns = []
         self.dts = []  # integration times -> trajectory.dt
         self.tau_thresholds = []  # -> trajectory.tau_threshold
         self.fit_areas = []  # -> trajectory.fit_area
@@ -177,8 +179,8 @@ class LoadHdf5():
             self.fit_areas.append(settings_data[0][0][6])
             self.dofs.append(settings_data[0][0][7])
             self.D_mins.append(settings_data[0][0][8])
-            self.seg_ids.append(settings_data[0][0][10])
-        #print("settings", self.dts, self.pixel_sizes, self.pixel_amounts, self.tau_thresholds, self.fit_areas, self.dofs, self.D_mins)
+            self.sigma_dyns.append(settings_data[0][0][9])
+            self.seg_ids.append(settings_data[0][0][11])  # track id = not seg id
         
     def create_np_array(self, length, columns=1):
         """

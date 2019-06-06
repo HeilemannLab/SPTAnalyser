@@ -72,6 +72,7 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
         one_cell.dof = load_hdf5.dofs[cell_index]
         one_cell.D_min = load_hdf5.D_mins[cell_index]
         one_cell.seg_id = load_hdf5.seg_ids[cell_index]
+        one_cell.sigma_dyn = load_hdf5.sigma_dyns[cell_index]
         one_cell.points_fit_D = load_hdf5.points_fit_Ds[cell_index]
         one_cell.tau_threshold_min_length = load_hdf5.tau_min_trajectory_lengths[cell_index]
         for trajectory_index in range(0, load_hdf5.trajectory_numbers[cell_index]):
@@ -136,7 +137,7 @@ def init_save_track_analysis(cover_slip, cell_index, track_analysis, points_D_fi
     cell = cover_slip.cells[cell_index]
     one_trajectory = cover_slip.cell_trajectories[cell_index][0]  # get trajectory attributes, that are the same for every trajectory
     h5.data_settings(cell.dt, cell.pixel_size, cell.pixel_amount, cell.size, cell.tau_threshold,
-                     cover_slip.tau_threshold_min_length, one_trajectory.fit_area, cell.dof, cell.D_min, cell.seg_id)
+                     cover_slip.tau_threshold_min_length, one_trajectory.fit_area, cell.dof, cell.D_min, cell.seg_id, cell.sigma_dyn)
     h5.statistics(track_analysis.cell_type_count[cell_index][0], track_analysis.cell_type_count[cell_index][1],
                   track_analysis.cell_type_count[cell_index][2], track_analysis.total_trajectories_cell[cell_index])
     h5.trc(np.shape(cell.trc_file), cell.trc_file[:,0], cell.trc_file[:,1], cell.trc_file[:,2], cell.trc_file[:,3],
@@ -171,7 +172,7 @@ def init_save_filtered_analysis(cover_slip, cell_index, track_stats, directory, 
     cell = track_stats.cells[cell_index]
     one_trajectory = track_stats.cell_trajectories_filtered[cell_index][0]  # get trajectory attributes, that are the same for every trajectory
     h5_filtered.data_settings(cell.dt, cell.pixel_size, cell.pixel_amount, cell.size, cell.tau_threshold, cell.tau_threshold_min_length,
-                              one_trajectory.fit_area, cell.dof, cell.D_min, cell.seg_id)
+                              one_trajectory.fit_area, cell.dof, cell.D_min, cell.sigma_dyn, cell.seg_id)
     h5_filtered.statistics(track_stats.cell_type_count[cell_index][0], track_stats.cell_type_count[cell_index][1],
                            track_stats.cell_type_count[cell_index][2], track_stats.total_trajectories_filtered_cell[cell_index],
                            (track_stats.total_trajectories_cell[cell_index]-track_stats.total_trajectories_filtered_cell[cell_index]))

@@ -11,6 +11,7 @@ Create a cell object which creats trajectory objects. Cell contains informations
 """
 
 import numpy as np
+import math
 from . import trajectory
 #from multiprocessing import Pool
 from tqdm import tqdm_notebook as tqdm
@@ -33,6 +34,7 @@ class Cell():
         self.points_fit_D = 4  # hand down to trajectory
         self.tau_threshold_min_length = 0.0 
         self.seg_id = True  # if True the seg id will be loaded as trajectory id, else the track id will be loaded
+        self.sigma_dyn = 0.0  # dynamic localization error
         
     @staticmethod
     def analyse_trajectory(self, trajectory):
@@ -90,6 +92,13 @@ class Cell():
             trajectory.analyse_particle()
         self.analysed_trajectories = self.trajectories
         
+    def calc_sigma_dyn(self):
+        """
+        Calculate the dynamic localization error, based on the mean D, mean MSD_0, dt and dof values.
+        """
+        mean_D = np.mean([trajectory.D for trajectory in self.analysed_trajectories])
+        mean_MSD_0 = np.mean([trajectory.MSD_0 for trajectory in self.analysed_trajectories])
+        self.sigma_dyn = math.sqrt((mean_MSD_0+(4/3)*mean_D*self.dt)/self.dof)
         
     def plot_trajectory(self, trajectory_number):
         """

@@ -92,6 +92,7 @@ class CoverSlip():
             one_cell.create_trajectories()
             one_cell.cell_size()
             one_cell.analyse_trajectories()
+            one_cell.calc_sigma_dyn()
             self.cell_trajectories.append(one_cell.analysed_trajectories)
             self.cells.append(one_cell)
         print("Analysis took {} s".format(time.time()-start))

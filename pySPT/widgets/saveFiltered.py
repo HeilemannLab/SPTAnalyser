@@ -79,7 +79,7 @@ class SaveFiltered():
         dset["trajectories included"] = trajectories_included
         dset["trajectories excluded"] = trajectories_excluded
         
-    def data_settings(self, dt, pixelsize, pixelamount, cell_size, tau_threshold, tau_min_length, fit_area, dof, dloc_dyn, seg_bool):
+    def data_settings(self, dt, pixelsize, pixelamount, cell_size, tau_threshold, tau_min_length, fit_area, dof, D_min, dloc_dyn, seg_bool):
         dset = self.grp04.create_dataset("settings", (1,1), dtype = np.dtype([("dt [s]", float),
                                                       ("pixelsize [nm]", int),
                                                       ("pixel amount", int),
@@ -88,7 +88,8 @@ class SaveFiltered():
                                                       ("tau min trajectory length", float),
                                                       ("fit area", float),
                                                       ("dof", int),
-                                                      ("\u0394 loc dyn [\u03BCm\u00b2/s]", float),
+                                                      ("D min [\u03BCm\u00b2/s]", float),
+                                                      ("\u0394 loc dyn [\u03BCm]", float),
                                                       ("track id", int),
                                                       ("seg id", int)]))
         dset["dt [s]"] = dt
@@ -99,7 +100,8 @@ class SaveFiltered():
         dset["tau min trajectory length"] = tau_min_length
         dset["fit area"] = fit_area
         dset["dof"] = dof
-        dset["\u0394 loc dyn [\u03BCm\u00b2/s]"] = dloc_dyn
+        dset["D min [\u03BCm\u00b2/s]"] = D_min
+        dset["\u0394 loc dyn [\u03BCm]"] = dloc_dyn
         dset["track id"] = not seg_bool
         dset["seg id"] = seg_bool
         
