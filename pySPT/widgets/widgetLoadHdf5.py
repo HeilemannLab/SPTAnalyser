@@ -61,6 +61,7 @@ class WidgetLoadHdf5():
         self.save_name_box = self.create_save_raw_base_name_box()
         self.dir_save = ""
         self.filtered_dataset_checkbox = self.create_filtered_dataset_checkbox()
+        self.hmm_trc_checkbox = self.create_hmm_trc_checkbox()
         self.save_button = self.create_save_button()
         self.save_folder_name_box = self.create_save_folder_name_box()
         #self.current_date = ""
@@ -371,6 +372,12 @@ class WidgetLoadHdf5():
     def create_filtered_dataset_checkbox(self):
         checkbox = widgets.Checkbox(value=True,
                          description='Save filtered dataset',
+                         disabled=False)
+        return checkbox
+    
+    def create_hmm_trc_checkbox(self):
+        checkbox = widgets.Checkbox(value=True,
+                         description='Save filtered .trc files',
                          disabled=False)
         return checkbox
     

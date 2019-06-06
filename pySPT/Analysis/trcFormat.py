@@ -199,13 +199,13 @@ class TrcFormat():
         if len(day) == 1:
             day = str(0) + day
         #out_file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\pySPT_cell_1_MMStack_Pos0\\preAnalysis\\sorted.txt"
-        out_file_name = directory + "\\" + year + month + day + "_" + base_name + "_trc_format_analysis.trc"
+        out_file_name = directory + "\\" + year + month + day + "_" + base_name + "_trc_analysis.trc"
         header = "track_id\t frame\t x [pixel]\t y [pixel]\t placeholder\t intensity [photon]\t seg_id\t"
         np.savetxt(out_file_name, 
                    X=self.trc_filtered,
                    header=header,
                    fmt = ("%i","%i", "%.3f", "%.3f", "%i", "%.3f", "%i"))
-        out_file_name = directory + "\\" + year + month + day + "_" + base_name + "_trc_format_min_length.txt"        
+        out_file_name = directory + "\\" + year + month + day + "_" + base_name + "_trc_min_length.txt"        
         file = open(out_file_name, 'w')
         file.write("# min track length\n")
         file.write("%i" %(int(self.min_track_length)))
@@ -231,14 +231,14 @@ class TrcFormat():
         if len(day) == 1:
             day = str(0) + day
         #out_file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\pySPT_cell_1_MMStack_Pos0\\preAnalysis\\sorted.txt"
-        out_file_name = directory + "\\" + year + month + day + "_" + base_name + "_trc_format_hmm.trc"
+        out_file_name = directory + "\\" + year + month + day + "_" + base_name + "_trc_hmm.trc"
         header = "track_id\t frame\t x [pixel]\t y [pixel]\t placeholder\t intensity [photon]\t"
         trc_hmm = list(map(lambda row: list(row)[:6], self.trc_filtered))  # get rid of seg id
         np.savetxt(out_file_name, 
                    X=trc_hmm,
                    header=header,
                    fmt = ("%i","%i", "%.3f", "%.3f", "%i", "%.3f"))
-        out_file_name = directory + "\\" + year + month + day + "_" + base_name + "_trc_format_min_length.txt"        
+        out_file_name = directory + "\\" + year + month + day + "_" + base_name + "_trc_min_length.txt"        
         file = open(out_file_name, 'w')
         file.write("# min track length\n")
         file.write("%i" %(int(self.min_track_length)))

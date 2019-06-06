@@ -287,7 +287,7 @@ class TrackAnalysis():
         col4 = analyse successful. col5 = tau, col6 = dtau, col7 = r, col8 = dr
         col9 = diffusion confined, col10 = d diffusion confined
         """
-        self.rossier_info = np.zeros([np.size(trajectories), 11])
+        self.rossier_info = np.zeros([np.size(trajectories), 12])
         i = 0
         for trajectory in trajectories:
             self.rossier_info[i,0] = trajectory.trajectory_number 
@@ -303,6 +303,7 @@ class TrackAnalysis():
                 self.rossier_info[i,8] = 0
                 self.rossier_info[i,9] = 0
                 self.rossier_info[i,10] = 0
+                self.rossier_info[i,11] = 0
             # if trajectory is confined it is not immobile and not free
             elif trajectory.confined:
                 self.rossier_info[i,1] = trajectory.immobility
@@ -321,7 +322,8 @@ class TrackAnalysis():
                 self.rossier_info[i,7] = trajectory.r
                 self.rossier_info[i,8] = trajectory.dr
                 self.rossier_info[i,9] = trajectory.D_conf 
-                self.rossier_info[i,10] = trajectory.chi_MSD_fit
+                self.rossier_info[i,10] = trajectory.dD_conf
+                self.rossier_info[i,11] = trajectory.chi_MSD_fit
             # if analysis was not successful -> output is 0 by default
             elif not trajectory.analyse_successful and not trajectory.immobility:
                 self.rossier_info[i,1] = trajectory.immobility
@@ -334,6 +336,7 @@ class TrackAnalysis():
                 self.rossier_info[i,8] = 0
                 self.rossier_info[i,9] = 0
                 self.rossier_info[i,10] = 0
+                self.rossier_info[i,11] = 0
             i += 1
  
     

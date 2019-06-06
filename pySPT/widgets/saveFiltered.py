@@ -193,8 +193,8 @@ class SaveFiltered():
         dset = self.grp01.create_dataset("Trajectory{}".format(trajectory_number), (np.shape(dt)[0],), dtype = np.dtype([("dt [s]", float),("MSD [\u03BCm\u00b2]", float)]))
         dset["dt [s]"] = dt
         dset["MSD [\u03BCm\u00b2]"] = MSD    
+      
     
-        
                        
 def main():
     pass

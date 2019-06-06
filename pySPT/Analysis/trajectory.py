@@ -11,6 +11,7 @@ Create a trajectory object with informations of diffusion, diffusion type, lengt
 """
 
 import numpy as np
+import math
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
 from scipy.stats import chisquare
@@ -31,28 +32,23 @@ class Trajectory():
         self.length_MSD = 0
         self.length_trajectory = 0
         self.D = 0.0  # diffusion coefficient
-        self.dD = 0.0
+        self.dD = 0.0  # error of diffusion coefficient
         self.chi_D = 0.0  # chi^2 of linear fit for MSD
         self.chi_MSD_fit = 0.0  # chi^2 for the MSD 60% fit
         self.MSD_0 = 0.0  # y-intercept
         self.dMSD_0 = 0.0  # not determined yet ...
         self.fit_area = 0.6  # 60 % of the MSD plot will be fitted
-        self.tau = 0.01  # fit for free confined
-        self.dtau = 10.0
-        self.D_conf = 0.01  # confinded diffusion
-        self.dD_conf = 0.0# never determined
+        self.tau = 0.0  # tau value, derived by rossier fit parameters Dconfined and r
+        self.dtau = 10.0  # error of tau value, derived with gauß
+        self.D_conf = 0.01  # confined diffusion
+        self.dD_conf = 0.0  # error of confined diffusion, determined by covariance matrix of fit
         self.r = 0.01  # confinement radius
-        self.dr = 0.0
+        self.dr = 0.0  # error of confinement radius, determined by covariance matrix of fit
         self.tau_threshold = tau_thresh  # check if free or confined: tau > tau_thr -> free, tau < tau_thr -> confined
         self.immobility = False
         self.confined = True  # if confinded false -> free true
         self.analyse_successful = True
         self.points_fit_D = points_D  # number of points that will be fittet to extract D
-        # only to compare with ML origin results
-        self.MSD_fit_ML= []  # comparing with origin fit
-        self.D_conf_ML = 0.0
-        self.tau_ML = 0.0
-        self.r_ML = 0.0
         
     def calc_trajectory_number(self):
         self.trajectory_number = self.localizations[0,0]   
@@ -152,24 +148,6 @@ class Trajectory():
         if self.tau < self.tau_threshold:
             self.confined = True
             
-# =============================================================================
-#     def function_full_MSD_ML(self, t, r, D):
-#         return (4.0*r**2.0)/3.0*(1.0-np.exp(-t*3*D/r**2.0))
-# =============================================================================
-    
-    def function_full_MSD(self, t, r, tau):
-        return (4.0*r**2.0)/3.0*(1.0-np.exp(-t/tau))
-    
-# =============================================================================
-#     def fit_full_MSD_ML(self):
-#         self.create_MSD_values()
-#         self.r_ML = 0.16891
-#         self.tau_ML = 0.01178
-#         self.D_conf_ML = 3*self.tau_ML/self.r_ML**2  # used wrong formular
-#         self.MSD_fit_ML[:,2] = self.function_full_MSD_ML(times, self.r_ML, self.D_conf_ML)
-#         self.MSD_fit_ML[:,3] = self.MSD_fit_ML[:,1] - self.MSD_fit_ML[:,2]
-# =============================================================================
-        
     def plot_full_MSD_immob(self):
         """
         Plot 60% of MSD if molecule is immob without rossier fit.
@@ -193,8 +171,35 @@ class Trajectory():
         self.MSD_fit = np.zeros([len(times),4])
         self.MSD_60 = np.zeros([len(times),2])
         self.MSD_fit[:,0] = times
-        self.MSD_fit[:,1] = MSDs        
+        self.MSD_fit[:,1] = MSDs     
         
+# =============================================================================
+#     def function_full_MSD_tau(self, t, r, tau):
+#         return (4.0*r**2.0)/3.0*(1.0-np.exp(-t/tau))
+#         
+#     def fit_full_MSD_tau(self):
+#         max_times = np.rint(self.length_MSD*self.fit_area)      
+#         times = np.arange(1, max_times+1, 1.0)
+#         times[:] = times[:] * self.dt
+#         MSDs = self.MSDs[:int(max_times)]
+#         self.MSD_fit = np.zeros([len(times),4])
+#         self.MSD_60 = np.zeros([len(times),2])
+#         self.MSD_fit[:,0] = times
+#         self.MSD_fit[:,1] = MSDs
+#         try:
+#             [self.r, self.tau], self.cov = curve_fit(self.function_full_MSD, times, MSDs, p0 = (self.r, self.tau), method = "lm")
+#         except:
+#             self.analyse_successful = False
+#         if self.analyse_successful:
+#             [chisq, p] = chisquare(MSDs, self.function_full_MSD(times, self.r, self.tau))
+#             self.chi_MSD_fit = chisq
+#             self.D_conf = self.r**2.0/(3.0*self.tau)
+#             self.dr = self.cov[0,0]
+#             self.dtau = self.cov[1,1]
+#             self.MSD_fit[:,2] = self.function_full_MSD(times, self.r, self.tau)
+#             self.MSD_fit[:,3] = self.MSD_fit[:,1] - self.MSD_fit[:,2]
+# =============================================================================
+            
     def fit_full_MSD(self):
         max_times = np.rint(self.length_MSD*self.fit_area)      
         times = np.arange(1, max_times+1, 1.0)
@@ -205,17 +210,23 @@ class Trajectory():
         self.MSD_fit[:,0] = times
         self.MSD_fit[:,1] = MSDs
         try:
-            [self.r, self.tau], self.cov = curve_fit(self.function_full_MSD, times, MSDs, p0 = (self.r, self.tau), method = "lm")
+            [self.r, self.D_conf], self.cov = curve_fit(self.function_full_MSD, times, MSDs, p0 = (self.r, self.D_conf), method = "lm")
         except:
             self.analyse_successful = False
         if self.analyse_successful:
-            [chisq, p] = chisquare(MSDs, self.function_full_MSD(times, self.r, self.tau))
+            [chisq, p] = chisquare(MSDs, self.function_full_MSD(times, self.r, self.D_conf))
             self.chi_MSD_fit = chisq
-            self.D_conf = self.r**2.0/(3.0*self.tau)
+            self.tau = self.r**2/(3*self.D_conf)
             self.dr = self.cov[0,0]
-            self.dtau = self.cov[1,1]
-            self.MSD_fit[:,2] = self.function_full_MSD(times, self.r, self.tau)
+            self.dD_conf = self.cov[1,1]  
+            self.dtau = math.sqrt((2*self.r/(3*self.D_conf)*self.dr)**2 + (-self.r**2/(3*self.D_conf**2)*self.dD_conf)**2)
+            self.MSD_fit[:,2] = self.function_full_MSD(times, self.r, self.D_conf)
             self.MSD_fit[:,3] = self.MSD_fit[:,1] - self.MSD_fit[:,2]
+            if self.dr == math.inf:
+                self.analyse_successful = False
+            
+    def function_full_MSD(self, t, r, D):
+        return (4.0*r**2.0)/3.0*(1.0-np.exp(-t*3*D/r**2.0))
         
     def plot_full_MSD(self):
         #x1, x2 = 0, self.MSD_fit[:,0].max()  # x1 = min, x2 = max
@@ -295,18 +306,7 @@ class Trajectory():
         elif self.immobility:
             self.plot_full_MSD_immob()
         self.print_particle()
-
-# =============================================================================
-#     def save_times_MSDs_60(self):
-#         out_file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\pySPT_cell_1_MMStack_Pos0\\preAnalysis\\MSD60" + "_" + str(self.molecule_number) + ".txt"
-#         #out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_trc_format.txt"
-#         header = "time step [s]\t MSD\t Diffusion coeff: " + str(self.D)
-#         np.savetxt(out_file_name, 
-#                    X=self.MSD_60,
-#                    fmt = ("%.3f","%.14f"),
-#                    header = header)
-# =============================================================================
-    
+   
    
 def main():
     trajectory = Trajectory()

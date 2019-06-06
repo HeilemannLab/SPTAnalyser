@@ -15,6 +15,7 @@ Large juncs of code that would scare the user of the JNB :)
 #from pySPT.analysis import cell
 from . import hdf5
 from . import saveFiltered
+from . import saveTrcFiltered
 from ..analysis import cell  # two dots for switching the folder
 from ..analysis import trajectory
 from ..analysis import trackAnalysis
@@ -154,7 +155,7 @@ def init_save_track_analysis(cover_slip, cell_index, track_analysis, points_D_fi
     rossier_info = track_analysis.rossier_info
     h5.data_rossier_info(track_analysis.number_of_trajectories, rossier_info[:,0],  rossier_info[:,1],  rossier_info[:,2],
                          rossier_info[:,3],  rossier_info[:,4],  rossier_info[:,5],  rossier_info[:,6],  rossier_info[:,7],
-                         rossier_info[:,8],  rossier_info[:,9], rossier_info[:,10])
+                         rossier_info[:,8],  rossier_info[:,9], rossier_info[:,10], rossier_info[:,11])
     
     
 def init_save_filtered_analysis(cover_slip, cell_index, track_stats, directory, folder_name):
@@ -194,6 +195,19 @@ def init_save_filtered_analysis(cover_slip, cell_index, track_stats, directory, 
     h5_filtered.data_rossier_info(track_analysis.number_of_trajectories, rossier_info[:,0],  rossier_info[:,1],  rossier_info[:,2],
                                   rossier_info[:,3],  rossier_info[:,4],  rossier_info[:,5],  rossier_info[:,6],  rossier_info[:,7],
                                   rossier_info[:,8],  rossier_info[:,9], rossier_info[:,10])
+    
+
+def init_save_filtered_trc(track_stats, directory, folder):
+    """
+    After the filtering in the trackStatistics JNB, a filtered trc file will be saved.
+    """
+    for trc in track_stats.filtered_trc_files:
+        idx = track_stats.filtered_trc_files.index(trc)
+        cell_name = track_stats.cells[idx].name
+        save_trc_filtered = saveTrcFiltered.SaveTrcFiltered(trc, directory, folder, cell_name)
+        save_trc_filtered.adjust_base_name()
+        save_trc_filtered.continuous_numbering()
+        save_trc_filtered.save_filtered_trc_hmm()
     
     
 def init_save_track_stats(h5_stats, track_stats, directory, folder_name, name):
