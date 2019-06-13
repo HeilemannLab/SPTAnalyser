@@ -8,6 +8,7 @@ Research Group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt am Main.
 
 Determine how far a particle moves between frames in the x/y-plane [nm]. Fraction vs mjd [nm] -> determine the average as initial exp_displacement value.
+Based on segments.
 """
 
 
@@ -34,8 +35,8 @@ class ExpDisplacement():
         :param file_name: Name of the inserted file by widgetExpDisp. 
         """
         # get the key for a certain value
-        mjd_index = list(self.column_order.keys())[list(self.column_order.values()).index('"mjd"')]
-        mjd_n_index = list(self.column_order.keys())[list(self.column_order.values()).index('"mjd_n"')]
+        mjd_index = list(self.column_order.keys())[list(self.column_order.values()).index('"seg.mjd"')]
+        mjd_n_index = list(self.column_order.keys())[list(self.column_order.values()).index('"seg.mjd_n"')]
         if self.software == "thunderSTORM":
             df = pd.read_csv(self.file_name)
             df_mjd = df.iloc[:,mjd_index]  # get csv columns by index

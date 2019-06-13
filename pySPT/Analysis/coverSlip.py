@@ -77,8 +77,10 @@ class CoverSlip():
                     if one_cell.name in file[0]:
                         one_cell.size = file[1]      
             # col0 = track id, col1 = frames, col2 = x, col3 = y, col4 = place holder (int), col 5 = intensity, col 6 = seg id
-            trc_file = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 4, 5, 6))  
-            #self.trc_file = trc_file ????????????
+            if self.seg_id:
+                trc_file = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 4, 5, 6))  
+            else:
+                trc_file = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 4, 5))  # col0 = track id, col1 = frames, col2 = x, col3 = y, col4 = place holder (int), col 5 = intensity
             one_cell.trc_file = trc_file
             one_cell.seg_id = self.seg_id
             one_cell.tau_threshold_min_length = self.tau_threshold_min_length

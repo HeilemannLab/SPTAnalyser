@@ -25,13 +25,22 @@ class WidgetTrcFormat():
         self.file_button = self.create_file_button()
         self.trajectory_id_button = self.create_trajectory_id_button()
         self.pixel_size_box = self.create_pixel_size_box()
-        self.min_track_length_box = self.create_min_track_length_box()
+        self.min_track_length_type_box = self.create_min_track_length_type_box()
+        self.min_track_length_hmm_box = self.create_min_track_length_hmm_box()
         self.run_button = self.create_run_button()
         self.save_button = self.create_save_button()
         
-    def create_min_track_length_box(self, val = "2", desc = "Min trajectory length"):
+    def create_min_track_length_type_box(self, val = "3", desc = "Min length D type"):
         """
-        Box for inserting the minimal track length for tau threshold calculation.
+        Box for inserting the minimal track length for diffusion type.
+        """
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text
+    
+    def create_min_track_length_hmm_box(self, val = "2", desc = "Min length hmm"):
+        """
+        Box for inserting the minimal track length for hmm analysis.
         """
         style = {"description_width": "initial"}
         text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)

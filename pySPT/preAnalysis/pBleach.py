@@ -47,7 +47,7 @@ class PBleach():
 
         
     def load_seg_file(self):
-        mjd_n_index = list(self.column_order.keys())[list(self.column_order.values()).index('"mjd_n"')]
+        mjd_n_index = list(self.column_order.keys())[list(self.column_order.values()).index('"seg.mjd_n"')]
         if self.software == "thunderSTORM":
             df = pd.read_csv(self.file_name)
             df_mjd_n = df.iloc[:,mjd_n_index]

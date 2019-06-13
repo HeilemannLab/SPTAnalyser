@@ -152,7 +152,7 @@ class Hdf5():
         dset["chi\u00b2 [\u03BCm\u2074]"] = chi2
         self.h5_file.close()
 
-    def trc(self, shape, track_id, frame, x, y, placeholder, intensity, seg_id):
+    def trc_seg(self, shape, track_id, frame, x, y, placeholder, intensity, seg_id):
         dset = self.grp00.create_dataset("trcFile", (shape[0],), dtype = np.dtype([("track id", int),
                                                       ("frame", int),
                                                       ("x position [\u03BCm]", float),
@@ -167,6 +167,20 @@ class Hdf5():
         dset["placeholder"] = placeholder
         dset["intensity [photon]"] = intensity
         dset["seg id"] = seg_id
+        
+    def trc_track(self, shape, track_id, frame, x, y, placeholder, intensity):
+        dset = self.grp00.create_dataset("trcFile", (shape[0],), dtype = np.dtype([("track id", int),
+                                                      ("frame", int),
+                                                      ("x position [\u03BCm]", float),
+                                                      ("y position [\u03BCm]", float),
+                                                      ("placeholder", int),
+                                                      ("intensity [photon]", float)]))
+        dset["track id"] = track_id
+        dset["frame"] = frame
+        dset["x position [\u03BCm]"] = x
+        dset["y position [\u03BCm]"] = y
+        dset["placeholder"] = placeholder
+        dset["intensity [photon]"] = intensity
         
     def msd(self, trajectory_number, dt, MSD):
         trajectory_number = str(int(trajectory_number))
