@@ -2,7 +2,7 @@
 """
 Created on Thu Feb  7 16:21:52 2019
 
-@author: pcoffice37
+@author: Johanna Rahm
 
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
@@ -18,11 +18,13 @@ from IPython.display import clear_output
 
 class WidgetTrackAnalysis():
     def __init__(self):
+        self.test_button = self.create_test_button()
         self.data_set_dir = ""
-        self.ignore_words_box = self.create_ignore_words_box()
-        self.masked_words = []
+        #self.ignore_words_box = self.create_ignore_words_box()
+        #self.masked_words = []
+        self.software_button = self.create_software_button()
         self.file_names = []
-        self.suffix = ".trc"
+        self.suffix = ""
         self.dir_button = self.create_dir_button()
         self.dir_box = self.create_dir_box()
         self.dir_name = ""
@@ -38,6 +40,8 @@ class WidgetTrackAnalysis():
         self.dof_box = self.create_dof_box()
         self.D_min_box = self.create_D_min_box()
         self.points_D_fit_box = self.create_points_D_fit_box()
+        self.hmm_check_box = self.create_hmm_check_box()
+        self.min_track_length_hmm_box = self.create_min_track_length_hmm_box()
         self.run_button = self.create_run_button()
         self.chosen_cell = ""
         self.cell_options = []
@@ -51,14 +55,52 @@ class WidgetTrackAnalysis():
         self.bin_size_box = self.create_bin_size_box()
         self.plot_diff_button = self.create_plot_diff_button()
         
-    def create_ignore_words_box(self, val = "hmm", desc = "Mask words"):
+    def create_hmm_check_box(self):
         """
-        The string in the box contains words that lead to not loading a file if one of the words is contained.
-        Commaseparate mask words.
+        True -> Save hmm.trc file in pySPT/hmm folder.
+        """
+        checkbox = widgets.Checkbox(value=True,
+                         description='Save .trc file',
+                         disabled=False)
+        return checkbox
+    
+    def create_min_track_length_hmm_box(self, val = "2", desc = "Min track length"):  # val = "F:\\Marburg\\single_colour_tracking\\resting\\roi.log"
+        """
+        Box for inserting the min track length for hmm.
         """
         style = {"description_width": "initial"}
         text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
-        return text       
+        return text
+        
+    def create_test_button(self):
+        button = widgets.Button(
+            description='test',
+            disabled=False,
+            button_style='', # 'success', 'info', 'warning', 'danger' or ''
+            tooltip='testing')
+            #icon='check')
+        return button   
+        
+    def create_software_button(self):
+        """
+        Radiobutton to choose from PALMTracer, rapidSTORM+swift or ThunderSTORM+swift.
+        PALMTracer has .trc files, rapidSTORM .txt and ThunderSTORM .csv files that will be loaded.
+        """
+        button = widgets.RadioButtons(
+                options = ["ThunderSTORM", "rapidSTORM", "PALMTracer"],
+                disabled = False)
+        return button
+        
+# =============================================================================
+#     def create_ignore_words_box(self, val = "hmm", desc = "Mask words"):
+#         """
+#         The string in the box contains words that lead to not loading a file if one of the words is contained.
+#         Commaseparate mask words.
+#         """
+#         style = {"description_width": "initial"}
+#         text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+#         return text       
+# =============================================================================
         
     def create_trajectory_id_button(self):
         """
@@ -74,17 +116,30 @@ class WidgetTrackAnalysis():
         if (dirName):
             self.data_set_dir = dirName
             for root, dirs, files in os.walk(self.data_set_dir):
+                self.determine_suffix()
                 self.extendList(root, files)
+
+    def determine_suffix(self):
+        """
+        Depending on the chosen software, the file ending of the target files differs.
+        """
+        if self.software_button.value == "ThunderSTORM":
+            self.suffix = "tracked.csv"
+        elif self.software_button.value == "rapidSTORM":
+            self.suffix = ".tracked.txt"
+        elif self.software_button.value == "PALMTracer":
+            self.suffix = ".trc"
+        print("suffix output", self.software_button.value, self.suffix)
                 
     def extendList(self, root, files):
         # create mask word list
-        ignore_words = self.ignore_words_box.value.replace(" ", "")
-        self.masked_words = ignore_words.split(",")                
+        #ignore_words = self.ignore_words_box.value.replace(" ", "")
+        #self.masked_words = ignore_words.split(",")                
         for name in files:
             #if name.endswith(self.suffix) and "background" not in name:
             if name.endswith(self.suffix):
-                if not any(x in name for x in self.masked_words):
-                    self.file_names.append(os.path.join(root, name))
+                #if not any(x in name for x in self.masked_words):
+                self.file_names.append(os.path.join(root, name))
                 
     def create_dir_button(self):
         """

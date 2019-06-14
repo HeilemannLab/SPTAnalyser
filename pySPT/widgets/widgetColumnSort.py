@@ -16,7 +16,7 @@ class WidgetColumnSort():
         if file_type == "rapidSTORM":
             self.software = file_type
             self.identifier_after = "syntax"
-        elif file_type == "thunderSTORM":
+        elif file_type == "ThunderSTORM":
             self.software = file_type
             self.identifier_after = ","
         self.significant_words = significant_words
@@ -108,7 +108,7 @@ class WidgetColumnSort():
                         self.column_order[self.target_words.index(target_word)] = word
         
     def run_column_sort(self):
-        if self.software == "thunderSTORM":
+        if self.software == "ThunderSTORM":
             self.ts_sub_headers()
             self.ts_create_column_order()
         elif self.software == "rapidSTORM":

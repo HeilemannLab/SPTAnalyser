@@ -20,23 +20,61 @@ import pandas as pd
 
 
 class TrcFormat():
-    def __init__(self):
-        self.software = ""  # either thunderSTORM or rapidSTORM
-        self.column_order = {}
-        self.file_name = ""
-        self.loaded_file = []
-        self.pixel_size = 158  # PALMTracer stores localizations as pixel -> converting factor is needed because rapidSTORM localizes in nm
-        self.min_track_length_type = 3  # min trajectory length for diffusion type analysis (based on seg id)
-        self.min_track_length_hmm = 2  # min trajectory length for hmm analysis (based on track id)
-        self.trajectory_id = 0  # the min track length will be applied to trajectory id 0 = track id or 6 = seg id
-        
+    def __init__(self, software, file_name, pixel_size, min_track_type, min_track_hmm, seg_id, points_fit_D, column_order={}):
+        self.software = software  # rapidSTORM, ThunderSTORM or PALMTracer
+        self.column_order = column_order  # dict with idx for target columns {0: '"track_id"', 4: '"mjd"', 6: '"mjd_n"'}
+        self.file_name = file_name  # file path
+        self.loaded_file = []  # loaded file
+        self.pixel_size = int(pixel_size)  # PALMTracer stores localizations as pixel -> converting factor is needed because rapidSTORM / ThunderSTORM localizes in nm
+        self.points_fit_D = int(points_fit_D)
+        self.min_track_length_type = int(min_track_type)  # min trajectory length for diffusion type analysis (based on seg id)
+        self.min_track_length_hmm = int(min_track_hmm)  # min trajectory length for hmm analysis (based on track id)
+        # the min track length will be applied to trajectory id 0 = track id or 6 = seg id
+        if seg_id:
+            self.trajectory_id = 6
+        else:
+            self.trajectory_id = 0    
         self.trc_file_hmm = []
         self.trc_file_type = []
         self.trc_file_type_sorted = []
         self.trc_file_hmm_sorted = []
         self.trc_file_type_filtered = []
         self.trc_file_hmm_filtered = []
-               
+        self.trc_file_hmm_filtered_id = []
+    
+    def load_trc_file_PT(self):
+        file = pd.read_csv(self.file_name)
+        file_x = file.iloc[:,2] 
+        file_y = file.iloc[:,3] 
+        file_track_id =  file.iloc[:,0] 
+        file_frame = file.iloc[:,1] 
+        file_intensity = file.iloc[:,5] 
+        self.trc_file_type = np.zeros([np.shape(file)[0],7])
+        self.trc_file_hmm = np.zeros([np.shape(file)[0],6])
+        self.trc_file_type[:,0] = file_track_id
+        self.trc_file_type[:,1] = file_frame
+        self.trc_file_type[:,2] = file_x
+        self.trc_file_type[:,3] = file_y
+        self.trc_file_type[:,5] = file_intensity
+        self.trc_file_type[:,6] = file_track_id
+        self.trc_file_hmm[:,0] = file_track_id
+        self.trc_file_hmm[:,1] = file_frame
+        self.trc_file_hmm[:,2] = file_x
+        self.trc_file_hmm[:,3] = file_y
+        self.trc_file_hmm[:,5] = file_intensity
+    
+    def run(self):
+        if self.software != "PALMTracer":
+            self.load_localization_file()
+            self.create_trc_file()
+        else:
+            self.load_trc_file_PT()
+        self.check_min_track_length()
+        self.sort_trc_file()
+        self.trc_hmm_filter()
+        self.trc_type_filter()
+        print("Conversion successful.")
+    
     def load_localization_file(self):
         """
         Array with columns:
@@ -47,7 +85,7 @@ class TrcFormat():
         col4 = intensity
         col5 = seg_id
         """
-        if self.software == "thunderSTORM":
+        if self.software == "ThunderSTORM":
             x_index = list(self.column_order.keys())[list(self.column_order.values()).index('"x [nm]"')]
             y_index = list(self.column_order.keys())[list(self.column_order.values()).index('"y [nm]"')]
             seg_id_index = list(self.column_order.keys())[list(self.column_order.values()).index('"seg.id"')]
@@ -55,6 +93,7 @@ class TrcFormat():
             frame_index = list(self.column_order.keys())[list(self.column_order.values()).index('"frame"')]
             intensity_index = list(self.column_order.keys())[list(self.column_order.values()).index('"intensity [photon]"')]
             file = pd.read_csv(self.file_name)
+            print(file)
             file_x = file.iloc[:,x_index] 
             file_y = file.iloc[:,y_index] 
             file_seg_id = file.iloc[:,seg_id_index] 
@@ -77,29 +116,21 @@ class TrcFormat():
             intensity_index = list(self.column_order.keys())[list(self.column_order.values()).index('"Amplitude-0-0"')]
             self.loaded_file = np.loadtxt(self.file_name, usecols = (track_id_index, frame_index, x_index, y_index,
                                                                      intensity_index, seg_id_index)) 
-        self.convert_trajectory_id()
-        self.check_min_track_length()
-        self.create_trc_file()
-        self.sort_trc_file()
-        self.trc_hmm_filter()
-        self.trc_type_filter()
-        print("Conversion successful.")
-        
-    def convert_trajectory_id(self):
-        """
-        The trajectory id is a string value from the trajectory id radiobutton.
-        seg id is converted to int 6, track id is converted to int 0.
-        The integers represent the column id.
-        """
-        if self.trajectory_id == "seg id":
-            self.trajectory_id = 6
-        elif self.trajectory_id == "track id":
-            self.trajectory_id = 0
+        elif self.software == "PALMTracer":
+            x_index = 2
+            y_index = 3
+            track_id_index = 0
+            frame_index = 1
+            intensity_index = 4
+            self.loaded_file = np.loadtxt(self.file_name, usecols = (track_id_index, frame_index, x_index, y_index,
+                                                         intensity_index))  # no seg_id available
             
+
+
+        
     def check_min_track_length(self):
         """
         The min track length for hmm has to be 2, for diffusion type analysis n+1 with n=number of points fitted for calculating D.
-        This can't be determined at that point, therefore it is set to at least 3 to enable a linear fit later on.
         """
         try:
             self.min_track_length_hmm = int(self.min_track_length_hmm)
@@ -108,8 +139,8 @@ class TrcFormat():
             print("Please insert an integer as min length.")
         if self.min_track_length_hmm < 2:
             self.min_track_length_hmm = 2
-        if self.min_track_length_type < 3:
-            self.min_track_length_type = 3        
+        if self.min_track_length_type < self.points_fit_D+1:
+            self.min_track_length_type = self.points_fit_D+1      
         
     def create_trc_file(self):
         """
@@ -128,7 +159,7 @@ class TrcFormat():
         seg_id = np.add(self.loaded_file[:,5],1)  # trc count starts at 1
         if self.software == "rapidSTORM":  # rapidSTORM starts frame counting at 0, thunderSTORM & PALMTracer at 1
             frame = np.add(self.loaded_file[:,1],1)
-        elif self.software == "thunderSTORM":
+        elif self.software == "ThunderSTORM":
             frame = self.loaded_file[:,1]
         position_x = np.divide(self.loaded_file[:,2], int(self.pixel_size))
         position_y = np.divide(self.loaded_file[:,3], int(self.pixel_size))
@@ -144,6 +175,8 @@ class TrcFormat():
         self.trc_file_hmm[:,2] = position_x
         self.trc_file_hmm[:,3] = position_y
         self.trc_file_hmm[:,5] = intensity
+
+        
 
     def sort_trc_file(self):
         """
@@ -182,6 +215,10 @@ class TrcFormat():
         self.trc_file_hmm_filtered = list(filter(lambda row: row[6] >= int(self.min_track_length_hmm), self.trc_file_hmm_sorted))
         # get rid of last column with track_length (easier with rows being lists instead of np.voids)
         self.trc_file_hmm_filtered = list(map(lambda row: list(row)[:6], self.trc_file_hmm_filtered))
+        self.trc_file_hmm_filtered_id = list(map(lambda row: row[0], self.trc_file_hmm_filtered))
+ 
+        #self.trc_file_hmm_filtered_id = self.trc_file_hmm_filtered[:,0]
+
         continuous_index_track = 1
         for i in range(len(self.trc_file_hmm_filtered)-1):
             if self.trc_file_hmm_filtered[i][0] == self.trc_file_hmm_filtered[i+1][0]:

@@ -13,6 +13,7 @@ from . import cell
 import time
 import os
 from tqdm import tqdm_notebook as tqdm
+from . import trcFormat
 
 # =============================================================================
 # from pySPT.analysis import cell
@@ -31,17 +32,20 @@ class CoverSlip():
         self.background_files = []  # list with full paths of bg files
         # initialization parameters for cell (only from trc -> h5)
         self.pixel_size = 0.0   # [nm], hand down to cell
-        self.pixel_amount = 0.0  # amount of pixels of detector (eg. 256*256), hand down to cell
-        self.tau_threshold_min_length = 0.0  
+        self.pixel_amount = 0.0  # amount of pixels of detector (eg. 256*256), hand down to cell 
         self.dt = 0.0   # hand down to cell -> trajectory
         self.tau_threshold = 0.0  # hand down to cell -> trajectory
         self.dof = 0.0  # hand down to cell -> trajectory
         self.D_min = 0.0  # hand down to cell -> trajectory
         self.points_fit_D = 4  # hand down to cell -> trajectory
         self.seg_id = True  # hand down to cell
+        self.software = ""
+        self.min_track_length_type = 0
+        self.min_track_length_hmm = 0
+        self.column_orders = []
         
     def calc_tau_threshold(self):
-        self.tau_threshold = float(self.tau_threshold_min_length)*float(self.dt)*0.6*0.5
+        self.tau_threshold = float(self.min_track_length_type)*float(self.dt)*0.6*0.5
     
     def seg_id_boolean(self):
         """
@@ -57,12 +61,14 @@ class CoverSlip():
         Initialize cell analysis, also load roi file for cell size. Cell & trajectory
         objects from e.g. CoverSlip Class.
         """
+        
         start = time.time()
         self.seg_id_boolean()
         self.calc_tau_threshold()
         if self.roi_file:  # if no roi file path was inserted, no file can be loaded  
             roi_file = np.genfromtxt(self.roi_file, dtype=None, delimiter=",", skip_header=3, encoding=None)
         for file_name in tqdm(self.cell_files):
+            cell_idx = self.cell_files.index(file_name)
             one_cell = cell.Cell()  # create cell object for each file
             base_name = os.path.basename(file_name)
             raw_base_name = ""
@@ -75,15 +81,43 @@ class CoverSlip():
             if self.roi_file:
                 for file in roi_file:
                     if one_cell.name in file[0]:
-                        one_cell.size = file[1]      
-            # col0 = track id, col1 = frames, col2 = x, col3 = y, col4 = place holder (int), col 5 = intensity, col 6 = seg id
-            if self.seg_id:
-                trc_file = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 4, 5, 6))  
+                        one_cell.size = file[1]     
+            # in PT the column order is set and not necessary.
+            if self.software == "PALMTracer":
+                trc_format = trcFormat.TrcFormat(self.software, file_name, self.pixel_size, self.min_track_length_type,
+                                                 self.min_track_length_hmm, self.seg_id, self.points_fit_D)
             else:
-                trc_file = np.loadtxt(file_name, usecols = (0, 1, 2, 3, 4, 5))  # col0 = track id, col1 = frames, col2 = x, col3 = y, col4 = place holder (int), col 5 = intensity
-            one_cell.trc_file = trc_file
+                trc_format = trcFormat.TrcFormat(self.software, file_name, self.pixel_size, self.min_track_length_type,
+                                 self.min_track_length_hmm, self.seg_id, self.points_fit_D, column_order=self.column_orders[cell_idx])
+            trc_format.run()
+        
+# =============================================================================
+#             # testing purpose
+#             print("cs pixel size", self.pixel_size)   # [nm], hand down to cell
+#             print("px amount", self.pixel_amount)  # amount of pixels of detector (eg. 256*256), hand down to cell 
+#             print("dt", self.dt)   # hand down to cell -> trajectory
+#             print("tau threshold", self.tau_threshold)  # hand down to cell -> trajectory
+#             print("dof", self.dof )  # hand down to cell -> trajectory
+#             print("dmin", self.D_min)  # hand down to cell -> trajectory
+#             print("points to fit", self.points_fit_D)  # hand down to cell -> trajectory
+#             print("seg id", self.seg_id)  # hand down to cell
+#             print("software", self.software) 
+#             print("min track length type", self.min_track_length_type)
+#             print("min track length hmm", self.min_track_length_hmm)
+#             print("column orders", self.column_orders)
+# =============================================================================
+            
+            trc_file_type = trc_format.trc_file_type_filtered
+            trc_file_hmm = trc_format.trc_file_hmm_filtered
+            print(type(trc_file_type[0]))
+            print(type(trc_file_type))
+            print(trc_file_type[0])
+            print(trc_file_type)
+            one_cell.trc_file_type = trc_file_type
+            one_cell.trc_file_hmm = trc_file_hmm
             one_cell.seg_id = self.seg_id
-            one_cell.tau_threshold_min_length = self.tau_threshold_min_length
+            one_cell.min_track_length_type = self.min_track_length_type
+            one_cell.min_track_length_hmm = self.min_track_length_hmm
             one_cell.tau_threshold = float(self.tau_threshold)
             one_cell.dt = float(self.dt)
             one_cell.pixel_amount = float(self.pixel_amount)
