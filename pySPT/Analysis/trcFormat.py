@@ -43,14 +43,14 @@ class TrcFormat():
         self.trc_file_hmm_filtered_id = []
     
     def load_trc_file_PT(self):
-        file = pd.read_csv(self.file_name)
+        file = pd.read_csv(self.file_name, sep="\t", header=None)
         file_x = file.iloc[:,2] 
         file_y = file.iloc[:,3] 
         file_track_id =  file.iloc[:,0] 
         file_frame = file.iloc[:,1] 
         file_intensity = file.iloc[:,5] 
-        self.trc_file_type = np.zeros([np.shape(file)[0],7])
-        self.trc_file_hmm = np.zeros([np.shape(file)[0],6])
+        self.trc_file_type = np.zeros([np.shape(file)[0],8])
+        self.trc_file_hmm = np.zeros([np.shape(file)[0],7])
         self.trc_file_type[:,0] = file_track_id
         self.trc_file_type[:,1] = file_frame
         self.trc_file_type[:,2] = file_x
@@ -116,18 +116,7 @@ class TrcFormat():
             intensity_index = list(self.column_order.keys())[list(self.column_order.values()).index('"Amplitude-0-0"')]
             self.loaded_file = np.loadtxt(self.file_name, usecols = (track_id_index, frame_index, x_index, y_index,
                                                                      intensity_index, seg_id_index)) 
-        elif self.software == "PALMTracer":
-            x_index = 2
-            y_index = 3
-            track_id_index = 0
-            frame_index = 1
-            intensity_index = 4
-            self.loaded_file = np.loadtxt(self.file_name, usecols = (track_id_index, frame_index, x_index, y_index,
-                                                         intensity_index))  # no seg_id available
-            
-
-
-        
+                    
     def check_min_track_length(self):
         """
         The min track length for hmm has to be 2, for diffusion type analysis n+1 with n=number of points fitted for calculating D.
@@ -175,8 +164,6 @@ class TrcFormat():
         self.trc_file_hmm[:,2] = position_x
         self.trc_file_hmm[:,3] = position_y
         self.trc_file_hmm[:,5] = intensity
-
-        
 
     def sort_trc_file(self):
         """
