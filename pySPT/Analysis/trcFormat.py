@@ -20,13 +20,12 @@ import pandas as pd
 
 
 class TrcFormat():
-    def __init__(self, software, file_name, pixel_size, min_track_type, min_track_hmm, seg_id, points_fit_D, column_order={}):
+    def __init__(self, software, file_name, pixel_size, min_track_type, min_track_hmm, seg_id, column_order={}):
         self.software = software  # rapidSTORM, ThunderSTORM or PALMTracer
         self.column_order = column_order  # dict with idx for target columns {0: '"track_id"', 4: '"mjd"', 6: '"mjd_n"'}
         self.file_name = file_name  # file path
         self.loaded_file = []  # loaded file
         self.pixel_size = int(pixel_size)  # PALMTracer stores localizations as pixel -> converting factor is needed because rapidSTORM / ThunderSTORM localizes in nm
-        self.points_fit_D = int(points_fit_D)
         self.min_track_length_type = int(min_track_type)  # min trajectory length for diffusion type analysis (based on seg id)
         self.min_track_length_hmm = int(min_track_hmm)  # min trajectory length for hmm analysis (based on track id)
         # the min track length will be applied to trajectory id 0 = track id or 6 = seg id
@@ -69,11 +68,9 @@ class TrcFormat():
             self.create_trc_file()
         else:
             self.load_trc_file_PT()
-        self.check_min_track_length()
         self.sort_trc_file()
         self.trc_hmm_filter()
         self.trc_type_filter()
-        print("Conversion successful.")
     
     def load_localization_file(self):
         """
@@ -93,7 +90,6 @@ class TrcFormat():
             frame_index = list(self.column_order.keys())[list(self.column_order.values()).index('"frame"')]
             intensity_index = list(self.column_order.keys())[list(self.column_order.values()).index('"intensity [photon]"')]
             file = pd.read_csv(self.file_name)
-            print(file)
             file_x = file.iloc[:,x_index] 
             file_y = file.iloc[:,y_index] 
             file_seg_id = file.iloc[:,seg_id_index] 
@@ -116,20 +112,6 @@ class TrcFormat():
             intensity_index = list(self.column_order.keys())[list(self.column_order.values()).index('"Amplitude-0-0"')]
             self.loaded_file = np.loadtxt(self.file_name, usecols = (track_id_index, frame_index, x_index, y_index,
                                                                      intensity_index, seg_id_index)) 
-                    
-    def check_min_track_length(self):
-        """
-        The min track length for hmm has to be 2, for diffusion type analysis n+1 with n=number of points fitted for calculating D.
-        """
-        try:
-            self.min_track_length_hmm = int(self.min_track_length_hmm)
-            self.min_track_length_type = int(self.min_track_length_type)
-        except ValueError:
-            print("Please insert an integer as min length.")
-        if self.min_track_length_hmm < 2:
-            self.min_track_length_hmm = 2
-        if self.min_track_length_type < self.points_fit_D+1:
-            self.min_track_length_type = self.points_fit_D+1      
         
     def create_trc_file(self):
         """
@@ -185,7 +167,7 @@ class TrcFormat():
         """
         # determine the max trajectory index
         max_trajectory_index = 0
-        trajectory_id = 0
+        trajectory_id = 0  # use track id 
         for i in self.trc_file_hmm_sorted:  # based on track id -> i[0]
             if int(i[trajectory_id]) > max_trajectory_index:
                 max_trajectory_index = int(i[trajectory_id])  

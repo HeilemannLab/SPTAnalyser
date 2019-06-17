@@ -46,6 +46,15 @@ class CoverSlip():
         
     def calc_tau_threshold(self):
         self.tau_threshold = float(self.min_track_length_type)*float(self.dt)*0.6*0.5
+        
+    def calc_min_track_lengths(self):
+        """
+        The min track length has to be points_fit_D+1
+        """
+        if int(self.min_track_length_hmm) <= int(self.points_fit_D):
+            self.min_track_length_hmm = int(self.points_fit_D) + 1
+        if int(self.min_track_length_type) <= int(self.points_fit_D):
+            self.min_track_length_type = int(self.points_fit_D) + 1
     
     def seg_id_boolean(self):
         """
@@ -60,11 +69,12 @@ class CoverSlip():
         """
         Initialize cell analysis, also load roi file for cell size. Cell & trajectory
         objects from e.g. CoverSlip Class.
-        """
-        
+        """        
         start = time.time()
         self.seg_id_boolean()
+        self.calc_min_track_lengths()
         self.calc_tau_threshold()
+        #print("min track hmm, min track type, tau threshold", self.min_track_length_hmm, self.min_track_length_type, self.tau_threshold)
         if self.roi_file:  # if no roi file path was inserted, no file can be loaded  
             roi_file = np.genfromtxt(self.roi_file, dtype=None, delimiter=",", skip_header=3, encoding=None)
         for file_name in tqdm(self.cell_files):
@@ -85,10 +95,10 @@ class CoverSlip():
             # in PT the column order is set and not necessary.
             if self.software == "PALMTracer":
                 trc_format = trcFormat.TrcFormat(self.software, file_name, self.pixel_size, self.min_track_length_type,
-                                                 self.min_track_length_hmm, self.seg_id, self.points_fit_D)
+                                                 self.min_track_length_hmm, self.seg_id)
             else:
                 trc_format = trcFormat.TrcFormat(self.software, file_name, self.pixel_size, self.min_track_length_type,
-                                 self.min_track_length_hmm, self.seg_id, self.points_fit_D, column_order=self.column_orders[cell_idx])
+                                 self.min_track_length_hmm, self.seg_id, column_order=self.column_orders[cell_idx])
             trc_format.run()
         
 # =============================================================================
@@ -109,10 +119,6 @@ class CoverSlip():
             
             trc_file_type = trc_format.trc_file_type_filtered
             trc_file_hmm = trc_format.trc_file_hmm_filtered
-            print(type(trc_file_type[0]))
-            print(type(trc_file_type))
-            print(trc_file_type[0])
-            print(trc_file_type)
             one_cell.trc_file_type = trc_file_type
             one_cell.trc_file_hmm = trc_file_hmm
             one_cell.seg_id = self.seg_id
@@ -125,10 +131,14 @@ class CoverSlip():
             one_cell.dof = float(self.dof)
             one_cell.D_min = float(self.D_min)
             one_cell.points_fit_D = int(self.points_fit_D)
-            one_cell.create_trajectories()
             one_cell.cell_size()
+            one_cell.create_trajectories_hmm()
+            one_cell.run_analysis_hmm()
+            one_cell.filter_trc_hmm()
+            one_cell.calc_sigma_dyn_hmm()
+            one_cell.create_trajectories()
             one_cell.analyse_trajectories()
-            one_cell.calc_sigma_dyn()
+            one_cell.calc_sigma_dyn_type()
             self.cell_trajectories.append(one_cell.analysed_trajectories)
             self.cells.append(one_cell)
         print("Analysis took {} s".format(time.time()-start))

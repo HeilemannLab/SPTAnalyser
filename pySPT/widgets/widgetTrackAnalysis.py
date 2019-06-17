@@ -41,6 +41,7 @@ class WidgetTrackAnalysis():
         self.D_min_box = self.create_D_min_box()
         self.points_D_fit_box = self.create_points_D_fit_box()
         self.hmm_check_box = self.create_hmm_check_box()
+        self.microscope_check_box = self.create_microscope_check_box()
         self.min_track_length_hmm_box = self.create_min_track_length_hmm_box()
         self.run_button = self.create_run_button()
         self.chosen_cell = ""
@@ -61,6 +62,15 @@ class WidgetTrackAnalysis():
         """
         checkbox = widgets.Checkbox(value=True,
                          description='Save .trc file',
+                         disabled=False)
+        return checkbox
+    
+    def create_microscope_check_box(self):
+        """
+        True -> Save microscope file (containing dt, pixel size, sigma dyn) in pySPT/hmm folder.
+        """
+        checkbox = widgets.Checkbox(value=True,
+                         description='Save .microscope file',
                          disabled=False)
         return checkbox
     
@@ -129,7 +139,6 @@ class WidgetTrackAnalysis():
             self.suffix = ".tracked.txt"
         elif self.software_button.value == "PALMTracer":
             self.suffix = ".trc"
-        print("suffix output", self.software_button.value, self.suffix)
                 
     def extendList(self, root, files):
         # create mask word list
