@@ -64,7 +64,7 @@ class Cell():
         """
         for trajectory in self.trajectories_hmm:
             trajectory.analyse_particle()
-            if trajectory.D > 0:
+            if trajectory.sigma_dyn > 0:
                 self.analysed_trajectories_hmm.append(trajectory)
         #self.analysed_trajectories_hmm = self.trajectories_hmm  
         
@@ -93,7 +93,7 @@ class Cell():
         """
         Calculate the dynamic localization error, based on the mean D, mean MSD_0, dt and dof values.
         """
-        self.sigma_dyn_type = np.mean([trajectory.sigma_dyn for trajectory in self.analysed_trajectories if trajectory.D > 0])
+        self.sigma_dyn_type = np.mean([trajectory.sigma_dyn for trajectory in self.analysed_trajectories if trajectory.sigma_dyn > 0])
 # =============================================================================
 #         sigma_dyn_type = np.mean([trajectory.sigma_dyn for trajectory in self.analysed_trajectories])
 #         print("sigma with D > 0", self.sigma_dyn_type)
