@@ -304,7 +304,7 @@ class Trajectory():
         print("Diffusion coefficient: {} \u03BCm\u00b2/s".format(self.D))
         print("MSD0: {} \u03BCm\u00b2".format(self.MSD_0))
         print("chi\u00b2 linear fit: {} \u03BCm\u2074".format(self.chi_D))
-        print("sigma dynamic: {} u03BCm".format(self.sigma_dyn))
+        print("sigma dynamic: {} \u03BCm".format(self.sigma_dyn))
         print("Type immobile:", self.immobility)
         if not self.immobility:
             print("Analyse successful?", self.analyse_successful)

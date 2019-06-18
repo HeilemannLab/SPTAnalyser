@@ -117,7 +117,7 @@ class WidgetPrecision():
         precision [nm] is needed. If True, file will be saved.
         """
         check_box = widgets.Checkbox(
-                value=True,
+                value=False,
                 description='Save microscope file for HMM analysis?',
                 disabled=False)
         return check_box

@@ -2,7 +2,7 @@
 """
 Created on Thu Feb  7 10:01:02 2019
 
-@author: pcoffice37
+@author: Johanna Rahm
 
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
@@ -131,14 +131,7 @@ class CoverSlip():
             one_cell.dof = float(self.dof)
             one_cell.D_min = float(self.D_min)
             one_cell.points_fit_D = int(self.points_fit_D)
-            one_cell.cell_size()
-            one_cell.create_trajectories_hmm()
-            one_cell.run_analysis_hmm()
-            one_cell.filter_trc_hmm()
-            one_cell.calc_sigma_dyn_hmm()
-            one_cell.create_trajectories()
-            one_cell.analyse_trajectories()
-            one_cell.calc_sigma_dyn_type()
+            one_cell.run_analysis()
             self.cell_trajectories.append(one_cell.analysed_trajectories)
             self.cells.append(one_cell)
         print("Analysis took {} s".format(time.time()-start))

@@ -7,35 +7,29 @@ Created on Mon Feb 11 15:01:01 2019
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
-Class for creating a .h5 file for one cell.
+Class for creating a .h5 file for one cell in trackAnalysis JNB.
 """
 
 import numpy as np
 import h5py
-import os
 
 class Hdf5():
     # one cell
-    def __init__(self):
+    def __init__(self, path, raw_base_name):
         self.h5_file = []  # h5 file
         self.grp00 = []  # groups for structure
         self.grp01 = []
         self.grp02 = []
         self.grp03 = []
         self.grp04 = []
-        self.trc_file_hdf5 = ""  # path of file with .h5 ending
+        self.trc_file_hdf5 = path + "\\" + raw_base_name +".h5"  # path of file with .h5 ending
         
-    def create_h5(self, path):
-        self.create_h5_name(path)
+    def create_h5(self):
         self.create_h5_file()
         self.groups()
         
     def create_h5_file(self):
         self.h5_file = h5py.File(self.trc_file_hdf5, "w")  # w- or x = Create file, fail if exists
-                        
-    def create_h5_name(self, path):     
-        # splitext -> tupel with path split from .* ending. It splits at the last dot in name.
-        self.trc_file_hdf5 = os.path.splitext(path)[0] + ".h5"  
 
     def groups(self):
         self.grp00 = self.h5_file.create_group("trc")
@@ -58,7 +52,8 @@ class Hdf5():
         dset["free [%]"] = free
         dset["amount trajectories"] = total_trajectories
         
-    def data_settings(self, dt, pixelsize, pixelamount, cell_size, tau_threshold, tau_min_length, fit_area, dof, D_min, seg_bool, dloc_dyn):
+    def data_settings(self, dt, pixelsize, pixelamount, cell_size, tau_threshold, min_track_length_type, fit_area, dof, D_min, seg_bool,
+                      dloc_dyn_type, min_track_length_hmm, dloc_dyn_hmm):
         dset = self.grp04.create_dataset("settings", (1,1), dtype = np.dtype([("dt [s]", float),
                                                       ("pixelsize [nm]", int),
                                                       ("pixel amount", int),
@@ -68,21 +63,25 @@ class Hdf5():
                                                       ("fit area", float),
                                                       ("dof", int),
                                                       ("D min [\u03BCm\u00b2/s]", float),
-                                                      ("\u0394 loc dyn [\u03BCm]", float),
+                                                      ("\u0394 loc dyn type [\u03BCm]", float),
                                                       ("track id", int),
-                                                      ("seg id", int)]))
+                                                      ("seg id", int),
+                                                      ("min trajectory length hmm", int),
+                                                      ("\u0394 loc dyn hmm [\u03BCm]", float)]))
         dset["dt [s]"] = dt
         dset["pixelsize [nm]"] = pixelsize
         dset["pixel amount"] = pixelamount
         dset["cell size [\u03BCm\u00b2]"] = cell_size
         dset["tau threshold [s]"] = tau_threshold
-        dset["tau min trajectory length"] = tau_min_length
+        dset["tau min trajectory length"] = min_track_length_type
         dset["fit area"] = fit_area
         dset["dof"] = dof
         dset["D min [\u03BCm\u00b2/s]"] = D_min
-        dset["\u0394 loc dyn [\u03BCm]"] = dloc_dyn
+        dset["\u0394 loc dyn type [\u03BCm]"] = dloc_dyn_type
         dset["track id"] = not seg_bool
         dset["seg id"] = seg_bool
+        dset["min trajectory length hmm"] = min_track_length_hmm
+        dset["\u0394 loc dyn hmm [\u03BCm]"] = dloc_dyn_hmm
         
     def data_diffusion_info(self, number, trajectory_id, diffusion_coeff, ddiffusion_coeff, MSD_0, chi2, length):
         dset = self.grp02.create_dataset("diffusionInfos", (number,), dtype = np.dtype([("trajectory id", int),
@@ -152,8 +151,8 @@ class Hdf5():
         dset["chi\u00b2 [\u03BCm\u2074]"] = chi2
         self.h5_file.close()
 
-    def trc_seg(self, shape, track_id, frame, x, y, placeholder, intensity, seg_id):
-        dset = self.grp00.create_dataset("trcFile", (shape[0],), dtype = np.dtype([("track id", int),
+    def trc_type(self, shape, track_id, frame, x, y, placeholder, intensity, seg_id):
+        dset = self.grp00.create_dataset("trcType", (shape[0],), dtype = np.dtype([("track id", int),
                                                       ("frame", int),
                                                       ("x position [\u03BCm]", float),
                                                       ("y position [\u03BCm]", float),
@@ -168,8 +167,8 @@ class Hdf5():
         dset["intensity [photon]"] = intensity
         dset["seg id"] = seg_id
         
-    def trc_track(self, shape, track_id, frame, x, y, placeholder, intensity):
-        dset = self.grp00.create_dataset("trcFile", (shape[0],), dtype = np.dtype([("track id", int),
+    def trc_hmm(self, shape, track_id, frame, x, y, placeholder, intensity):
+        dset = self.grp00.create_dataset("trcHmm", (shape[0],), dtype = np.dtype([("track id", int),
                                                       ("frame", int),
                                                       ("x position [\u03BCm]", float),
                                                       ("y position [\u03BCm]", float),

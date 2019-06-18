@@ -16,10 +16,13 @@ Large juncs of code that would scare the user of the JNB :)
 from . import hdf5
 from . import saveFiltered
 from . import saveTrcFiltered
+from . import saveTrcHmm
+from . import widgetDirectoryStructure
 from ..analysis import cell  # two dots for switching the folder
 from ..analysis import trajectory
 from ..analysis import trackAnalysis
 from ..hmm import mergeHdf5
+from ..hmm import microscope
 import time
 import numpy as np 
 from ipywidgets import HBox, VBox
@@ -127,26 +130,32 @@ def init_track_stats_widget_arrangement(widget11, widget21, widget31, widget41, 
     return VBox([first_line, second_line, third_line, fourth_line, fifth_line])
     
 
-def init_save_track_analysis(cover_slip, cell_index, track_analysis, points_D_fit):
+def init_save_track_analysis(cover_slip, cell_index, track_analysis, widget_track_analysis):
     """
     JNB: track Analysis, saving.
     :param: Objects created in JNB.
-    """       
-    h5 = hdf5.Hdf5()
-    h5.create_h5(cover_slip.cell_files[cell_index])
+    """   
+    # hdf5 file representing the cell is saved in \\analysis subfolder    
+    widget_dir_structure = widgetDirectoryStructure.WidgetDirStructure()
+    widget_dir_structure.name_handling(cover_slip.cell_files[cell_index])
+    widget_dir_structure.create_raw_base_name()
+    widget_dir_structure.sub_folder = "\\analysis"
+    widget_dir_structure.create_folder()
+    h5 = hdf5.Hdf5(widget_dir_structure.sub_folder_dir, widget_dir_structure.raw_base_name)
+    h5.create_h5()
     cell = cover_slip.cells[cell_index]
     one_trajectory = cover_slip.cell_trajectories[cell_index][0]  # get trajectory attributes, that are the same for every trajectory
     h5.data_settings(cell.dt, cell.pixel_size, cell.pixel_amount, cell.size, cell.tau_threshold,
-                     cover_slip.tau_threshold_min_length, one_trajectory.fit_area, cell.dof, cell.D_min, cell.seg_id, cell.sigma_dyn)
-    print("Sigma dyn", cell_index, cell.sigma_dyn)
+                     cover_slip.min_track_length_type, one_trajectory.fit_area, cell.dof, cell.D_min, cell.seg_id, cell.sigma_dyn_type,
+                     cover_slip.min_track_length_hmm, cell.sigma_dyn_hmm)
     h5.statistics(track_analysis.cell_type_count[cell_index][0], track_analysis.cell_type_count[cell_index][1],
                   track_analysis.cell_type_count[cell_index][2], track_analysis.total_trajectories_cell[cell_index])
-    if cell.seg_id:
-        h5.trc_seg(np.shape(cell.trc_file), cell.trc_file[:,0], cell.trc_file[:,1], cell.trc_file[:,2], cell.trc_file[:,3],
-               cell.trc_file[:,4], cell.trc_file[:,5], cell.trc_file[:,6])
-    else:
-        h5.trc_track(np.shape(cell.trc_file), cell.trc_file[:,0], cell.trc_file[:,1], cell.trc_file[:,2], cell.trc_file[:,3],
-               cell.trc_file[:,4], cell.trc_file[:,5])
+    # if analysis is based on PALMTracer file with no seg id -> track id = seg id
+    h5.trc_type(np.shape(cell.converted_trc_file_type), cell.converted_trc_file_type[:,0], cell.converted_trc_file_type[:,1], cell.converted_trc_file_type[:,2],
+                cell.converted_trc_file_type[:,3], cell.converted_trc_file_type[:,4], cell.converted_trc_file_type[:,5], cell.converted_trc_file_type[:,6])
+    h5.trc_hmm(np.shape(cell.filtered_trc_file_hmm), cell.filtered_trc_file_hmm[:,0], cell.filtered_trc_file_hmm[:,1], cell.filtered_trc_file_hmm[:,2],
+               cell.filtered_trc_file_hmm[:,3], cell.filtered_trc_file_hmm[:,4], cell.filtered_trc_file_hmm[:,5])
+    points_D_fit = widget_track_analysis.points_D_fit_box.value
     for trajectory in cover_slip.cell_trajectories[cell_index]:
         plot = track_analysis.save_plots(trajectory)
         h5.data_diffusion_plots(plot[0], plot[1], plot[2], plot[3], plot[4], int(points_D_fit))
@@ -164,6 +173,18 @@ def init_save_track_analysis(cover_slip, cell_index, track_analysis, points_D_fi
     h5.data_rossier_info(track_analysis.number_of_trajectories, rossier_info[:,0],  rossier_info[:,1],  rossier_info[:,2],
                          rossier_info[:,3],  rossier_info[:,4],  rossier_info[:,5],  rossier_info[:,6],  rossier_info[:,7],
                          rossier_info[:,8],  rossier_info[:,9], rossier_info[:,10], rossier_info[:,11])
+    # a microscopy & trc file are saved in \\hmm subfolder
+    if widget_track_analysis.microscope_check_box.value:
+        widget_dir_structure.sub_folder = "\\hmm"
+        widget_dir_structure.create_folder()
+        microscope_file = microscope.Microscope(cell.dt, cell.pixel_size, cell.sigma_dyn_hmm, widget_dir_structure.sub_folder_dir)
+        microscope_file.save_hmm_microscope()
+    if widget_track_analysis.hmm_check_box.value:
+        widget_dir_structure.sub_folder = "\\hmm"
+        widget_dir_structure.create_folder()
+        save_trc_hmm = saveTrcHmm.SaveTrcHmm(cell.filtered_trc_file_hmm, cell.pixel_size, widget_dir_structure.sub_folder_dir, widget_dir_structure.raw_base_name)
+        save_trc_hmm.run_save()
+    
     
     
 def init_save_filtered_analysis(cover_slip, cell_index, track_stats, directory, folder_name):

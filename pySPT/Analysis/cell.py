@@ -14,6 +14,7 @@ import numpy as np
 import math
 import copy
 from . import trajectory
+from ..hmm import microscope
 #from multiprocessing import Pool
 from tqdm import tqdm_notebook as tqdm
 #from .analysis import trajectory
@@ -23,7 +24,8 @@ class Cell():
     def __init__(self):
         self.trc_file_type = []  # col0 = track id, col1 = frames, col2 = x, col3 = y, col4 = placeholder, col5 = intensity, col6 = seg id ~ trc file
         self.trc_file_hmm = []  # col0 = track id, col1 = track id continuously, col2 = frames, col3 = x, col4 = y, col5 = placeholder, col6 = intensity
-        self.filter_trc_file_hmm = []
+        self.filtered_trc_file_hmm = []  # trc file after analysis with trajectories sigma D > 0
+        self.converted_trc_file_type = []  # trc file as np arrays instead of lists in list
         self.trajectories = []  # contains trajectory objects
         self.analysed_trajectories = []  # contains analysed trajectory objects
         self.trajectories_hmm = []
@@ -42,6 +44,19 @@ class Cell():
         self.seg_id = True  # if True the seg id will be loaded as trajectory id, else the track id will be loaded
         self.sigma_dyn_type = 0.0  # dynamic localization error
         self.sigma_dyn_hmm = 0.0
+        
+    def run_analysis(self):
+        # trc hmm
+        self.cell_size()
+        self.create_trajectories_hmm()  # based on the trc hmm file trajectories are created
+        self.run_analysis_hmm()  # create hmm trajectory objects, if D > 0 -> trajectories are taken into account
+        self.filter_trc_hmm()  # filter trc file for trajectories with D > 0
+        self.calc_sigma_dyn_hmm()  # take mean value of sigma dyn of filtered trajectories
+        # trc type
+        self.create_trajectories()
+        self.analyse_trajectories()
+        # self.calc_sigma_dyn_type()  # at this point calculating sigma dyn does not make sence, because D < 0 and not fitted trajectories exist.
+        self.convert_trc_type()  # np arrays instead of lists in list
         
     def create_trajectories_hmm(self):
         trc_file = np.zeros([len(self.trc_file_hmm),6])
@@ -64,7 +79,7 @@ class Cell():
         """
         for trajectory in self.trajectories_hmm:
             trajectory.analyse_particle()
-            if trajectory.sigma_dyn > 0:
+            if trajectory.D > 0:
                 self.analysed_trajectories_hmm.append(trajectory)
         #self.analysed_trajectories_hmm = self.trajectories_hmm  
         
@@ -86,6 +101,7 @@ class Cell():
     def calc_sigma_dyn_hmm(self):
         """
         Calculate the dynamic localization error, based on the mean D, mean MSD_0, dt and dof values.
+        Only trajectories with D < 0 are taken into account.
         """
         self.sigma_dyn_hmm = np.mean([trajectory.sigma_dyn for trajectory in self.analysed_trajectories_hmm])
     
@@ -94,18 +110,14 @@ class Cell():
         Calculate the dynamic localization error, based on the mean D, mean MSD_0, dt and dof values.
         """
         self.sigma_dyn_type = np.mean([trajectory.sigma_dyn for trajectory in self.analysed_trajectories if trajectory.sigma_dyn > 0])
-# =============================================================================
-#         sigma_dyn_type = np.mean([trajectory.sigma_dyn for trajectory in self.analysed_trajectories])
-#         print("sigma with D > 0", self.sigma_dyn_type)
-#         print("sigma", sigma_dyn_type)
-# =============================================================================
         
     def create_trajectories(self):
         """
         Create list with trajectory objects from a trc file.
-        Convert x & y positions from px to ym.
+        Convert x & y positions from px to ym. 
+        Choose which trajectory id will be taken for creating tracks.
         """
-        trc_file = np.zeros([len(self.trc_file_type),6])
+        trc_file = np.zeros([len(self.trc_file_type),7])
         if self.seg_id:
             trc_file[:,0] = list(map(lambda row: row[6], self.trc_file_type))  # col0 = seg id
         else: trc_file[:,0] = list(map(lambda row: row[0], self.trc_file_type))  # col0 = track id
@@ -120,7 +132,21 @@ class Cell():
             localizations = trc_file[idx,:]
             if not (localizations.size==0):
                 self.trajectories.append(trajectory.Trajectory(localizations, self.tau_threshold, self.dt, self.dof, self.D_min, self.points_fit_D))
-                
+        
+    def convert_trc_type(self):
+        """
+        To save the trc type file later, all information is stored.
+        """
+        trc_file = np.zeros([len(self.trc_file_type),7])
+        trc_file[:,0] = list(map(lambda row: row[0], self.trc_file_type))  # col0 = track id
+        trc_file[:,1] = list(map(lambda row: row[1], self.trc_file_type))  # frame
+        trc_file[:,2] = list(map(lambda row: row[2]*int(self.pixel_size)*10**(-3), self.trc_file_type))  # x in ym
+        trc_file[:,3] = list(map(lambda row: row[3]*int(self.pixel_size)*10**(-3), self.trc_file_type))  # y in ym
+        trc_file[:,4] = list(map(lambda row: row[4], self.trc_file_type))  # placeholder
+        trc_file[:,5] = list(map(lambda row: row[5], self.trc_file_type))  # intensity
+        trc_file[:,6] = list(map(lambda row: row[6], self.trc_file_type))  # col0 = seg id
+        self.converted_trc_file_type = trc_file
+        
     def cell_size(self):
         """
         Convert cell size in pixel^2 to micrometer^2.
@@ -145,6 +171,7 @@ class Cell():
         """
         self.analysed_trajectories[trajectory_number-1].plot_particle()
         
+    # Multiprocessing -> bugged ...
     @staticmethod
     def analyse_trajectory(self, trajectory):
         """

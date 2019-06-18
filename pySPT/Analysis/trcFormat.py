@@ -39,7 +39,6 @@ class TrcFormat():
         self.trc_file_hmm_sorted = []
         self.trc_file_type_filtered = []
         self.trc_file_hmm_filtered = []
-        self.trc_file_hmm_filtered_id = []
     
     def load_trc_file_PT(self):
         file = pd.read_csv(self.file_name, sep="\t", header=None)
@@ -184,17 +183,15 @@ class TrcFormat():
         self.trc_file_hmm_filtered = list(filter(lambda row: row[6] >= int(self.min_track_length_hmm), self.trc_file_hmm_sorted))
         # get rid of last column with track_length (easier with rows being lists instead of np.voids)
         self.trc_file_hmm_filtered = list(map(lambda row: list(row)[:6], self.trc_file_hmm_filtered))
-        self.trc_file_hmm_filtered_id = list(map(lambda row: row[0], self.trc_file_hmm_filtered))
- 
-        #self.trc_file_hmm_filtered_id = self.trc_file_hmm_filtered[:,0]
-
-        continuous_index_track = 1
-        for i in range(len(self.trc_file_hmm_filtered)-1):
-            if self.trc_file_hmm_filtered[i][0] == self.trc_file_hmm_filtered[i+1][0]:
-                self.trc_file_hmm_filtered[i][0] = continuous_index_track
-            else:
-                self.trc_file_hmm_filtered[i][0] = continuous_index_track
-                continuous_index_track += 1 
+# =============================================================================
+#         continuous_index_track = 1
+#         for i in range(len(self.trc_file_hmm_filtered)-1):
+#             if self.trc_file_hmm_filtered[i][0] == self.trc_file_hmm_filtered[i+1][0]:
+#                 self.trc_file_hmm_filtered[i][0] = continuous_index_track
+#             else:
+#                 self.trc_file_hmm_filtered[i][0] = continuous_index_track
+#                 continuous_index_track += 1 
+# =============================================================================
         # because the min length has to be >= 2. Therefore the index has to be the same as the entry before.
         # the last entry can't compare the following entry because it is the last. It will get the index from the entry before
         try:
