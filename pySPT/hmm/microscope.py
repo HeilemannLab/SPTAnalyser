@@ -16,7 +16,7 @@ class Microscope():
     def __init__(self, dt, pixel_size, sigma_dyn, save_dir):
         self.dt = dt
         self.pixel_size = pixel_size
-        self.sigma_dyn = sigma_dyn
+        self.sigma_dyn = sigma_dyn * 1000  # sigma_dyn from cell analysis is in ym -> convert it to nm
         self.save_dir = save_dir
 
     def save_hmm_microscope(self):

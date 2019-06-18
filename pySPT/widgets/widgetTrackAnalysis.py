@@ -18,7 +18,6 @@ from IPython.display import clear_output
 
 class WidgetTrackAnalysis():
     def __init__(self):
-        self.test_button = self.create_test_button()
         self.data_set_dir = ""
         #self.ignore_words_box = self.create_ignore_words_box()
         #self.masked_words = []
@@ -81,15 +80,6 @@ class WidgetTrackAnalysis():
         style = {"description_width": "initial"}
         text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
         return text
-        
-    def create_test_button(self):
-        button = widgets.Button(
-            description='test',
-            disabled=False,
-            button_style='', # 'success', 'info', 'warning', 'danger' or ''
-            tooltip='testing')
-            #icon='check')
-        return button   
         
     def create_software_button(self):
         """

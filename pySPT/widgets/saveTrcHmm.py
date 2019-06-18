@@ -43,7 +43,6 @@ class SaveTrcHmm():
                 continuous_index_track += 1 
         self.trc_file[len(self.trc_file)-1][0] = self.trc_file[len(self.trc_file)-2][0]
         
-        
     def ym_to_px(self):
         """
         The trc file has to be converted to pixel for hmm analysis.
@@ -68,7 +67,6 @@ class SaveTrcHmm():
             day = str(0) + day
         #out_file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\pySPT_cell_1_MMStack_Pos0\\preAnalysis\\sorted.txt"
         out_file_name = self.save_dir + "\\" + year + month + day + "_" + self.raw_base_name + "_trc_hmm.trc"
-        print(out_file_name)
         header = "track_id\t frame\t x [pixel]\t y [pixel]\t placeholder\t intensity [photon]\t"
         #trc_hmm = list(map(lambda row: list(row)[:6], self.trc_filtered))  # get rid of seg id
         np.savetxt(out_file_name, 

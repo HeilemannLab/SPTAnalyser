@@ -64,6 +64,13 @@ class CoverSlip():
             self.seg_id = True
         elif self.seg_id == "track id":
             self.seg_id = False
+            
+    def check_PT_trajectory(self):
+        """
+        If PALMTracer is used as software, seg_id will automatically be set to False, because no segments exist.
+        """
+        if self.software == "PALMTracer":
+            self.seg_id = False
 
     def create_cells(self):
         """
@@ -72,6 +79,7 @@ class CoverSlip():
         """        
         start = time.time()
         self.seg_id_boolean()
+        self.check_PT_trajectory()
         self.calc_min_track_lengths()
         self.calc_tau_threshold()
         #print("min track hmm, min track type, tau threshold", self.min_track_length_hmm, self.min_track_length_type, self.tau_threshold)
