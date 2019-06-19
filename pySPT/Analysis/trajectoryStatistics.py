@@ -28,7 +28,8 @@ class TrajectoryStatistics():
         self.background_trajectories_filtered = []  # filtered for thresholds & booleans
         self.background_trajectories_filtered_thresholds = []  # filtered for thresholds only
         self.background_trajectories_filtered_index = []  # deep copy of original cell trajectories index
-        self.filtered_trc_files = []  # contains filtered trc files of cells
+        self.filtered_trc_files = []  # contains filtered trc type files of cells
+        self.trc_files_hmm = []
         self.filter_settings = []  # list with boolean values for immob, confined, free, analyse success, not success
         self.filter_thresholds_values = []  # values for minD, maxD, minlength, maxlength
         self.min_D = math.inf
@@ -90,6 +91,8 @@ class TrajectoryStatistics():
         self.total_trajectories_cell = []  # list with amount of total trajectories per cell 
         self.cell_type_count = []
         self.sigma_dyns = []
+        #######self.filtered_trc_files = []
+        self.trc_files_hmm = []
         
     def run_statistics(self, min_length, max_length, min_D, max_D, filter_immob, filter_confined,
                        filter_free, filter_analyse_not_successful):
@@ -102,6 +105,7 @@ class TrajectoryStatistics():
         self.default_statistics()
         self.filter_settings = [filter_immob, filter_confined, filter_free, filter_analyse_not_successful]
         self.calc_amount_trajectories()
+        self.get_trc_files_hmm()
         try:
             min_length = int(min_length)
             print("min trajectory length:", min_length)
@@ -131,6 +135,7 @@ class TrajectoryStatistics():
         self.filter_type(filter_immob, filter_confined, filter_free, filter_analyse_not_successful)
         self.sort_filtered_trajectories()
         self.create_index_lst()
+        self.calc_sigma_dyns()
         print("Initialization took {} s".format(time.time()-start))
         if filter_immob:
             print("Filter for immobile.")
@@ -279,10 +284,18 @@ class TrajectoryStatistics():
         """
         self.filtered_trc_files = []
         for cell_index in range(len(self.cell_trajectories)):
-            trc_file = copy.deepcopy(self.cells[cell_index].trc_file)
-            trc_idx = np.isin(trc_file[:,0], self.cell_trajectories_filtered_index[cell_index])
+            if self.cells[cell_index].seg_id:
+                trajectory_seg_id = 6
+            else:
+                trajectory_seg_id = 0
+            trc_file = copy.deepcopy(self.cells[cell_index].converted_trc_file_type)
+            trc_idx = np.isin(trc_file[:,trajectory_seg_id], self.cell_trajectories_filtered_index[cell_index])
             trc_file=trc_file[trc_idx,:]
-            self.filtered_trc_files.append(trc_file)        
+            self.filtered_trc_files.append(trc_file)     
+            
+    def get_trc_files_hmm(self):
+        for cell_index in range(len(self.cell_trajectories)):
+            self.trc_files_hmm.append(self.cells[cell_index].filtered_trc_file_hmm)
         
     def create_index_lst(self):
         """
@@ -588,9 +601,7 @@ class TrajectoryStatistics():
             mean_D = np.mean([track.D for track in self.cell_trajectories_filtered[cell_idx]])
             mean_MSD_0 = np.mean([track.MSD_0 for track in self.cell_trajectories_filtered[cell_idx]])
             sigma_dyn = math.sqrt((mean_MSD_0+(4/3)*mean_D*dt)/dof)
-            self.sigma_dyns.append(sigma_dyn)
-            print("{}: {} \u03BCm".format(self.cells[cell_idx].name, sigma_dyn))
-      
+            self.sigma_dyns.append(sigma_dyn)      
  
     
 def main():
