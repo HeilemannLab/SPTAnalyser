@@ -120,13 +120,14 @@ class Cell():
         trc_file = np.zeros([len(self.trc_file_type),7])
         if self.seg_id:
             trc_file[:,0] = list(map(lambda row: row[6], self.trc_file_type))  # col0 = seg id
-        else: trc_file[:,0] = list(map(lambda row: row[0], self.trc_file_type))  # col0 = track id
+        else: 
+            trc_file[:,0] = list(map(lambda row: row[0], self.trc_file_type))  # col0 = track id
         trc_file[:,1] = list(map(lambda row: row[1], self.trc_file_type))  # frame
         trc_file[:,2] = list(map(lambda row: row[2]*int(self.pixel_size)*10**(-3), self.trc_file_type))  # x in ym
         trc_file[:,3] = list(map(lambda row: row[3]*int(self.pixel_size)*10**(-3), self.trc_file_type))  # y in ym
         trc_file[:,4] = list(map(lambda row: row[4], self.trc_file_type))  # placeholder
         trc_file[:,5] = list(map(lambda row: row[5], self.trc_file_type))  # intensity
-
+        print("trc", sorted(list(set(trc_file[:,0]))))
         for trajectory_number in range(int(trc_file[:,0].min()), int(trc_file[:,0].max())+1):    
             idx = trc_file[:,0] == trajectory_number
             localizations = trc_file[idx,:]
@@ -164,6 +165,8 @@ class Cell():
         for trajectory in tqdm(self.trajectories):
             trajectory.analyse_particle()
         self.analysed_trajectories = self.trajectories
+        x = [trajectory.trajectory_number for trajectory in self.analysed_trajectories]
+        print("tr id", x)
         
     def plot_trajectory(self, trajectory_number):
         """

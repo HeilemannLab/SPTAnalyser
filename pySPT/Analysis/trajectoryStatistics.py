@@ -131,7 +131,6 @@ class TrajectoryStatistics():
         self.filter_type(filter_immob, filter_confined, filter_free, filter_analyse_not_successful)
         self.sort_filtered_trajectories()
         self.create_index_lst()
-        self.calc_sigma_dyns()
         print("Initialization took {} s".format(time.time()-start))
         if filter_immob:
             print("Filter for immobile.")
@@ -584,15 +583,13 @@ class TrajectoryStatistics():
         Parameters: Mean D, mean MSD_0 per cell & loc, dt.
         """
         for cell_idx in range(len(self.cell_trajectories_filtered)):
-            self.cell_trajectories_filtered
             dof = self.cell_trajectories_filtered[cell_idx][0].dof
             dt = self.cell_trajectories_filtered[cell_idx][0].dt
             mean_D = np.mean([track.D for track in self.cell_trajectories_filtered[cell_idx]])
             mean_MSD_0 = np.mean([track.MSD_0 for track in self.cell_trajectories_filtered[cell_idx]])
             sigma_dyn = math.sqrt((mean_MSD_0+(4/3)*mean_D*dt)/dof)
             self.sigma_dyns.append(sigma_dyn)
-        print(self.sigma_dyns)
-        
+            print("{}: {} \u03BCm".format(self.cells[cell_idx].name, sigma_dyn))
       
  
     

@@ -59,7 +59,7 @@ class Hdf5():
                                                       ("pixel amount", int),
                                                       ("cell size [\u03BCm\u00b2]", float),
                                                       ("tau threshold [s]", float),
-                                                      ("tau min trajectory length", float),
+                                                      ("min trajectory length type", float),
                                                       ("fit area", float),
                                                       ("dof", int),
                                                       ("D min [\u03BCm\u00b2/s]", float),
@@ -73,7 +73,7 @@ class Hdf5():
         dset["pixel amount"] = pixelamount
         dset["cell size [\u03BCm\u00b2]"] = cell_size
         dset["tau threshold [s]"] = tau_threshold
-        dset["tau min trajectory length"] = min_track_length_type
+        dset["min trajectory length type"] = min_track_length_type
         dset["fit area"] = fit_area
         dset["dof"] = dof
         dset["D min [\u03BCm\u00b2/s]"] = D_min

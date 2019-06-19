@@ -62,9 +62,11 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
         widget_load_hdf5.search_sub_folders(widget_load_hdf5.dir_name_bg, is_cell)
         load_hdf5.file_names = widget_load_hdf5.file_names_bg
     load_hdf5.run_load_hdf5()  # initialize the loadHdf5 class -> fill all needed attributes with values.
-    for cell_index in range(load_hdf5.cell_numbers):  # distribute the attributes to the objects
+    for cell_index in range(load_hdf5.cell_numbers):  # distribute the attributes to the objects        
         one_cell = cell.Cell()
-        one_cell.trc_file = load_hdf5.trc_files[cell_index]
+        one_cell.filtered_trc_file_hmm = load_hdf5.trc_files_hmm[cell_index]
+        one_cell.converted_trc_file_type = load_hdf5.trc_files_type[cell_index]
+        #print("converted trc file type", one_cell.converted_trc_file_type)
         one_cell.pixel_size = load_hdf5.pixel_sizes[cell_index]
         one_cell.pixel_amount = load_hdf5.pixel_amounts[cell_index]
         one_cell.size = load_hdf5.cell_sizes[cell_index]
@@ -75,13 +77,20 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
         one_cell.dof = load_hdf5.dofs[cell_index]
         one_cell.D_min = load_hdf5.D_mins[cell_index]
         one_cell.seg_id = load_hdf5.seg_ids[cell_index]
-        one_cell.sigma_dyn = load_hdf5.sigma_dyns[cell_index]
+        one_cell.sigma_dyn_type = load_hdf5.sigma_dyns_type[cell_index]
+        one_cell.sigma_dyn_hmm = load_hdf5.sigma_dyns_hmm[cell_index]
         one_cell.points_fit_D = load_hdf5.points_fit_Ds[cell_index]
-        one_cell.tau_threshold_min_length = load_hdf5.tau_min_trajectory_lengths[cell_index]
+        one_cell.min_track_length_type = load_hdf5.min_trajectory_lengths_type[cell_index]
+        one_cell.min_track_length_hmm = load_hdf5.min_trajectory_lengths_hmm[cell_index]
+        print(len(load_hdf5.cells_trajectories_number[cell_index]), len(load_hdf5.locs[cell_index]))
+        if one_cell.seg_id:
+            trajectory_seg_idx = 6
+        else:
+            trajectory_seg_idx = 0
         for trajectory_index in range(0, load_hdf5.trajectory_numbers[cell_index]):
             one_trajectory = trajectory.Trajectory(load_hdf5.locs[cell_index][trajectory_index], one_cell.tau_threshold, one_cell.dt,
                                                    one_cell.dof, one_cell.D_min, one_cell.points_fit_D)
-            one_trajectory.trajectory_number = trajectory_index+1
+            one_trajectory.trajectory_number = load_hdf5.locs[cell_index][trajectory_index][0][trajectory_seg_idx]
             one_trajectory.MSDs = load_hdf5.cells_trajectories_MSDs[cell_index][trajectory_index]
             one_trajectory.times = load_hdf5.cells_trajectories_times[cell_index][trajectory_index]
             one_trajectory.MSD_fit = load_hdf5.cells_trajectories_MSD_fit[cell_index][trajectory_index]

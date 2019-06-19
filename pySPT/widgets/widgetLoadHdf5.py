@@ -53,6 +53,8 @@ class WidgetLoadHdf5():
         #self.analyse_successful_check_box = self.create_analyse_successful_check_box()
         self.analyse_not_successful_check_box = self.create_analyse_not_successful_check_box()
         self.plot_diffusions_button = self.create_plot_diffusions_button()
+        # Calculate the dynamic localization error
+        self.calc_sigma_dyn_button = self.create_calc_sigma_dyn_button()
         # Plot diffusion histogram
         self.bin_size_box = self.create_bin_size_box()
         # Save statistics
@@ -293,6 +295,18 @@ class WidgetLoadHdf5():
                 button_style="",
                 tooltip = "plot diffusion coefficients")
         return button
+    
+    def create_calc_sigma_dyn_button(self):
+        """
+        Button to calculate the dynamic localization error.
+        """
+        button = widgets.Button(
+                description='calc',
+                disabled=False,
+                button_style='', # 'success', 'info', 'warning', 'danger' or ''
+                tooltip='dynamic localization error')
+                #icon='check')
+        return button  
     
     # Plot diffusion histogram
     
