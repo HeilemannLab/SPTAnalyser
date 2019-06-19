@@ -38,12 +38,12 @@ def init_merge_hdf5_path_handler(h5_paths, archive_paths, save_paths):
     archive_file = open(archive_paths, "r")
     save_file = open(save_paths, "r")
     for line_h5, line_archive, line_save in zip(h5_file, archive_file, save_file):
-        # get rid of new line character in the end of each line
+        # get rid of new line character at the end of each line
         line_h5_strip, line_archive_strip, line_save_strip = line_h5.rstrip(), line_archive.rstrip(), line_save.rstrip()
         merge_hdf5 = mergeHdf5.MergeHdf5(line_h5_strip, line_archive_strip, line_save_strip)
         merge_hdf5.run()
     print("Merging successful!")
-    print("Duration: %.2f s"%time.time()-start)
+    print("Duration: %.2f s"%(time.time()-start))
 
 
 def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):

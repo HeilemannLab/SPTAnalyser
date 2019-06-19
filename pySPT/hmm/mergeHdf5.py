@@ -32,47 +32,49 @@ class MergeHdf5():
         self.hdf5_file.create_group("physicalModel")
         self.hdf5_file.create_group("hmm")
     
-    def add_precision_to_settings(self):
-        # get precision from archive file
-        archive_settings_group = self.archive_file["settings"]
-        ####################archive_settings_info = archive_settings_group["microscope"].value
-        archive_settings_info = archive_settings_group["microscope"]
-        precision = archive_settings_info[0][2]*10**(-3)  # nm -> ym
-        # get values from settings settings numpy void
-        hdf5_settings_group = self.hdf5_file["settings"]        
-        ###############hdf5_settings_info = hdf5_settings_group["settings"].value
-        hdf5_settings_info = hdf5_settings_group["settings"]
-        settings_column_values = []
-        for i in range(len(hdf5_settings_info[0][0])):
-            settings_column_values.append(hdf5_settings_info[0][0][i])
-        # delete the numpy void, because it is not possible to append a new value to the void
-        del hdf5_settings_group["settings"]
-        # create new dataset "settings" with appended precision
-        dset = hdf5_settings_group.create_dataset("settings", (1,1), dtype = np.dtype([("dt [s]", float),
-                                                      ("pixelsize [nm]", int),
-                                                      ("pixel amount", int),
-                                                      ("cell size [\u03BCm\u00b2]", float),
-                                                      ("tau threshold [s]", float),
-                                                      ("tau min trajectory length", float),
-                                                      ("fit area", float),
-                                                      ("dof", int),
-                                                      ("\u0394 loc dyn [\u03BCm\u00b2/s]", float),
-                                                      ("precision [\u03BCm]", float)]))
-        dset["dt [s]"] = settings_column_values[0]
-        dset["pixelsize [nm]"] = settings_column_values[1]
-        dset["pixel amount"] = settings_column_values[2]
-        dset["cell size [\u03BCm\u00b2]"] = settings_column_values[3]
-        dset["tau threshold [s]"] = settings_column_values[4]
-        dset["tau min trajectory length"] = settings_column_values[5]
-        dset["fit area"] = settings_column_values[6]
-        dset["dof"] = settings_column_values[7]
-        dset["\u0394 loc dyn [\u03BCm\u00b2/s]"] = settings_column_values[8]
-        dset["precision [\u03BCm]"] = precision
+# =============================================================================
+#     def add_precision_to_settings(self):
+#         # get precision from archive file
+#         archive_settings_group = self.archive_file["settings"]
+#         ####################archive_settings_info = archive_settings_group["microscope"].value
+#         archive_settings_info = archive_settings_group["microscope"]
+#         precision = archive_settings_info[0][2]*10**(-3)  # nm -> ym
+#         # get values from settings settings numpy void
+#         hdf5_settings_group = self.hdf5_file["settings"]        
+#         ###############hdf5_settings_info = hdf5_settings_group["settings"].value
+#         hdf5_settings_info = hdf5_settings_group["settings"]
+#         settings_column_values = []
+#         for i in range(len(hdf5_settings_info[0][0])):
+#             settings_column_values.append(hdf5_settings_info[0][0][i])
+#         # delete the numpy void, because it is not possible to append a new value to the void
+#         del hdf5_settings_group["settings"]
+#         # create new dataset "settings" with appended precision
+#         dset = hdf5_settings_group.create_dataset("settings", (1,1), dtype = np.dtype([("dt [s]", float),
+#                                                       ("pixelsize [nm]", int),
+#                                                       ("pixel amount", int),
+#                                                       ("cell size [\u03BCm\u00b2]", float),
+#                                                       ("tau threshold [s]", float),
+#                                                       ("tau min trajectory length", float),
+#                                                       ("fit area", float),
+#                                                       ("dof", int),
+#                                                       ("\u0394 loc dyn [\u03BCm\u00b2/s]", float),
+#                                                       ("precision [\u03BCm]", float)]))
+#         dset["dt [s]"] = settings_column_values[0]
+#         dset["pixelsize [nm]"] = settings_column_values[1]
+#         dset["pixel amount"] = settings_column_values[2]
+#         dset["cell size [\u03BCm\u00b2]"] = settings_column_values[3]
+#         dset["tau threshold [s]"] = settings_column_values[4]
+#         dset["tau min trajectory length"] = settings_column_values[5]
+#         dset["fit area"] = settings_column_values[6]
+#         dset["dof"] = settings_column_values[7]
+#         dset["\u0394 loc dyn [\u03BCm\u00b2/s]"] = settings_column_values[8]
+#         dset["precision [\u03BCm]"] = precision
+# =============================================================================
         
     def trc_placeholder_to_state(self):
         hdf5_trc_group = self.hdf5_file["trc"]
         ######################hdf5_trc_dataset = hdf5_trc_group["trcFile"].value
-        hdf5_trc_dataset = hdf5_trc_group["trcFile"]
+        hdf5_trc_dataset = hdf5_trc_group["trcHmm"]
         archive_data_group = self.archive_file["data"]
         ############################archive_molecules_dataset = archive_data_group["molecules"].value
         archive_molecules_dataset = archive_data_group["molecules"]
@@ -86,21 +88,20 @@ class MergeHdf5():
                     trc_new_values[i].append(hdf5_trc_dataset[j][i])
                 else:
                     trc_new_values[i].append(archive_molecules_dataset[j][i])
-        del hdf5_trc_group["trcFile"]
-        dset = hdf5_trc_group.create_dataset("trcFile", (shape,), dtype = np.dtype([("track id", int),
+        del hdf5_trc_group["trcHmm"]
+        dset = hdf5_trc_group.create_dataset("trcHmm", (shape,), dtype = np.dtype([("track id", int),
                                                       ("frame", int),
                                                       ("x position [\u03BCm]", float),
                                                       ("y position [\u03BCm]", float),
                                                       ("state", int),
-                                                      ("intensity [photon]", float),
-                                                      ("seg id", float)]))
+                                                      ("intensity [photon]", float)]))
         dset["track id"] = trc_new_values[0]
         dset["frame"] = trc_new_values[1]
         dset["x position [\u03BCm]"] = trc_new_values[2]
         dset["y position [\u03BCm]"] = trc_new_values[3]
         dset["state"] = trc_new_values[4]
         dset["intensity [photon]"] = trc_new_values[5]
-        dset["seg id"] = trc_new_values[6]
+        #dset["seg id"] = trc_new_values[6]
         
     def add_roi_dataset_to_settings(self):
         archive_settings_group = self.archive_file["settings"]
@@ -210,7 +211,7 @@ class MergeHdf5():
         
     def run(self):
         self.create_missing_groups()
-        self.add_precision_to_settings()
+        #self.add_precision_to_settings()
         self.trc_placeholder_to_state()
         self.add_roi_dataset_to_settings()
         self.add_judi()
