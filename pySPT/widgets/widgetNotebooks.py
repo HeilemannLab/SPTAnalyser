@@ -18,6 +18,7 @@ from . import saveFiltered
 from . import saveTrcFiltered
 from . import saveTrcHmm
 from . import widgetDirectoryStructure
+from . import loadMergedHmm
 from ..analysis import cell  # two dots for switching the folder
 from ..analysis import trajectory
 from ..analysis import trackAnalysis
@@ -27,6 +28,17 @@ import time
 import numpy as np 
 from ipywidgets import HBox, VBox
 
+
+def load_merged_h5(file_paths):
+    """
+    Load merged h5 files in the hmmVisualization notebook.
+    """
+    merged_h5s = []
+    for path in file_paths:
+        load_merged_hmm = loadMergedHmm.LoadMergedHmm(path)
+        load_merged_hmm.run()
+        merged_h5s.append(load_merged_hmm)
+    return merged_h5s
 
 def init_merge_hdf5_path_handler(h5_paths, archive_paths, save_paths):
     """
@@ -62,7 +74,8 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
         widget_load_hdf5.search_sub_folders(widget_load_hdf5.dir_name_bg, is_cell)
         load_hdf5.file_names = widget_load_hdf5.file_names_bg
     load_hdf5.run_load_hdf5()  # initialize the loadHdf5 class -> fill all needed attributes with values.
-    for cell_index in range(load_hdf5.cell_numbers):  # distribute the attributes to the objects        
+    for cell_index in range(load_hdf5.cell_numbers):  # distribute the attributes to the objects  
+        print("name", load_hdf5.names[cell_index])
         one_cell = cell.Cell()
         one_cell.filtered_trc_file_hmm = load_hdf5.trc_files_hmm[cell_index]
         one_cell.converted_trc_file_type = load_hdf5.trc_files_type[cell_index]
