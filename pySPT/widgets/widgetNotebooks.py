@@ -19,6 +19,7 @@ from . import saveTrcFiltered
 from . import saveTrcHmm
 from . import widgetDirectoryStructure
 from . import loadMergedHmm
+from . import saveHmmVis
 from ..analysis import cell  # two dots for switching the folder
 from ..analysis import trajectory
 from ..analysis import trackAnalysis
@@ -312,5 +313,27 @@ def init_save_track_stats(h5_stats, track_stats, directory, folder_name, name):
         h5_stats.diffusion_plot(len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.mean_frequencies,
                                    track_stats.mean_error)
     h5_stats.cells(cell_info)
+
+def init_save_hmm_vis_stats(hmm_vis, directory, folder_name):
+    """
+    JNB hmmVisualization, create h5 file for statistics & plot infos.
+    """
+    save_hmm_vis = saveHmmVis.SaveHmmVis(directory, folder_name)
+    cell_names = [cell.hmm_cell_name for cell in hmm_vis.cells]
+    save_hmm_vis.groups()
+    cell_info = []  # name, size, localizations, density, aic
+    for cell_idx in range(len(hmm_vis.cells)):
+        one_cell = (hmm_vis.cells[cell_idx].hmm_cell_name, hmm_vis.cells[cell_idx].cell_size, hmm_vis.loc_density[cell_idx]*hmm_vis.cells[cell_idx].cell_size, hmm_vis.loc_density[cell_idx], hmm_vis.aic_values[cell_idx])
+        cell_info.append(one_cell)
+    save_hmm_vis.cell_info(cell_info)
+    save_hmm_vis.mean_aic_value(hmm_vis.mean_aic_value)
+    save_hmm_vis.mean_states(hmm_vis.states_percentages, hmm_vis.mean_D, hmm_vis.mean_D_error)
+    save_hmm_vis.mean_tps(hmm_vis.mean_tps)
+    for cell_idx in range(len(hmm_vis.cells)):
+        save_hmm_vis.single_states(hmm_vis.single_Ds[cell_idx], hmm_vis.cells[cell_idx].hmm_cell_name, hmm_vis.single_states_percentages[cell_idx])
+        save_hmm_vis.single_tps(hmm_vis.single_tps[cell_idx], hmm_vis.cells[cell_idx].hmm_cell_name)
+    save_hmm_vis.node_sizes(hmm_vis.mean_node_size)
+    save_hmm_vis.edge_sizes(hmm_vis.mean_edge_size)
+    save_hmm_vis.dmean_tps(hmm_vis.mean_tps_error)
 
         

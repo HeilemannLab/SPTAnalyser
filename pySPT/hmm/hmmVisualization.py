@@ -29,14 +29,18 @@ class HmmVisualization():
         self.cell_names = []
         self.aic_values = []
         self.mean_aic_value = 0
+        self.single_states_percentages = []
         self.states_percentages = []  # population of states in %
         self.states_percentages_error = []  # statistic error of mean
+        self.single_tps = []
         self.mean_tps = []  # mean value of the transition probability tp matrix entries
         self.mean_tps_error = []
         self.single_Ds = []  # single values of diffusion coefficients per cell 
         self.mean_D = []  # mean values of diffusion coefficients
         self.mean_D_error = []
         self.loc_density = []  # localizations in the trc hmm file / cell size
+        self.mean_node_size = []  # state population mapped on circle size
+        self.mean_edge_size = []  # tp log mapped on arrow size
         self.colour_palett = ["royalblue", "forestgreen", "darkorange", "darkmagenta", "orangered"]
         self.colour_palett_hex = ["#4169e1", "#228b22", "#ff8c00", "#8b008b", "#ff4500"]
         self.colour_palett_rgba = [i+"80" for i in self.colour_palett_hex] # "#%2x%2x%2x%2x"; alpha channel hex opacity values: https://medium.com/@magdamiu/android-transparent-colors-a2d55a9b4e66
@@ -52,6 +56,7 @@ class HmmVisualization():
         self.get_number_of_cells()
         self.get_number_of_states()
         self.get_aic_values()
+        self.get_single_tps()
         self.calc_states_percentages()
         self.calc_mean_tp()
         self.calc_mean_D()
@@ -97,11 +102,16 @@ class HmmVisualization():
         #print("AIC values: ", self.aic_values)
         print("Mean AIC value: %.3f"% self.mean_aic_value)
         
+    def get_single_tps(self):
+        for cell in self.cells:
+            self.single_tps.append(cell.transition_matrix)
+        
     def calc_states_percentages(self):
         """
         Population of states in %.
         """
         cell_states = np.zeros([self.number_of_cells, self.number_of_states])
+        self.single_states_percentages = np.zeros([self.number_of_cells, self.number_of_states])
         for cell in self.cells:
             cell_idx = self.cells.index(cell)
             state_counter = np.zeros(self.number_of_states)
@@ -110,6 +120,7 @@ class HmmVisualization():
                     if cell.trc_hmm[i][4] == state_number:
                         state_counter[state_number] += 1
             state_counter = np.divide(state_counter, np.sum(state_counter))
+            self.single_states_percentages[cell_idx] = state_counter
             cell_states[cell_idx] = state_counter
         self.states_percentages = np.mean(cell_states, 0)
         self.states_percentages_error = np.std(cell_states, 0,  ddof=1) / (self.number_of_cells) **(1/2)
@@ -324,8 +335,8 @@ class HmmVisualization():
         colored_edges = True
         mean_diff_rounded = [str(self.tp_percentage_rounded(x)) for x in self.states_percentages]  # return the state % between 0-100 % 
         # A = pi * r^2 -> r = (A/pi)**0.5
-        mean_diff_size = list(map(lambda x: float_precision % (float(x)*mult_with_node_size/math.pi)**(0.5), self.states_percentages))
-
+        self.mean_node_size = list(map(lambda x: float(x)*mult_with_node_size/math.pi**(0.5), self.states_percentages))
+        mean_node_size = list(map(lambda x: float_precision % (float(x)*mult_with_node_size/math.pi)**(0.5), self.states_percentages))
         diffusions = self.mean_D
         diffusions = list(map(lambda x: str(float_precision % x), diffusions))  # represent D in ym^2/s with certain float precision
     
@@ -333,7 +344,8 @@ class HmmVisualization():
             dot.node(str(i+1), mean_diff_rounded[i]+"%",
                      color="black", fillcolor=self.colour_palett_hex[i], fontcolor="black",
                      # colour_palett_rgba[i]
-                     style="filled", shape="circle", fixedsize="shape", width=mean_diff_size[i], pos="0,0!")
+                     style="filled", shape="circle", fixedsize="shape", width=mean_node_size[i], pos="0,0!")
+        self.mean_edge_size = np.zeros(np.shape(self.cells[0].transition_matrix))
         for row in range(np.shape(self.mean_tps)[0]):
             for column in range(np.shape(self.mean_tps)[1]):
                 #label_name = " " + mean_tp_str[column][row][:float_precision_np]
@@ -342,7 +354,7 @@ class HmmVisualization():
                 
                 dot.edge(str(column+1), str(row+1), label=" "+label_name,
                          color=(self.gv_edge_color_gradient(self.colour_palett_hex[column], self.colour_palett_hex[row], 25) if colored_edges else "black"),
-                         fontsize=edge_fontsize, style="filled", penwidth=(str(self.tp_px_mapping(tp)) if var_width else "1"))
+                         fontsize=edge_fontsize, style="filled", penwidth=(str(self.tp_px_mapping(tp, row, column)) if var_width else "1"))
         
         
         #dot.render('test-output/Dmin.gv', view=True)
@@ -350,6 +362,10 @@ class HmmVisualization():
             dot.render('tmp/State_transiton_diagram.svg', view=True)
         else:
             dot.render(self.save_dir + "\\" + self.save_folder_name + "\\" + 'State_transiton_diagram.svg', view=False)
+# =============================================================================
+#         print("mean edge size", self.mean_edge_size)
+#         print("mean node size", self.mean_node_size)
+# =============================================================================
         
     def tp_percentage_rounded(self, tp):
         """
@@ -364,12 +380,14 @@ class HmmVisualization():
                 return tp
             exponent += 1
         
-    def tp_px_mapping(self, tp, min_log=-5, min_px=0.5, max_px=5):
+    def tp_px_mapping(self, tp, row, column, min_log=-5, min_px=0.5, max_px=5):
+        
         log_tp = np.log10(tp)
         if log_tp <= min_log:
             return min_px
         log_tp -= min_log  # positive range
         log_tp /= -min_log  # 0-1
+        self.mean_edge_size[row][column] = max_px*log_tp + min_px*(1-log_tp)
         return max_px*log_tp + min_px*(1-log_tp)  # sth between max & min px
 
     def gv_edge_color_gradient(self, c1, c2, res=50):
