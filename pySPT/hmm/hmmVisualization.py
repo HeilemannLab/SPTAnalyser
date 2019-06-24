@@ -25,7 +25,7 @@ class HmmVisualization():
     def __init__(self):
         self.cells = []  # list of loadMergedHmm cell objects
         self.number_of_cells = 0
-        self.number_of_states = 3  # fill out function!!!!
+        self.number_of_states = 0  # number of hidden states = diffusion coefficients 
         self.cell_names = []
         self.aic_values = []
         self.mean_aic_value = 0
@@ -40,6 +40,12 @@ class HmmVisualization():
         self.colour_palett = ["royalblue", "forestgreen", "darkorange", "darkmagenta", "orangered"]
         self.colour_palett_hex = ["#4169e1", "#228b22", "#ff8c00", "#8b008b", "#ff4500"]
         self.colour_palett_rgba = [i+"80" for i in self.colour_palett_hex] # "#%2x%2x%2x%2x"; alpha channel hex opacity values: https://medium.com/@magdamiu/android-transparent-colors-a2d55a9b4e66
+        self.figures = []  # list with figure objects
+        self.figure_names = []  # "figure_name + .png"
+        # saving
+        self.save_plots = False  # if true -> plots will be saved
+        self.save_dir = ""
+        self.save_folder_name = ""        
         
     def run(self):
         self.get_cell_names()
@@ -57,9 +63,19 @@ class HmmVisualization():
         self.plot_pie_state_percentages()
         self.state_transition_diagram()
         
+    def run_save_plots(self):
+        try:
+            os.mkdir(self.save_dir + "\\" + self.save_folder_name)
+        except OSError:
+            print("Folder already exists.")
+        else:
+            for figure, name in zip(self.figures, self.figure_names):
+                figure.savefig(self.save_dir + "\\" + self.save_folder_name + "\\" + name, format="png", transparent=True)
+            self.state_transition_diagram()
+        
+        
     def get_number_of_states(self):
-        pass##############################################
-    ### fix round error for D very small
+        self.number_of_states = np.shape(self.cells[0].diffusion_coef)[0]
     
     def get_number_of_cells(self):
         self.number_of_cells = len(self.cells)
@@ -174,6 +190,7 @@ class HmmVisualization():
         ax.grid(linestyle=':', alpha=0.5)
         plt.ylabel("Diffusion coefficient [\u00B5m\u00B2/s]")
         plt.xlabel("Number of state")
+        
         # Create the boxplot
         bp = ax.boxplot(self.single_Ds, patch_artist=True)
         ## change outline color, fill color and linewidth of the boxes
@@ -194,7 +211,14 @@ class HmmVisualization():
         # ## change the style of fliers and their fill
         # for flier in bp['fliers']:
         #     flier.set(marker='o', color='#e7298a', alpha=0.5)
+
         plt.show()
+        self.figures.append(fig)
+        self.figure_names.append("Diffusion_coefficients_boxplot.png")
+# =============================================================================
+#         if self.save_plots:
+#             plt.savefig(self.save_dir + "\\" + self.save_folder_name + "\\" + "D_boxplot.png", format="png", transparent=True)
+# =============================================================================
         
     def plot_D(self):
         """
@@ -213,6 +237,8 @@ class HmmVisualization():
         plt.ylabel("Diffusion coefficient [\u00B5m\u00B2/s]")
         plt.xlabel("Cell number")
         plt.show()
+        self.figures.append(fig)
+        self.figure_names.append("Diffusion_coefficients_cells.png")
         
     def plot_loc_density(self):
         """
@@ -230,6 +256,8 @@ class HmmVisualization():
         plt.ylabel("Localization density [1/\u00B5m\u00B2]")
         plt.xlabel("Cell number")
         plt.show()
+        self.figures.append(fig)
+        self.figure_names.append("Localization_density.png")
         
     def plot_bar_state_percentages(self):
         bars = self.states_percentages
@@ -240,12 +268,15 @@ class HmmVisualization():
         
         x = np.arange(len(bars))
         x_name = [i+1 for i in range(self.number_of_states)]
-        label_name = list(map(lambda x: str(x)[:5]+" \u00B5m\u00B2/s", label_name))  # nearly zero isnt handeled right !!!!!!!!
+        label_name = list(map(lambda x: self.D_rounded(x) +" \u00B5m\u00B2/s", label_name))
+        #label_name = list(map(lambda x: str(x)[:5]+" \u00B5m\u00B2/s", label_name))  # nearly zero isnt handeled right !!!!!!!!
         fig, ax = plt.subplots()
         ax.set_xticklabels(label_name)
         ax.set_axisbelow(True)
         ax.grid(linestyle=':', alpha=0.5)
         ax.set_ylim(0,1)
+        plt.ylabel("Population")
+        plt.xlabel("Number of states")
         if y_error:
             plt.bar(x, bars, yerr=error, capsize=5, edgecolor="black", color=self.colour_palett[:self.number_of_states], label=label_name)  # label=label_name
             plt.xticks(x, x_name)
@@ -254,6 +285,8 @@ class HmmVisualization():
         plt.legend()
         plt.title(title_name)
         plt.show()
+        self.figures.append(fig)
+        self.figure_names.append("State_distrubution_bar_plot.png")
  
     def plot_pie_state_percentages(self):
         values = self.states_percentages
@@ -263,15 +296,24 @@ class HmmVisualization():
         fig = plt.figure()
         ax = fig.add_subplot(111)
         mean_pi = list(map(lambda x: x*100, mean_pi))
-        label = list(map(lambda x: str(x)[:5]+" \u00B5m\u00B2/s", label))
+        label = list(map(lambda x: self.D_rounded(x) +" \u00B5m\u00B2/s", label))
+        #label = list(map(lambda x: str(x)[:5]+" \u00B5m\u00B2/s", label))
         wedges, texts, autotexts = plt.pie(values, labels=label, colors=self.colour_palett[:self.number_of_states], autopct="%0.2f%%")
         #plt.setp(autotexts, size=8, weight="bold")
         plt.title(title_name)
         plt.show()
+        self.figures.append(fig)
+        self.figure_names.append("State_distrubution_pie_plot.png")
     # state_transition_diagram(mean_pi, mean_tp, dmean_pi, dmean_tp, diffusions, ddiffusions)
+    
+    def D_rounded(self, D):
+        exponent = 5  # floating point precision
+        D *= 10**(exponent)
+        D = int(np.round(D))
+        D /= 10**(exponent)  # / instead of * -exp -> no floating point artefacts
+        return str(D)
 
     def state_transition_diagram(self):
-        
         min_node_size = 1.5
         mult_with_node_size = min_node_size / min(self.states_percentages) # label are too large for node, the smallest % has to fit in the node
         edge_fontsize = "10"
@@ -301,9 +343,14 @@ class HmmVisualization():
                 dot.edge(str(column+1), str(row+1), label=" "+label_name,
                          color=(self.gv_edge_color_gradient(self.colour_palett_hex[column], self.colour_palett_hex[row], 25) if colored_edges else "black"),
                          fontsize=edge_fontsize, style="filled", penwidth=(str(self.tp_px_mapping(tp)) if var_width else "1"))
-
-        dot.render('test-output/Dmin.gv', view=True)
-
+        
+        
+        #dot.render('test-output/Dmin.gv', view=True)
+        if not self.save_plots:
+            dot.render('tmp/State_transiton_diagram.svg', view=True)
+        else:
+            dot.render(self.save_dir + "\\" + self.save_folder_name + "\\" + 'State_transiton_diagram.svg', view=False)
+        
     def tp_percentage_rounded(self, tp):
         """
         0.4056357 -> 40.56

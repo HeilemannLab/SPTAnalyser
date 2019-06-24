@@ -36,9 +36,9 @@ class WidgetHmmVis():
         self.save_folder_name_box = self.create_save_folder_name_box() 
         self.save_button = self.create_save_button()
         
-    def create_load_dir_box(self, val = "path", desc = "Complete path"):  # val = in box, desc = infront of box
+    def create_load_dir_box(self, val = "directory", desc = "Directory"):  # val = in box, desc = infront of box
         """
-        Box for inserting the path with description, alternative for file loading button.
+        Box for inserting the directory from which all .h5 files will be loaded.
         """
         style = {'description_width': 'initial'}  # display too long desc
         text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
@@ -105,7 +105,7 @@ class WidgetHmmVis():
         return checkbox
     
     
-    def create_save_dir_box(self, val = "directory", desc = "Insert directory"):  # val = in box, desc = infront of box
+    def create_save_dir_box(self, val = "", desc = "Insert directory"):  # val = in box, desc = infront of box
         """
         Box for inserting the path with description, alternative for file loading button.
         """
@@ -137,13 +137,27 @@ class WidgetHmmVis():
         
     def change_save_dir_box(self, change):
         self.save_dir_name = self.save_dir_box.value  
+        
+    def calc_date(self):
+        now = datetime.datetime.now()
+        year = str(now.year)
+        year = year[2:]
+        month = str(now.month)
+        day = str(now.day)
+        if len(month) == 1:
+            month = str(0) + month
+        if len(day) == 1:
+            day = str(0) + day
+        date = str(year + month + day)
+        return date
     
-    def create_save_folder_name_box(self, val = "name", desc = "Folder name"):  # val = in box, desc = infront of box
+    def create_save_folder_name_box(self, desc = "Folder name"):
         """
-        Box for inserting the folder name in which the statistics file and the plots are saved.
+        Box for inserting the raw base name for statistics h5 file.
         """
+        current_date = self.calc_date()
         style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(current_date + "_hmm_results"), placeholder='name of folder', description=str(desc), disabled=False, style = style)
         return text
 
     def create_save_button(self):
@@ -158,7 +172,8 @@ class WidgetHmmVis():
                 #icon='check')
         return button
     
-    
+    def create_clear_output(self):
+        clear_output()
     
     
     
