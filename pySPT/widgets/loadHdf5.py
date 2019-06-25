@@ -318,7 +318,7 @@ class LoadHdf5():
             self.cells_trajectories_dr.append(trajectories_dr)
             self.cells_trajectories_Dconf.append(trajectories_dconf)
             self.cells_trajectories_dDconf.append(trajectories_ddconf)
-            self.cells_trajectories_dDconf.append(trajectories_dconf)
+            #self.cells_trajectories_dDconf.append(trajectories_dconf)
             self.cells_trajectories_chi2_rossier.append(trajectories_chi_msd)
             self.cells_trajectories_type.append(trajectories_type)
 

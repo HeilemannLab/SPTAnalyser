@@ -390,7 +390,7 @@ class WidgetLoadHdf5():
         return checkbox
     
     def create_hmm_trc_checkbox(self):
-        checkbox = widgets.Checkbox(value=True,
+        checkbox = widgets.Checkbox(value=False,
                          description='Save filtered .trc files',
                          disabled=False)
         return checkbox
