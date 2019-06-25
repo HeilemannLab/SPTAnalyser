@@ -46,6 +46,7 @@ class HmmVisualization():
         self.colour_palett_rgba = [i+"80" for i in self.colour_palett_hex] # "#%2x%2x%2x%2x"; alpha channel hex opacity values: https://medium.com/@magdamiu/android-transparent-colors-a2d55a9b4e66
         self.figures = []  # list with figure objects
         self.figure_names = []  # "figure_name + .png"
+        self.pixel_sizes = []
         # saving
         self.save_plots = False  # if true -> plots will be saved
         self.save_dir = ""
@@ -57,6 +58,7 @@ class HmmVisualization():
         self.get_number_of_states()
         self.get_aic_values()
         self.get_single_tps()
+        self.get_pixel_sizes()
         self.calc_states_percentages()
         self.calc_mean_tp()
         self.calc_mean_D()
@@ -85,6 +87,10 @@ class HmmVisualization():
     def get_number_of_cells(self):
         self.number_of_cells = len(self.cells)
         
+    def get_pixel_sizes(self):
+        for cell in self.cells:
+            self.pixel_sizes.append(cell.pixel_size)
+
     def get_cell_names(self):
         """
         Get raw base name of loadMergedHmm cell objects
@@ -315,7 +321,40 @@ class HmmVisualization():
         plt.show()
         self.figures.append(fig)
         self.figure_names.append("State_distrubution_pie_plot.png")
-    # state_transition_diagram(mean_pi, mean_tp, dmean_pi, dmean_tp, diffusions, ddiffusions)
+
+        
+        
+    def plot_trajectory(self, cell_name, trajectory_idx):
+        """
+        Plot a trajectory.
+        :param cell_name: name of cell, index will be created to cell name.
+        :param trajectory: number of trajectory -> index-1.
+        """
+        for cell in self.cells:
+            if cell.hmm_cell_name == cell_name:
+                cell_idx = self.cells.index(cell)
+                trc_file = np.zeros([len(cell.trc_hmm), 6])
+                trc_file[:,0] = list(map(lambda row: row[0], cell.trc_hmm))  # col0 = track id
+                trc_file[:,1] = list(map(lambda row: row[1], cell.trc_hmm))  # frame
+                trc_file[:,2] = list(map(lambda row: row[2]*int(self.pixel_sizes[cell_idx])*10**(-3), cell.trc_hmm))  # x in ym
+                trc_file[:,3] = list(map(lambda row: row[3]*int(self.pixel_sizes[cell_idx])*10**(-3), cell.trc_hmm))  # y in ym
+                trc_file[:,4] = list(map(lambda row: row[4], cell.trc_hmm))  # state
+                trc_file[:,5] = list(map(lambda row: row[5], cell.trc_hmm))  # intensity
+                #for trajectory_number in range(int(trc_file[:,0].min()), int(trc_file[:,0].max())+1):    
+                idx = trc_file[:,0] == trajectory_idx
+                localizations = trc_file[idx,:]
+                self.show_trajectory(localizations)
+        
+    def show_trajectory(self, localizations):
+        plt.plot(localizations[:,2], localizations[:,3], linestyle="--",  label="localization", color="lightgray")
+        for localization in localizations:
+            state = int(localization[4])
+            plt.plot(localization[2], localization[3], linestyle="--", marker="o", color=self.colour_palett[state])
+        #plt.legend()
+        plt.title("Trajectory of one particle")
+        plt.xlabel(r"$\mu$" + "m in x direction")
+        plt.ylabel(r"$\mu$" + "m in y direction")
+        plt.show()
     
     def D_rounded(self, D):
         exponent = 5  # floating point precision

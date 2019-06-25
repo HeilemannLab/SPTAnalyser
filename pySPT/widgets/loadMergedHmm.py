@@ -38,6 +38,7 @@ class LoadMergedHmm():
         self.trc_type = []
         #cell size
         self.cell_size = 0.0
+        self.pixel_size = 0.0
         # groups
         self.group_msd = self.hmm_cell_hdf5["MSD"]
         self.group_diffusion = self.hmm_cell_hdf5["diffusion"]
@@ -111,6 +112,10 @@ class LoadMergedHmm():
     def get_cell_size(self):
         dset_settings = self.group_settings["settings"]
         self.cell_size = dset_settings[0][0][3]
+        
+    def get_pixel_size(self):
+        dset_settings = self.group_settings["settings"]
+        self.pixel_size = dset_settings[0][0][1]
 
     def run(self):
         self.get_statistics_info()
@@ -119,6 +124,7 @@ class LoadMergedHmm():
         self.get_observation_matrix()
         self.get_observation_alphabet()
         self.get_weight_coef()
+        self.get_pixel_size()
         self.get_diffusion_coef()
         self.get_trcs()
         self.get_cell_size()

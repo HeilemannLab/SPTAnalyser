@@ -28,6 +28,11 @@ class WidgetHmmVis():
         self.suffix = ".h5"
         # plotting
         self.plot_button = self.create_plot_button()
+        self.cell_options = []
+        self.trajectory_options = []
+        self.drop_down_cells = self.create_drop_down_cells()
+        self.drop_down_trajectories = self.create_drop_down_trajectories()
+        self.plot_trajectory_button = self.create_plot_trajectory_button()
         # saving
         self.save_plots_checkbox = self.create_save_plots_checkbox()
         self.save_dir_box = self.create_save_dir_box()
@@ -92,6 +97,39 @@ class WidgetHmmVis():
         for name in files:
             if name.endswith(self.suffix):
                 self.file_names.append(os.path.join(root, name))
+                
+    def create_drop_down_cells(self):
+        drop_down_cells = widgets.Dropdown(
+                options=self.cell_options,
+                description='Number:',
+                disabled=False)
+        return drop_down_cells
+    
+    def get_cell_names(self, cells):
+        cell_names = []
+        for cell in cells:
+            cell_names.append(cell.hmm_cell_name)
+        self.drop_down_cells.options = sorted(cell_names)
+        return sorted(cell_names)
+    
+    def create_drop_down_trajectories(self):
+        drop_down_trajectories = widgets.Dropdown(
+                options=self.trajectory_options,
+                description='Number:',
+                disabled=False)
+        return drop_down_trajectories
+    
+    def create_plot_trajectory_button(self):
+        """
+        Button to plot single trajectories
+        """
+        button = widgets.Button(
+                description='plot',
+                disabled=False,
+                button_style='', # 'success', 'info', 'warning', 'danger' or ''
+                tooltip='plot chosen trajectory')
+                #icon='check')
+        return button
    
     # saving
     
@@ -176,170 +214,3 @@ class WidgetHmmVis():
         clear_output()
     
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-# =============================================================================
-#     def __init__(self):
-#         self.file_names = []  # list of file names for cell files
-#         self.suffix = ".h5"
-#         self.dir_button = self.create_dir_button()
-#         self.dir_box = self.create_dir_box()
-#         self.dir_name = ""  # input for directory
-#         self.open_dir = ""
-#         self.test_button = self.create_test_button()
-#         self.plot_button = self.create_plot_button()
-#         self.save_button = self.create_save_button()
-#         self.save_dir_box = self.create_save_dir_box()
-#         self.save_folder_name = ""
-#         self.save_dir_name = ""
-#         self.save_dir_browse_button = self.create_save_dir_browse_button()
-#         self.save_folder_name_box = self.create_save_folder_name_box()
-#         self.save_plots_checkbox = self.create_save_plots_checkbox()
-# =============================================================================
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-# =============================================================================
-#     def create_plot_button(self):
-#         button = widgets.Button(
-#                 description='plot',
-#                 disabled=False,
-#                 button_style='', # 'success', 'info', 'warning', 'danger' or ''
-#                 tooltip='browse for directory')
-#                 #icon='check')
-#         return button  
-#             
-#     def create_test_button(self):
-#         button = widgets.Button(
-#                 description='browse',
-#                 disabled=False,
-#                 button_style='', # 'success', 'info', 'warning', 'danger' or ''
-#                 tooltip='browse for directory')
-#                 #icon='check')
-#         return button  
-#     
-#     def create_dir_box(self, val = "", desc = "directory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
-#         """
-#         Box for inserting the directory with description, alternative for dir loading button.
-#         """
-#         style = {'description_width': 'initial'}  # display too long desc
-#         text = widgets.Text(value=str(val), placeholder='directory for filtered data', description=str(desc), disabled=False, style = style)
-#         return text
-# 
-#     def search_sub_folders(self, dir_name):
-#         if dir_name:
-#             for root, dirs, files in os.walk(dir_name):
-#                 self.extend_list(root, files)
-# 
-#     def extend_list(self, root, files):
-#         for name in files:
-#             if name.endswith(self.suffix):
-#                 self.file_names.append(os.path.join(root, name))
-#                
-#     def create_dir_button(self):
-#         """
-#         Button to load a directory as search platform.
-#         """
-#         button = widgets.Button(
-#                 description='browse',
-#                 disabled=False,
-#                 button_style='', # 'success', 'info', 'warning', 'danger' or ''
-#                 tooltip='browse for directory')
-#                 #icon='check')
-#         return button   
-#     
-#     def open_dir(self, b):
-#         print("xxx")
-#         root = tk.Tk()
-#         root.withdraw()
-#         root.update()
-#         root.name = fd.askdirectory(initialdir=os.getcwd(),title='Please select a directory') 
-#         root.update()
-#         root.destroy()
-#         self.open_dir = root.name
-#         self.dir_box.value=self.open_dir
-#         
-#     def change_dir_box(self, change):
-#         self.open_dir = self.dir_box.value  
-#         
-#     
-#     # saving  
-#     
-#     def create_save_button(self):
-#         button = widgets.Button(
-#                 description='save',
-#                 disabled=False,
-#                 button_style='', # 'success', 'info', 'warning', 'danger' or ''
-#                 tooltip='save results')
-#                 #icon='check')
-#         return button 
-#     
-#     
-#     def create_save_dir_browse_button(self):
-#         button = widgets.Button(
-#                 description='save',
-#                 disabled=False,
-#                 button_style='', # 'success', 'info', 'warning', 'danger' or ''
-#                 tooltip='save results')
-#                 #icon='check')
-#         return button
-#         
-#     def create_save_dir_box(self, val = "", desc = "directory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
-#         """
-#         Box for inserting the directory with description, alternative for dir loading button.
-#         """
-#         style = {'description_width': 'initial'}  # display too long desc
-#         text = widgets.Text(value=str(val), placeholder='directory for filtered data', description=str(desc), disabled=False, style = style)
-#         return text
-#     
-#     def change_save_dir_box(self, change):
-#         self.dir_save = self.save_dir_box.value  
-#         
-#     def create_save_folder_name_box(self, val = "folder name", desc = "directory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
-#         """
-#         Box for inserting the folder name for saving.
-#         """
-#         style = {'description_width': 'initial'}  # display too long desc
-#         text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
-#         return text
-#     
-# 
-#     def create_save_plots_checkbox(self):
-#         checkbox = widgets.Checkbox(value=True,
-#                          description='Save plots',
-#                          disabled=False)
-#         return checkbox
-#     
-#     
-#     def save_open_dir(self, b):
-#         root = tk.Tk()
-#         root.withdraw()
-#         root.update()
-#         root.name = fd.askdirectory(initialdir=os.getcwd(),title='Please select a directory') 
-#         root.update()
-#         root.destroy()
-#         self.save_dir_name = root.name
-#         self.save_dir_box.value=self.dir_save
-# 
-# =============================================================================
