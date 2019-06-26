@@ -51,10 +51,10 @@ class Cell():
         self.create_trajectories_hmm()  # based on the trc hmm file trajectories are created
         self.run_analysis_hmm()  # create hmm trajectory objects, if D > 0 -> trajectories are taken into account
         self.filter_trc_hmm()  # filter trc file for trajectories with D > 0
-        self.calc_sigma_dyn_hmm()  # take mean value of sigma dyn of filtered trajectories
         # trc type
         self.create_trajectories()
         self.analyse_trajectories()
+        self.calc_sigma_dyn_hmm()  # take mean value of sigma dyn of filtered trajectories
         # self.calc_sigma_dyn_type()  # at this point calculating sigma dyn does not make sence, because D < 0 and not fitted trajectories exist.
         self.convert_trc_type()  # np arrays instead of lists in list
         
@@ -103,13 +103,18 @@ class Cell():
         Calculate the dynamic localization error, based on the mean D, mean MSD_0, dt and dof values.
         Only trajectories with D < 0 are taken into account.
         """
-        self.sigma_dyn_hmm = np.mean([trajectory.sigma_dyn for trajectory in self.analysed_trajectories_hmm])
+        MSD_0 = np.mean([trajectory.MSD_0 for trajectory in self.analysed_trajectories if trajectory.D > 0])
+        #print([trajectory.MSD0 for trajectory in self.analysed_trajectories if trajectory.D > 0]])
+        D = np.mean([trajectory.D for trajectory in self.analysed_trajectories if trajectory.D > 0])
+        self.sigma_dyn_hmm = math.sqrt((MSD_0+(4/3)*D*self.dt)/4)
     
     def calc_sigma_dyn_type(self):
         """
         Calculate the dynamic localization error, based on the mean D, mean MSD_0, dt and dof values.
         """
-        self.sigma_dyn_type = np.mean([trajectory.sigma_dyn for trajectory in self.analysed_trajectories if trajectory.sigma_dyn > 0])
+        MSD_0 = np.mean([trajectory.MSD_0 for trajectory in self.analysed_trajectories if trajectory.D > 0])
+        D = np.mean([trajectory.D for trajectory in self.analysed_trajectories if trajectory.D > 0])
+        self.sigma_dyn_type = math.sqrt((MSD_0+(4/3)*D*self.dt)/4)
         
     def create_trajectories(self):
         """
@@ -127,7 +132,7 @@ class Cell():
         trc_file[:,3] = list(map(lambda row: row[3]*int(self.pixel_size)*10**(-3), self.trc_file_type))  # y in ym
         trc_file[:,4] = list(map(lambda row: row[4], self.trc_file_type))  # placeholder
         trc_file[:,5] = list(map(lambda row: row[5], self.trc_file_type))  # intensity
-        print("trc", sorted(list(set(trc_file[:,0]))))
+        #print("trc", sorted(list(set(trc_file[:,0]))))
         for trajectory_number in range(int(trc_file[:,0].min()), int(trc_file[:,0].max())+1):    
             idx = trc_file[:,0] == trajectory_number
             localizations = trc_file[idx,:]
@@ -166,7 +171,6 @@ class Cell():
             trajectory.analyse_particle()
         self.analysed_trajectories = self.trajectories
         x = [trajectory.trajectory_number for trajectory in self.analysed_trajectories]
-        print("tr id", x)
         
     def plot_trajectory(self, trajectory_number):
         """
@@ -190,7 +194,6 @@ class Cell():
         """
         with Pool(None) as p:
             self.analysed_trajectories = p.map(self.analyse_trajectory, self.trajectories)
-            print(self.analysed_trajectories)
             return self.analysed_trajectories
         
         

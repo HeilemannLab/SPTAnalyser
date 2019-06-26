@@ -283,7 +283,7 @@ class Trajectory():
         self.calc_length_MSD()
         self.calc_MSD()
         self.calc_diffusion()
-        self.calc_sigma_dyn()
+        #self.calc_sigma_dyn()
     
     def analyse_particle(self):
         self.calc_trajectory_number()

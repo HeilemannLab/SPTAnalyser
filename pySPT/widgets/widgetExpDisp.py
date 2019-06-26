@@ -33,7 +33,7 @@ class WidgetExpDisp():
         Radiobutton to choose between rapidSTORM and thunderSTORM.
         """
         button = widgets.RadioButtons(
-                options = ["thunderSTORM", "rapidSTORM"],
+                options = ["ThunderSTORM", "rapidSTORM"],
                 disabled = False)
         return button
     
@@ -56,7 +56,7 @@ class WidgetExpDisp():
         root = tk.Tk()  # window class
         root.withdraw()  # close the window 
         root.update()  # close the window
-        if self.software_button.value == "thunderSTORM":
+        if self.software_button.value == "ThunderSTORM":
             root.name = askopenfilename(title="Import .tracked.csv file", filetypes=(("csv files", "*.csv"),("all files", "*.*")))
         else:
             root.name = askopenfilename(title="Import .tracked.txt file", filetypes=(("text files", "*.txt"),("all files", "*.*")))

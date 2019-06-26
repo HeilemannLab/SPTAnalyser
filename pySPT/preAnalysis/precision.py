@@ -41,7 +41,7 @@ class Precision():
         rapidSTORM has uncertainty values for x and y respectively.
         """
         self.load_localization_file()
-        if self.software == "thunderSTORM":
+        if self.software == "ThunderSTORM":
             self.ts_log_columns()
             self.hist_x()
             self.hist_x_log()
@@ -69,7 +69,7 @@ class Precision():
         position_uncertainties col0 = x
         position_uncertainties col1 = y
         """
-        if self.software == "thunderSTORM":
+        if self.software == "ThunderSTORM":
             uncertainty_index = list(self.column_order.keys())[list(self.column_order.values()).index('"uncertainty_xy [nm]"')]
             file = pd.read_csv(self.file_name)
             file_uncertainty = file.iloc[:,uncertainty_index] 
@@ -194,7 +194,7 @@ class Precision():
                                             coeff_x[0], coeff_x[1], coeff_x[2])  # fit
         self.position_uncertainties_hist_log_x[:,3] = self.position_uncertainties_hist_log_x[:,1] - self.position_uncertainties_hist_log_x[:,2]  # residues
         self.mean_x = np.exp(coeff_x[1])
-        if self.software == "thunderSTORM":
+        if self.software == "ThunderSTORM":
             print("The mean position uncertainty is %.3f nm in the x/y-plane." %(self.mean_x))
         if self.software == "rapidSTORM":
             coeff_y, var_matrix_y = curve_fit(self.gauss_func, self.position_uncertainties_hist_log_y[:,0],
@@ -250,7 +250,7 @@ class Precision():
             month = str(0) + month
         if len(day) == 1:
             day = str(0) + day
-        if self.software == "thunderSTORM":
+        if self.software == "ThunderSTORM":
             out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_frequencies.txt" # System independent?
             header = "Localization uncertainty [nm]\t fraction\t"
         elif self.software == "rapidSTORM":
@@ -298,7 +298,7 @@ class Precision():
             month = str(0) + month
         if len(day) == 1:
             day = str(0) + day
-        if self.software == "thunderSTORM":
+        if self.software == "ThunderSTORM":
             out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_ln_frequencies.txt" # System independent?
             header = "ln(localization uncertainty) \t fraction\t gauss fit\t residues\t"
         elif self.software == "rapidSTORM":
@@ -347,7 +347,7 @@ class Precision():
         out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty.txt"
         file = open(out_file_name, 'w')
         if not (file.closed):
-            if self.software == "thunderSTORM":
+            if self.software == "ThunderSTORM":
                 file.write("localization uncertainty in nm\n")
                 file.write("%.4e\n" %(self.mean_x))
             elif self.software == "rapidSTORM":
@@ -361,7 +361,7 @@ class Precision():
     def save_precision(self, directory, base_name):
         #directory = directory
         #base_name = base_name
-        if self.software == "thunderSTORM":
+        if self.software == "ThunderSTORM":
             self.save_x_hist(directory, base_name)
             self.save_x_hist_log(directory, base_name)
         elif self.software == "rapidSTORM":
@@ -377,7 +377,7 @@ class Precision():
         For the HMM-analysis a microscope file for each cell is needed which containes the localization uncertainty,
         camera pixel size and integration time. This file will be saved in the pySPT preAnalysis folder per cell optionally.
         """
-        if self.software == "thunderSTORM":
+        if self.software == "ThunderSTORM":
             loc_uncertainty = self.mean_x
         elif self.software == "rapidSTORM":
             loc_uncertainty = (self.mean_x + self.mean_y) / 2

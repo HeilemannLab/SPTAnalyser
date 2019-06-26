@@ -37,7 +37,7 @@ class ExpDisplacement():
         # get the key for a certain value
         mjd_index = list(self.column_order.keys())[list(self.column_order.values()).index('"seg.mjd"')]
         mjd_n_index = list(self.column_order.keys())[list(self.column_order.values()).index('"seg.mjd_n"')]
-        if self.software == "thunderSTORM":
+        if self.software == "ThunderSTORM":
             df = pd.read_csv(self.file_name)
             df_mjd = df.iloc[:,mjd_index]  # get csv columns by index
             df_mjd_n = df.iloc[:,mjd_n_index]

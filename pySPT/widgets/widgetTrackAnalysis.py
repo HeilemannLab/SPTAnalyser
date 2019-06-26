@@ -73,12 +73,16 @@ class WidgetTrackAnalysis():
                          disabled=False)
         return checkbox
     
-    def create_min_track_length_hmm_box(self, val = "2", desc = "Min track length"):  # val = "F:\\Marburg\\single_colour_tracking\\resting\\roi.log"
+    def calc_min_track_length_hmm(self):
+        min_track_length = int(self.points_D_fit_box.value)+1
+        return str(min_track_length)
+    
+    def create_min_track_length_hmm_box(self, desc = "Min track length"):  # val = "F:\\Marburg\\single_colour_tracking\\resting\\roi.log"
         """
         Box for inserting the min track length for hmm.
-        """
+        """        
         style = {"description_width": "initial"}
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(self.calc_min_track_length_hmm()), placeholder='Type something', description=str(desc), disabled=False, style = style)
         return text
         
     def create_software_button(self):
