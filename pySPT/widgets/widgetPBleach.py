@@ -26,6 +26,7 @@ class WidgetPBleach():
         self.init_k = self.create_init_k_box()
         self.integration_time = self.create_init_integration_time_box()
         self.ignore_points = self.create_ignore_points_box()
+        self.save_plot_checkbox = self.create_save_plot_checkbox()
         
     def create_software_button(self):
         """
@@ -126,6 +127,13 @@ class WidgetPBleach():
                 tooltip='save the results')
                 #icon='check')
         return button    
+    
+    def create_save_plot_checkbox(self):
+        check_box = widgets.Checkbox(
+            value=True,
+            description='Save plots',
+            disabled=False)
+        return check_box
         
     def create_clear_output(self):
         clear_output()

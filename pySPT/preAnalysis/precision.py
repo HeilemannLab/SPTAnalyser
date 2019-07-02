@@ -34,6 +34,8 @@ class Precision():
         self.init_a = 0.
         self.init_mu = 0.
         self.init_sigma = 0.
+        self.figures = []
+        self.figure_names = []
         
     def run_precision(self):
         """
@@ -222,18 +224,24 @@ class Precision():
         if log and direction:
             sp.set_title("Histogram of logarithmic position uncertainties in {} direction".format(direction))
             sp.set_xlabel("Position uncertainty")
+            title = "uncertainty_hist_ln_" + str(direction)
         if not log and direction:
             sp.set_title("Histogram of position uncertainties in {} direction".format(direction))
             sp.set_xlabel("Position uncertainty [nm]")
+            title = "uncertainty_hist_" + str(direction)
         if log and not direction:
             sp.set_title("Histogram of logarithmic position uncertainties")
             sp.set_xlabel("Position uncertainty")
+            title = "uncertainty_hist_ln"
         if not log and not direction:
             sp.set_title("Histogram of position uncertainties")
             sp.set_xlabel("Position uncertainty [nm]")
+            title = "uncertainty_hist"
             
         #plt.savefig(out_file_name)
         plt.show()  # print the graph
+        self.figures.append(fig)
+        self.figure_names.append(title)
         
     def save_x_hist(self, directory, base_name):
         """
@@ -357,7 +365,6 @@ class Precision():
         else:
             print("error: could not open file %s. Make sure the folder does exist" %(out_file_name))
         
-        
     def save_precision(self, directory, base_name):
         #directory = directory
         #base_name = base_name
@@ -391,7 +398,21 @@ class Precision():
             file.write("%.6e \n" %(float(px_size)))
             file.write("%.6e \n" %(float(integration_time)))
             file.write("%.6e \n" %(loc_uncertainty))
-        
+            
+    def run_save_plots(self, directory, base_name):
+        print("save plots")
+        now = datetime.datetime.now()
+        year = str(now.year)
+        year = year[2:]
+        month = str(now.month)
+        day = str(now.day)
+        if len(month) == 1:
+            month = str(0) + month
+        if len(day) == 1:
+            day = str(0) + day
+        for figure, name in zip(self.figures, self.figure_names):
+            figure.savefig(directory + "\ " + year + month + day + "_" + base_name + "_" + name + ".pdf", format="pdf", transparent=True)
+    
 
 def main():
     file_name = "C:\\Users\\pcoffice37\\Documents\\rapidStorm_loc\\cell_17_MMStack_Pos0.ome.txt"  # testing file name

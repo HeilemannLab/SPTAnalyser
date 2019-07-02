@@ -60,7 +60,8 @@ class TrajectoryStatistics():
         self.tau_threshold_min_length = float(math.inf)  # from all cells, the min rossier length will be set as the default value
         self.corrected_frequencies = []  # mean cell frequencies - mean bg frequencies
         self.corrected_frequencies_percent = []  # mean cell frequencies - mean bg frequencies   
-        self.sigma_dyns = []  # dynamic localization error, based on filtered trajectories             
+        self.sigma_dyns = []  # dynamic localization error, based on filtered trajectories         
+        self.diff_fig = []  # log diffusion plot
 
     def calc_min_rossier_length(self):
         #self.tau_threshold_min_length = float(math.inf)
@@ -548,6 +549,7 @@ class TrajectoryStatistics():
         self.corrected_frequencies_percent = self.corrected_frequencies * self.normalization_factor_corrected
         
     def plot_bar_log_bins(self):
+        self.diff_fig = plt.figure()
         plt.subplot(111, xscale="log")
         (_, caps, _) = plt.errorbar(self.hist_diffusion, self.mean_frequencies_percent, yerr=self.mean_error_percent, capsize=4, label="relative frequency")  # capsize length of cap
         for cap in caps:
@@ -558,7 +560,10 @@ class TrajectoryStatistics():
         plt.ylabel("normalized relative occurence [%]")
         plt.xlabel("D [\u03BCm\u00b2/s]")
         plt.show() 
-        
+    
+    def save_diff_fig(self, directory, folder_name):
+        self.diff_fig.savefig(directory + "\\"+ folder_name +  "\\" + "diffusion_histogram.pdf", format="pdf", transparent=True)
+
     def plot_bar_log_bins_bg_corrected(self):
         plt.subplot(111, xscale="log")
         (_, caps, _) = plt.errorbar(self.hist_diffusion, self.corrected_frequencies_percent, yerr=self.corrected_frequencies_error_percent, capsize=4, label="relative frequency")  # capsize length of cap

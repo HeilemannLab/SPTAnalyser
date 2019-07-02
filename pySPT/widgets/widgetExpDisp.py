@@ -27,6 +27,7 @@ class WidgetExpDisp():
         self.file_button = self.create_file_button()
         self.run_button = self.create_run_button()
         self.save_button = self.create_save_button()
+        self.save_fig_checkbox = self.create_save_fig_checkbox()
     
     def create_software_button(self):
         """
@@ -113,6 +114,13 @@ class WidgetExpDisp():
     
     def is_file(self, file):
         return os.path.isfile(file)
+    
+    def create_save_fig_checkbox(self):
+        check_box = widgets.Checkbox(
+                value=True,
+                description='Save plot',
+                disabled=False)
+        return check_box
 
         
 def main():

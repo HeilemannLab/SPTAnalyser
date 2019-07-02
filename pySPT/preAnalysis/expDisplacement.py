@@ -26,6 +26,7 @@ class ExpDisplacement():
         self.mjd = []  # mjd/mjd_n
         self.mjd_histogram = []
         self.average_mjd = 0
+        self.max_displacement = 0
         self.fig = []
 
     def load_seg_file(self):
@@ -71,8 +72,10 @@ class ExpDisplacement():
         #self.mjd_max =  self.mjd_histogram[self.mjd_max_index, 0]
         #print("The expected displacement is %i [nm].\nThe corresponding frequency is %.4e." %(self.mjd_max, self.mjd_frequency_max))
         mjd_no_zeros = np.ma.masked_array(self.mjd[:,0], self.mjd[:,0] == 0)
+        self.max_displacement = self.mjd[:,0].max()
         self.average_mjd = mjd_no_zeros.mean()
         print("The expected displacement is %.3f nm." %(self.average_mjd)) 
+        print("The max displacement is %.3f nm." %(self.max_displacement))
         
     def plot_mjd_frequencies(self):
         self.fig = plt.figure()
@@ -130,7 +133,9 @@ class ExpDisplacement():
         file = open(out_file_name, 'w')
         if not (file.closed):
             file.write("exp_displacement [nm]\n")
-            file.write("%.3f" %self.average_mjd)
+            file.write("%.3f\n" %self.average_mjd)
+            file.write("max_displacement [nm]\n")
+            file.write("%.3f" %self.max_displacement)
             file.close()
         else:
             print("error: could not open file %s. Make sure the folder does exist" %(out_file_name))
@@ -141,11 +146,24 @@ class ExpDisplacement():
         self.calc_exp_displacement()
         self.plot_mjd_frequencies()
         
-    def save_exp_displacement(self, directory, base_name):
+    def save_exp_displacement(self, directory, base_name, save_fig):
         self.save_exp_disp(directory, base_name)
         self.save_mjd_frequencies(directory, base_name)
+        if save_fig:
+            self.run_save_plot(directory, base_name)
         print("Results are saved.")
         
+    def run_save_plot(self, directory, base_name):
+        now = datetime.datetime.now()
+        year = str(now.year)
+        year = year[2:]
+        month = str(now.month)
+        day = str(now.day)
+        if len(month) == 1:
+            month = str(0) + month
+        if len(day) == 1:
+            day = str(0) + day
+        self.fig.savefig(directory + "\ " + year + month + day + "_" + base_name + "_exp_displacement_histogram.pdf", format="pdf", transparent=True)
 
 def main():
     exp_displacement = ExpDisplacement()

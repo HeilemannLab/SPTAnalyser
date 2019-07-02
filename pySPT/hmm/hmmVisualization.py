@@ -41,6 +41,7 @@ class HmmVisualization():
         self.loc_density = []  # localizations in the trc hmm file / cell size
         self.mean_node_size = []  # state population mapped on circle size
         self.mean_edge_size = []  # tp log mapped on arrow size
+        self.colour_index = []  # each mean diffusion coefficient has a colour index, the position in the colour index list refers to D, the value in the colour index refers to the colour.
         self.colour_palett = ["royalblue", "forestgreen", "darkorange", "darkmagenta", "orangered"]
         self.colour_palett_hex = ["#4169e1", "#228b22", "#ff8c00", "#8b008b", "#ff4500"]
         self.colour_palett_rgba = [i+"80" for i in self.colour_palett_hex] # "#%2x%2x%2x%2x"; alpha channel hex opacity values: https://medium.com/@magdamiu/android-transparent-colors-a2d55a9b4e66
@@ -62,6 +63,8 @@ class HmmVisualization():
         self.calc_states_percentages()
         self.calc_mean_tp()
         self.calc_mean_D()
+        self.get_colour_index()
+        self.shuffle_colour_list()
         self.calc_loc_density()
         self.plot_D_boxplot()
         self.plot_D()
@@ -174,6 +177,7 @@ class HmmVisualization():
                 cell_diffusion[state] = cell.diffusion_coef[state][0]
             self.single_Ds[cell_idx] = cell_diffusion
         self.mean_D = np.mean(self.single_Ds, 0)
+        
         self.mean_D_error = np.std(self.single_Ds, 0, ddof=1) / (self.number_of_cells)**(1/2) 
         print("Mean diffusion coefficients [\u00B5m\u00B2/s]", end=" ")
         for i in self.mean_D:
@@ -181,6 +185,32 @@ class HmmVisualization():
         print(" ")
         #print("Single Ds", self.single_Ds)
         
+    def get_colour_index(self):
+        mean_D_sort = sorted(self.mean_D)
+        for i in self.mean_D:
+            idx = mean_D_sort.index(i)
+            self.colour_index.append(idx)
+            mean_D_sort[idx] = ""
+        
+    def shuffle_colour_list(self):
+        self.colour_palett = ["royalblue", "forestgreen", "darkorange", "darkmagenta", "orangered"]
+        self.colour_palett_hex = ["#4169e1", "#228b22", "#ff8c00", "#8b008b", "#ff4500"]
+        self.colour_palett = self.colour_palett[:self.number_of_states]
+        self.colour_palett_hex = self.colour_palett_hex[:self.number_of_states]
+        
+
+        shuffled_list = ["" for color in self.colour_palett]
+        shuffled_list_hex = ["" for color in self.colour_palett]
+       
+        
+        j = 0
+        for i in self.colour_index:
+            shuffled_list[j] = self.colour_palett[i]
+            shuffled_list_hex[j] = self.colour_palett_hex[i]
+            j += 1
+        self.colour_palett = shuffled_list
+        self.colour_palett_hex = shuffled_list_hex       
+            
     def calc_loc_density(self):
         """
         Number of localizations in the hmm trc file / cell size.
@@ -401,6 +431,10 @@ class HmmVisualization():
             dot.render('tmp/State_transiton_diagram.svg', view=True)
         else:
             dot.render(self.save_dir + "\\" + self.save_folder_name + "\\" + 'State_transiton_diagram.svg', view=False)
+            dot.format = "svg"
+            dot.render(self.save_dir + "\\" + self.save_folder_name + "\\" + 'State_transiton_diagram.svg', view=False)
+            dot.format = "png"
+            dot.render(self.save_dir + "\\" + self.save_folder_name + "\\" + 'State_transiton_diagram.png', view=False)
 # =============================================================================
 #         print("mean edge size", self.mean_edge_size)
 #         print("mean node size", self.mean_node_size)

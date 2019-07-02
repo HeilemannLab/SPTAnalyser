@@ -28,13 +28,14 @@ class WidgetPrecision():
         self.camera_integration_time_box = self.create_camera_integration_time_box()
         self.check_microscope = self.create_check_microscope()
         self.save_button = self.create_save_button()
+        self.save_figures_checkbox = self.create_save_figures_checkbox()
 
     def create_software_button(self):
         """
         Radiobutton to choose between rapidSTORM and thunderSTORM.
         """
         button = widgets.RadioButtons(
-                options = ["thunderSTORM", "rapidSTORM"],
+                options = ["ThunderSTORM", "rapidSTORM"],
                 disabled = False)
         return button
     
@@ -57,7 +58,7 @@ class WidgetPrecision():
         root = tk.Tk()  # window class
         root.withdraw()  # close the window 
         root.update()  # close the window
-        if self.software_button.value == "thunderSTORM":
+        if self.software_button.value == "ThunderSTORM":
             root.name = askopenfilename(title="Import .csv file", filetypes=(("csv files", "*.csv"),("all files", "*.*")))
         else:
             root.name = askopenfilename(title="Import .txt file", filetypes=(("text files", "*.txt"),("all files", "*.*")))
@@ -142,6 +143,13 @@ class WidgetPrecision():
         
     def create_clear_output(self):
         clear_output()
+        
+    def create_save_figures_checkbox(self):
+        check_box = widgets.Checkbox(
+                value=True,
+                description='Save plots',
+                disabled=False)
+        return check_box
         
         
 def main():

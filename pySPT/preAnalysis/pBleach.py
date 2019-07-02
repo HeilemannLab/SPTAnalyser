@@ -37,6 +37,7 @@ class PBleach():
         self.k = 0.01
         self.kcov = 0
         self.ignore_points = 0  # number of points to ignore for the exp. fit
+        self.figure = []
         
     def run_p_bleach(self):
         self.load_seg_file()
@@ -132,7 +133,7 @@ class PBleach():
         x1, x2 = 0, self.mjd_n_histogram[self.ignore_points:,1].max()  # x1 = min, x2 = max
         sp1_y1, sp1_y2 = 0, self.mjd_n_histogram[self.ignore_points:,2].max()
         sp2_y1, sp2_y2 = self.mjd_n_histogram[self.ignore_points:,4].min(), self.mjd_n_histogram[self.ignore_points:,4].max()
-        #fig = plt.figure()
+        fig = plt.figure()
         gridspec.GridSpec(4,4)  # set up supbplot grid 
         sp_1 = plt.subplot2grid((4,4), (0,0), colspan=4, rowspan=3)  # start left top = (0,0) = (row,column)
         sp_1.tick_params(axis='x',  # changes apply to the x-axis
@@ -162,6 +163,7 @@ class PBleach():
         sp_2.set_xlabel("time lag [s]")  # Number of data points used in MJD calculation
         sp_2.axis((x1, x2, sp2_y1, sp2_y2))
         plt.show() 
+        self.figure = fig
         
     def save_mjd_n_frequencies(self, directory, base_name):
         """
@@ -222,7 +224,17 @@ class PBleach():
         else:
             print("error: could not open file %s. Make sure the folder does exist" %(out_file_name))
             
-
+    def save_plot(self, directory, base_name):
+        now = datetime.datetime.now()
+        year = str(now.year)
+        year = year[2:]
+        month = str(now.month)
+        day = str(now.day)
+        if len(month) == 1:
+            month = str(0) + month
+        if len(day) == 1:
+            day = str(0) + day
+        self.figure.savefig(directory + "\ " + year + month + day + "_" + base_name + "_p_bleach_histogram.pdf", format="pdf", transparent=True)
 
        
         

@@ -51,6 +51,7 @@ class Cell():
         self.create_trajectories_hmm()  # based on the trc hmm file trajectories are created
         self.run_analysis_hmm()  # create hmm trajectory objects, if D > 0 -> trajectories are taken into account
         self.filter_trc_hmm()  # filter trc file for trajectories with D > 0
+        #self.filter_trc_hmm_del(2)
         # trc type
         self.create_trajectories()
         self.analyse_trajectories()
@@ -68,7 +69,10 @@ class Cell():
         trc_file[:,5] = list(map(lambda row: row[5], self.trc_file_hmm))  # intensity
         for trajectory_number in range(int(trc_file[:,0].min()), int(trc_file[:,0].max())+1):    
             idx = trc_file[:,0] == trajectory_number
+            # get rid of first localizations
+            #idx = self.localizations_del(2, idx)
             localizations = trc_file[idx,:]
+            #print("Trajectory number len loc", trajectory_number, len(localizations))
             if not (localizations.size==0):
                 self.trajectories_hmm.append(trajectory.Trajectory(localizations, self.tau_threshold, self.dt, self.dof, self.D_min, self.points_fit_D))
 
@@ -97,6 +101,37 @@ class Cell():
         trc_file[:,5] = list(map(lambda row: row[5], self.trc_file_hmm))  # intensity
         trc_idx = np.isin(trc_file[:,0], trajectory_idx)
         self.filtered_trc_file_hmm = trc_file[trc_idx,:]
+        
+    def localizations_del(self, locs_to_del, idx):
+        """
+        Delete the first localizations of a trajectory. Target: localizations based on which the trajectories are created.
+        :param locs_to_del: Amount of localizations to delete.
+        """
+        # get rid of first two localizations
+        count = 0
+        idx_count = 0
+        for i in idx:
+            if i and count < 2:
+                idx[idx_count] = False
+                count += 1
+            idx_count += 1
+        return idx
+                
+    def filter_trc_hmm_del(self, locs_to_del):
+        """
+        Delete the first localizations of a trajectory. Target: saved filtered trc file hmm.
+        :param locs_to_del: Amount of localizations to delete.
+        """
+        trajectory_idx = [trajectory.trajectory_number for trajectory in self.analysed_trajectories_hmm]
+        for idx in trajectory_idx:
+            entry_idx = 0
+            count = 0
+            for entry in self.filtered_trc_file_hmm[:,0]:    
+                if idx == entry and count < locs_to_del:
+                    self.filtered_trc_file_hmm = np.delete(self.filtered_trc_file_hmm, entry_idx, 0)
+                    count += 1
+                    entry_idx -= 1
+                entry_idx += 1
     
     def calc_sigma_dyn_hmm(self):
         """

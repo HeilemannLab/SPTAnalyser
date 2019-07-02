@@ -41,6 +41,7 @@ class TrackAnalysis():
         self.rossier_info = []
         self.diff_plot = []
         self.rossier_plot = []
+        self.diff_fig = []  # log diffusion plot
 
     def run_statistics_no_filter(self):
         """
@@ -221,6 +222,7 @@ class TrackAnalysis():
         self.mean_error = self.mean_error * self.normalization_factor 
         
     def plot_bar_log_bins(self):
+        self.diff_fig = plt.figure()
         plt.subplot(111, xscale="log")
         (_, caps, _) = plt.errorbar(self.hist_diffusion, self.mean_frequencies, yerr=self.mean_error, capsize=4, label="relative frequency")  # capsize length of cap
         for cap in caps:

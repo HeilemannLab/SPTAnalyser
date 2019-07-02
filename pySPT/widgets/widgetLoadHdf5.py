@@ -64,8 +64,10 @@ class WidgetLoadHdf5():
         self.dir_save = ""
         self.filtered_dataset_checkbox = self.create_filtered_dataset_checkbox()
         self.hmm_trc_checkbox = self.create_hmm_trc_checkbox()
+        self.Dplot_checkbox = self.create_Dplot_checkbox()
         self.save_button = self.create_save_button()
         self.save_folder_name_box = self.create_save_folder_name_box()
+        
         #self.current_date = ""
     
     def search_sub_folders(self, dir_name, is_cell=True):
@@ -386,6 +388,12 @@ class WidgetLoadHdf5():
     def create_filtered_dataset_checkbox(self):
         checkbox = widgets.Checkbox(value=True,
                          description='Save filtered dataset',
+                         disabled=False)
+        return checkbox
+    
+    def create_Dplot_checkbox(self):
+        checkbox = widgets.Checkbox(value=True,
+                         description='Save diffusion histogram',
                          disabled=False)
         return checkbox
     
