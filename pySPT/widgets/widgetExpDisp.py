@@ -6,6 +6,8 @@ Created on Mon Jan 14 15:40:08 2019
 
 Research Group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt am Main.
+
+Handling widgets for the expDisplacement.ipynb
 """
 
 
@@ -107,7 +109,7 @@ class WidgetExpDisp():
         clear_output()
         
     def warning_wrong_file_path(self):
-        print("This file path does not exist.")
+        print("The file path is empty or does not exist.")
         
     def warning_wrong_file(self):
         print("A file with false columns was loaded.")
@@ -131,5 +133,4 @@ def main():
     
 if __name__ == "__main__":
     main()
-    
     
