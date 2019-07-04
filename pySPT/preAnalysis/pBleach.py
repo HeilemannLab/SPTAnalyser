@@ -53,7 +53,7 @@ class PBleach():
             df = pd.read_csv(self.file_name)
             df_mjd_n = df.iloc[:,mjd_n_index]
             self.mjds = np.zeros(np.shape(df)[0])
-            self.mjds = df_mjd_n  # create numpy array with col0 = mjd and col1 = mjd_n            
+            self.mjds = df_mjd_n  # create numpy array with mjd_ns     
         elif self.software == "rapidSTORM":
             self.mjds = np.loadtxt(self.file_name, usecols = (mjd_n_index))  # col0 = mjd_n
 
@@ -61,8 +61,8 @@ class PBleach():
         """
         Create histogram with bins = mjd_n and frequencies as np.ndarray.
         Multiply the bins with camera integration time -> [s].
-        col(0) = frames
-        col(1) = frames * dt
+        col(0) = time lag
+        col(1) = time lag * dt
         col(2) = frequencies
         """
         max_bin = self.mjds.max()  # max mjd_n value
@@ -72,7 +72,7 @@ class PBleach():
                             bins = bin_size,
                             density = True)
         self.mjd_n_histogram = np.zeros([np.size(hist[0]),5])
-        self.mjd_n_histogram [:,0] = hist[1][:-1] # col0 = frames
+        self.mjd_n_histogram [:,0] = hist[1][:-1] # col0 = time lag
         np.multiply(self.mjd_n_histogram[:,0], float(self.dt), self.mjd_n_histogram [:,1])
         #self.mjd_n_histogram [:,1] = self.mjd_n_histogram[:,0]*self.dt  # col1 = s
         self.mjd_n_histogram [:,2] = hist[0][:]  # col2 = frequencies
@@ -94,8 +94,7 @@ class PBleach():
         
     def exp_decay_func(self, t, a, k):
         """
-        Describing the exp decay for the histogram of tracking lengths. a = k, if the lengths would be infinit,
-        if not it has to be a free parameter for fitting.
+        Describing the exp decay for the histogram of track lengths.
         """
         return a*np.exp(-t*k)
     
@@ -114,10 +113,13 @@ class PBleach():
         (2) Calculate the cumulative distribution function -> equals p_bleach.
         """
         #init_a = self.mjd_n_histogram[0,1] #old version
-        init_a = self.mjd_n_histogram[self.ignore_points:,2].max()
+        init_a = self.mjd_n_histogram[self.ignore_points:,2].max()  # always 1
         #  if one would like to neglect trajectories > valid_length for fitting a and k because most of them are 0 for one data set
         #[self.a, self.k], self.kcov = curve_fit(self.exp_decay_func, self.mjd_n_histogram[:self.valid_length,0], self.mjd_n_histogram[:self.valid_length,1], p0 = (init_a, init_k), method = "lm") #func, x, y, 
         [self.a, self.k], self.kcov = curve_fit(self.exp_decay_func, self.mjd_n_histogram[self.ignore_points:,1], self.mjd_n_histogram[self.ignore_points:,2], p0 = (init_a, self.init_k), method = "lm") #func, x, y, "lm"
+        print("a&k", self.a, self.k)
+        print(self.mjd_n_histogram)
+        print(curve_fit(self.exp_decay_func, self.mjd_n_histogram[self.ignore_points:,1], self.mjd_n_histogram[self.ignore_points:,2], p0 = (init_a, self.init_k), method = "lm"))
         self.p_bleach = self.cum_exp_decay_func(self.dt, self.k)
         print("Results: p_bleach = %.3f, k = %.4e, kv = %.4e" %(self.p_bleach, self.k, self.kcov[1,1]))  # Output for Jupyter Notebook File
         
@@ -160,7 +162,7 @@ class PBleach():
         sp_2.plot(self.mjd_n_histogram [self.ignore_points:,1], self.mjd_n_histogram [self.ignore_points:,4], "*", color = "0.5", label= "residues")
         sp_2.legend()
         sp_2.set_ylabel("Residue")
-        sp_2.set_xlabel("time lag [s]")  # Number of data points used in MJD calculation
+        sp_2.set_xlabel("Time lag [s]")  # Number of data points used in MJD calculation
         sp_2.axis((x1, x2, sp2_y1, sp2_y2))
         plt.show() 
         self.figure = fig
@@ -183,8 +185,8 @@ class PBleach():
             month = str(0) + month
         if len(day) == 1:
             day = str(0) + day
-        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_p_bleach" + "_mjd_n_frequencies.txt" # System independent?
-        header = "frames [count]\t duration [s]\t fraction\t exponential fit\t residues\t"
+        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_p_bleach" + "_histogram.txt" # System independent?
+        header = "frames [count]\tduration [s]\tfraction\texponential fit\tresidues\t"
         np.savetxt(out_file_name, 
                    X=self.mjd_n_histogram,
                    fmt = ("%i","%.4e","%.4e","%.4e", "%.4e"),
@@ -218,7 +220,7 @@ class PBleach():
 # =============================================================================
         file = open(out_file_name, 'w')
         if not (file.closed):
-            file.write("# p_bleach\t k [1/s]\t variance of k [1/s\u00b2]\t number of points masked\n")
+            file.write("# p_bleach\tk [1/s]\tvariance of k [1/s\u00b2]\tnumber of points masked\n")
             file.write("%.4e\t%.4e\t%.4e\t%d\n" %(self.p_bleach, self.k, self.kcov[1,1], self.ignore_points))
             file.close()
         else:

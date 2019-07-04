@@ -6,9 +6,12 @@ Created on Fri Jan 25 10:36:58 2019
 
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
+
+Handle widgets for the localization uncertainty JNB.
 """
 
 import tkinter as tk 
+import os
 from tkinter.filedialog import askopenfilename
 from ipywidgets import widgets
 from IPython.display import display
@@ -66,19 +69,21 @@ class WidgetPrecision():
         root.update()
         root.destroy()
         self.file_text_box.value=self.file_name
-        self.got_file_name = True
+        if os.path.isfile(self.file_name):
+            self.got_file_name = True
 
-    def create_file_box(self, val = "path", desc = "Complete path"):  # val = in box, desc = infront of box
+    def create_file_box(self, val = "", desc = "Complete path"):  # val = in box, desc = infront of box
         """
         Box for inserting the path with description, alternative for file loading button.
         """
         style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder='insert path', description=str(desc), disabled=False, style = style)
         return text
     
     def change_file_box(self, change):
         self.file_name = self.file_text_box.value  
-        self.got_file_name = True
+        if os.path.isfile(self.file_name):
+            self.got_file_name = True
     
     def create_run_button(self):
         """
@@ -136,7 +141,7 @@ class WidgetPrecision():
         return button
 
     def warning_wrong_file_path(self):
-        print("This file path does not exist.")
+        print("The file path is empty or does not exist.")
         
     def warning_wrong_file(self):
         print("A file with false columns was loaded.")

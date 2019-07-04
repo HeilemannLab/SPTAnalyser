@@ -59,19 +59,20 @@ class WidgetPBleach():
         if self.software_button.value == "ThunderSTORM":
             root.name = askopenfilename(title="Import .tracked.csv file", filetypes=(("csv files", "*.csv"),("all files", "*.*")))
         elif self.software_button.value == "rapidSTORM":
-            root.name = askopenfilename(title="Import .tracked.csv file", filetypes=(("text files", "*.txt"),("all files", "*.*")))
+            root.name = askopenfilename(title="Import .tracked.txt file", filetypes=(("text files", "*.txt"),("all files", "*.*")))
         self.file_name = root.name
         root.update()
         root.destroy()
         self.file_text_box.value = self.file_name  # inserts path in box for inserting the path
-        self.got_file_name = True
+        if os.path.isfile(self.file_name):
+            self.got_file_name = True
         
-    def create_file_box(self, val = "path", desc = "Complete path"):  # val = in box, desc = infront of box
+    def create_file_box(self, val = "", desc = "Complete path"):  # val = in box, desc = infront of box
         """
         Box for inserting the path with description, alternative for file loading button.
         """
         style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder='Insert path', description=str(desc), disabled=False, style = style)
         return text
     
     def create_ignore_points_box(self, val = "0", desc = "Number of points"):  # val = in box, desc = infront of box
@@ -84,7 +85,8 @@ class WidgetPBleach():
     
     def change_file_box(self, change):
         self.file_name = self.file_text_box.value  
-        self.got_file_name = True
+        if os.path.isfile(self.file_name):
+            self.got_file_name = True
         
     def create_init_k_box(self, val = "0.01", desc = "Initial k"): 
         """
@@ -101,7 +103,7 @@ class WidgetPBleach():
         Box for inserting the integration time in s.
         """
         style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder='insert path', description=str(desc), disabled=False, style = style)
         return text    
         
     def create_run_button(self):
@@ -131,7 +133,7 @@ class WidgetPBleach():
     def create_save_plot_checkbox(self):
         check_box = widgets.Checkbox(
             value=True,
-            description='Save plots',
+            description='Save plot',
             disabled=False)
         return check_box
         
@@ -139,7 +141,7 @@ class WidgetPBleach():
         clear_output()
         
     def warning_wrong_file_path(self):
-        print("This file path does not exist.")
+        print("The file path is empty or does not exist.")
         
     def warning_wrong_file(self):
         print("A file with false columns was loaded.")

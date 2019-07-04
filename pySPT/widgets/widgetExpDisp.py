@@ -67,7 +67,8 @@ class WidgetExpDisp():
         root.update()
         root.destroy()
         self.file_text_box.value=self.file_name
-        self.got_file_name = True
+        if os.path.isfile(self.file_name):
+            self.got_file_name = True
 
     def create_file_box(self, val = "", desc = "Complete path"):  # val = in box, desc = infront of box
         """
@@ -79,7 +80,8 @@ class WidgetExpDisp():
     
     def change_file_box(self, change):
         self.file_name = self.file_text_box.value  
-        self.got_file_name = True
+        if os.path.isfile(self.file_name):
+            self.got_file_name = True
     
     def create_run_button(self):
         """

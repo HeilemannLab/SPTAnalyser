@@ -11,12 +11,14 @@ Extract the localization precision from a rapidSTORM (x and y) or thunderSTORM (
 and build a mean value (log-transform).
 """
 
+
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 import datetime
 import pandas as pd
 #import seaborn as sns
+
 
 class Precision():
     def __init__(self):
@@ -96,9 +98,8 @@ class Precision():
         
     def ts_log_columns(self):
         """
-        Natural logarithm of position uncertainties x and y.
+        Natural logarithm of position uncertainties x.
         position_uncertainties_log col0 = ln(x)
-        position_uncertainties_log col1 = ln(y)
         """
         self.position_uncertainties_log = np.zeros([np.size(self.position_uncertainties[:,0]),2])
         log = np.log(self.position_uncertainties[:,0])
@@ -197,7 +198,7 @@ class Precision():
         self.position_uncertainties_hist_log_x[:,3] = self.position_uncertainties_hist_log_x[:,1] - self.position_uncertainties_hist_log_x[:,2]  # residues
         self.mean_x = np.exp(coeff_x[1])
         if self.software == "ThunderSTORM":
-            print("The mean position uncertainty is %.3f nm in the x/y-plane." %(self.mean_x))
+            print("The mean localization uncertainty is %.3f nm in the x/y-plane." %(self.mean_x))
         if self.software == "rapidSTORM":
             coeff_y, var_matrix_y = curve_fit(self.gauss_func, self.position_uncertainties_hist_log_y[:,0],
                                               self.position_uncertainties_hist_log_y[:,1],
@@ -206,7 +207,7 @@ class Precision():
                                                   coeff_y[0], coeff_y[1], coeff_y[2])  # fit
             self.position_uncertainties_hist_log_y[:,3] = self.position_uncertainties_hist_log_y[:,1] - self.position_uncertainties_hist_log_y[:,2]  # residues
             self.mean_y = np.exp(coeff_y[1])
-            print("The mean position uncertainty is %.3f nm in x and %.3f nm in y direction." %(self.mean_x, self.mean_y))
+            print("The mean localization uncertainty is %.3f nm in x and %.3f nm in y direction." %(self.mean_x, self.mean_y))
         
     def plot_hist(self, x_axis, y_axis, width, fit=False, fit_data=[], colour="gray", fit_style="--c", log = False, direction = False):
         #sns.set()
@@ -222,21 +223,21 @@ class Precision():
         sp.legend()
         sp.set_ylabel("Fraction")
         if log and direction:
-            sp.set_title("Histogram of logarithmic position uncertainties in {} direction".format(direction))
-            sp.set_xlabel("Position uncertainty")
-            title = "uncertainty_hist_ln_" + str(direction)
+            sp.set_title("Histogram of logarithmic localization uncertainties in {} direction".format(direction))
+            sp.set_xlabel("ln(localization uncertainty)")
+            title = "localization_uncertainty_ln_histogram_" + str(direction)
         if not log and direction:
-            sp.set_title("Histogram of position uncertainties in {} direction".format(direction))
-            sp.set_xlabel("Position uncertainty [nm]")
-            title = "uncertainty_hist_" + str(direction)
+            sp.set_title("Histogram of localization uncertainties in {} direction".format(direction))
+            sp.set_xlabel("Localization uncertainty [nm]")
+            title = "localization_uncertainty_histogram_" + str(direction)
         if log and not direction:
-            sp.set_title("Histogram of logarithmic position uncertainties")
-            sp.set_xlabel("Position uncertainty")
-            title = "uncertainty_hist_ln"
+            sp.set_title("Histogram of logarithmic localization uncertainties")
+            sp.set_xlabel("ln(localization uncertainty)")
+            title = "localization_uncertainty_ln_histogram"
         if not log and not direction:
-            sp.set_title("Histogram of position uncertainties")
-            sp.set_xlabel("Position uncertainty [nm]")
-            title = "uncertainty_hist"
+            sp.set_title("Histogram of localization uncertainties")
+            sp.set_xlabel("Localization uncertainty [nm]")
+            title = "localization_uncertainty_histogram"
             
         #plt.savefig(out_file_name)
         plt.show()  # print the graph
@@ -259,11 +260,11 @@ class Precision():
         if len(day) == 1:
             day = str(0) + day
         if self.software == "ThunderSTORM":
-            out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_frequencies.txt" # System independent?
-            header = "Localization uncertainty [nm]\t fraction\t"
+            out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_histogram.txt" # System independent?
+            header = "Localization uncertainty [nm]\tfraction\t"
         elif self.software == "rapidSTORM":
-            out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_x_frequencies.txt" # System independent?
-            header = "Localization uncertainty x [nm]\t fraction\t"
+            out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_x_histogram.txt" # System independent?
+            header = "Localization uncertainty x [nm]\tfraction\t"
         np.savetxt(out_file_name, 
                    X=self.position_uncertainties_hist_x,
                    fmt = ("%.1f","%.4e"),
@@ -284,8 +285,8 @@ class Precision():
             month = str(0) + month
         if len(day) == 1:
             day = str(0) + day
-        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_y_frequencies.txt" # System independent?
-        header = "Localization uncertainty y [nm]\t fraction\t"
+        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_y_histogram.txt" # System independent?
+        header = "Localization uncertainty y [nm]\tfraction\t"
         np.savetxt(out_file_name, 
                    X=self.position_uncertainties_hist_y,
                    fmt = ("%.1f","%.4e"),
@@ -307,11 +308,11 @@ class Precision():
         if len(day) == 1:
             day = str(0) + day
         if self.software == "ThunderSTORM":
-            out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_ln_frequencies.txt" # System independent?
-            header = "ln(localization uncertainty) \t fraction\t gauss fit\t residues\t"
+            out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_ln_histogram.txt" # System independent?
+            header = "ln(localization uncertainty)\tfraction\tgauss fit\tresidues\t"
         elif self.software == "rapidSTORM":
-            out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_ln_x_frequencies.txt" # System independent?
-            header = "ln(localization uncertainty) x \t fraction\t gauss fit\t residues\t"
+            out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_ln_x_histogram.txt" # System independent?
+            header = "ln(localization uncertainty) x\tfraction\tgauss fit\tresidues\t"
         np.savetxt(out_file_name, 
                    X=self.position_uncertainties_hist_log_x,
                    fmt = ("%.2f","%.4e","%.4e","%.4e"),
@@ -332,8 +333,8 @@ class Precision():
             month = str(0) + month
         if len(day) == 1:
             day = str(0) + day
-        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_ln_y_frequencies.txt" # System independent?
-        header = "ln(localization uncertainty) y \t fraction\t gauss fit\t residues\t "
+        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_localization_uncertainty" + "_ln_y_histogram.txt" # System independent?
+        header = "ln(localization uncertainty) y\tfraction\tgauss fit\tresidues\t "
         np.savetxt(out_file_name, 
                    X=self.position_uncertainties_hist_log_y,
                    fmt = ("%.2f","%.4e","%.4e","%.4e"),
@@ -356,10 +357,10 @@ class Precision():
         file = open(out_file_name, 'w')
         if not (file.closed):
             if self.software == "ThunderSTORM":
-                file.write("localization uncertainty in nm\n")
+                file.write("localization uncertainty [nm]\n")
                 file.write("%.4e\n" %(self.mean_x))
             elif self.software == "rapidSTORM":
-                file.write("localization uncertainty x in nm\t localization uncertainty y in nm\n")
+                file.write("localization uncertainty x in nm\tlocalization uncertainty y in nm\n")
                 file.write("%.4e\t%.4e\n" %(self.mean_x, self.mean_y))
             file.close()
         else:
@@ -400,7 +401,6 @@ class Precision():
             file.write("%.6e \n" %(loc_uncertainty))
             
     def run_save_plots(self, directory, base_name):
-        print("save plots")
         now = datetime.datetime.now()
         year = str(now.year)
         year = year[2:]
