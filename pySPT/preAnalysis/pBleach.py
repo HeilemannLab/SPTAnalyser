@@ -17,6 +17,7 @@ distribution function 1-exp(-dt*k) = probability of event in the interval [0..1]
 
 import numpy as np
 import datetime
+import os
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from scipy.optimize import curve_fit
@@ -31,7 +32,7 @@ class PBleach():
         self.mjd_n_histogram = []  # mjd_n, frequencies, exp fit, resudie
         self.p_bleach_results = []  # p_bleach, k, kv
         self.dt = 0.02  # integration time in s
-        self.init_k = 0.01
+        self.init_k = 0.5
         self.p_bleach = 0.0
         self.a = 0.01
         self.k = 0.01
@@ -46,7 +47,6 @@ class PBleach():
         self.calc_decay()
         self.plot_mjd_frequencies()
 
-        
     def load_seg_file(self):
         mjd_n_index = list(self.column_order.keys())[list(self.column_order.values()).index('"seg.mjd_n"')]
         if self.software == "ThunderSTORM":
@@ -117,11 +117,8 @@ class PBleach():
         #  if one would like to neglect trajectories > valid_length for fitting a and k because most of them are 0 for one data set
         #[self.a, self.k], self.kcov = curve_fit(self.exp_decay_func, self.mjd_n_histogram[:self.valid_length,0], self.mjd_n_histogram[:self.valid_length,1], p0 = (init_a, init_k), method = "lm") #func, x, y, 
         [self.a, self.k], self.kcov = curve_fit(self.exp_decay_func, self.mjd_n_histogram[self.ignore_points:,1], self.mjd_n_histogram[self.ignore_points:,2], p0 = (init_a, self.init_k), method = "lm") #func, x, y, "lm"
-        print("a&k", self.a, self.k)
-        print(self.mjd_n_histogram)
-        print(curve_fit(self.exp_decay_func, self.mjd_n_histogram[self.ignore_points:,1], self.mjd_n_histogram[self.ignore_points:,2], p0 = (init_a, self.init_k), method = "lm"))
         self.p_bleach = self.cum_exp_decay_func(self.dt, self.k)
-        print("Results: p_bleach = %.3f, k = %.4e, kv = %.4e" %(self.p_bleach, self.k, self.kcov[1,1]))  # Output for Jupyter Notebook File
+        print("Results: p_bleach = %.3f, k = %.4e s\u207B\u00B9, kv = %.4e s\u207B\u00B2" %(self.p_bleach, self.k, self.kcov[1,1]))  # Output for Jupyter Notebook File
         
     def calc_decay(self):
         """
@@ -186,7 +183,7 @@ class PBleach():
         if len(day) == 1:
             day = str(0) + day
         out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_p_bleach" + "_histogram.txt" # System independent?
-        header = "frames [count]\tduration [s]\tfraction\texponential fit\tresidues\t"
+        header = "frames [count]\ttime [s]\tfraction\texponential fit\tresidues\t"
         np.savetxt(out_file_name, 
                    X=self.mjd_n_histogram,
                    fmt = ("%i","%.4e","%.4e","%.4e", "%.4e"),
@@ -207,17 +204,6 @@ class PBleach():
         if len(day) == 1:
             day = str(0) + day
         out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_p_bleach.txt"
-# old attempt
-# =============================================================================
-#         self.p_bleach_results = np.zeros(3) # a np.array is like a column
-#         self.p_bleach_results[0], self.p_bleach_results[1], self.p_bleach_results[2] = self.p_bleach, self.k, self.kcov[1,1] # fill it with values
-#         self.p_bleach_results = np.matrix(self.p_bleach_results) # convert it to a matrix to be able to plot results in a horizontal line
-#         header = "p_bleach\t k\t variance of k\t"
-#         np.savetxt(out_file_name,
-#                    X=self.p_bleach_results,
-#                    fmt = ("%.4e","%.4e","%.4e"),
-#                    header = header)
-# =============================================================================
         file = open(out_file_name, 'w')
         if not (file.closed):
             file.write("# p_bleach\tk [1/s]\tvariance of k [1/s\u00b2]\tnumber of points masked\n")
@@ -238,7 +224,6 @@ class PBleach():
             day = str(0) + day
         self.figure.savefig(directory + "\ " + year + month + day + "_" + base_name + "_p_bleach_histogram.pdf", format="pdf", transparent=True)
 
-       
         
 def main():
     file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\cell_1_MMStack_Pos0.ome.tif.tracked.seg.txt"

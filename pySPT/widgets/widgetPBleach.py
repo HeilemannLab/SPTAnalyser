@@ -6,13 +6,18 @@ Created on Thu Jan 17 17:14:19 2019
 
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
+
+Handle widgets for the pBleach JNB.
 """
 
+
 import tkinter as tk 
+import os
 from tkinter.filedialog import askopenfilename
 from ipywidgets import widgets
 from IPython.display import display
 from IPython.display import clear_output
+
 
 class WidgetPBleach():
     def __init__(self):
@@ -88,7 +93,7 @@ class WidgetPBleach():
         if os.path.isfile(self.file_name):
             self.got_file_name = True
         
-    def create_init_k_box(self, val = "0.01", desc = "Initial k"): 
+    def create_init_k_box(self, val = "0.5", desc = "Initial k [s\u207B\u00B9]"): 
         """
         Box for inserting the initial k.
         """
