@@ -572,7 +572,7 @@ class TrajectoryStatistics():
         plt.xlim(self.min_D, self.max_D)
         plt.legend()
         plt.title("Distribution of diffusion coefficients (background corrected)")
-        plt.ylabel("normalized relative occurence [%]")
+        plt.ylabel("Normalized relative occurence [%]")
         plt.xlabel("D [\u03BCm\u00b2/s]")
         plt.show() 
         

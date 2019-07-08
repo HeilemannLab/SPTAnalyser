@@ -125,14 +125,21 @@ class TrcFormat():
         """
         self.trc_file_type = np.zeros([np.size(self.loaded_file[:,0]),8])
         self.trc_file_hmm = np.zeros([np.size(self.loaded_file[:,0]),7])
-        track_id = np.add(self.loaded_file[:,0],1)  # trc count starts at 1
-        seg_id = np.add(self.loaded_file[:,5],1)  # trc count starts at 1
+        track_id = self.loaded_file[:,0]
+        seg_id = self.loaded_file[:,5]
+        #track_id = np.add(self.loaded_file[:,0],1)  # trc count starts at 1
+        #seg_id = np.add(self.loaded_file[:,5],1)  # trc count starts at 1
         if self.software == "rapidSTORM":  # rapidSTORM starts frame counting at 0, thunderSTORM & PALMTracer at 1
             frame = np.add(self.loaded_file[:,1],1)
         elif self.software == "ThunderSTORM":
             frame = self.loaded_file[:,1]
         position_x = np.divide(self.loaded_file[:,2], int(self.pixel_size))
         position_y = np.divide(self.loaded_file[:,3], int(self.pixel_size))
+        
+        #position_x = self.loaded_file[:,2]
+        #position_y = self.loaded_file[:,3]
+        
+        
         intensity = self.loaded_file[:,4]
         self.trc_file_type[:,0] = track_id
         self.trc_file_type[:,1] = frame
@@ -158,21 +165,23 @@ class TrcFormat():
         structured_array_hmm = np.array(values_hmm, dtype=dtype_hmm)  # create structured array
         self.trc_file_type_sorted = np.sort(structured_array_type, order=["track.id", "frame"])  # sort by dtype name
         self.trc_file_hmm_sorted = np.sort(structured_array_hmm, order=["track.id", "frame"])  # sort by dtype name
-        
+
     def trc_hmm_filter(self):
         """
         For the HMM analysis, a min track length of 2 is needed for the algorithm.
-        Filter the trc file and neglect all trajectories with length < 2.
+        Filter the trc file and neglect all trajectories with length < hmm track length threshold.
+        id + 1
         """
-        # determine the max trajectory index
-        max_trajectory_index = 0
         trajectory_id = 0  # use track id 
-        for i in self.trc_file_hmm_sorted:  # based on track id -> i[0]
-            if int(i[trajectory_id]) > max_trajectory_index:
-                max_trajectory_index = int(i[trajectory_id])  
         step_count = 0   
         # determine the trajectory lengths and insert the value in the 7th column for all steps of one trajectory
         for i in range(len(self.trc_file_hmm_sorted)-1):
+            if i == len(self.trc_file_hmm_sorted)-2:  # second last entry in file
+                if self.trc_file_hmm_sorted[i+1][trajectory_id] == self.trc_file_hmm_sorted[i][trajectory_id]:
+                    step_count += 1
+                    for frame in range(step_count+1):  # the last column is the duration of the track
+                        self.trc_file_hmm_sorted[i+1-frame][6] = step_count+1
+                    step_count = 0
             if self.trc_file_hmm_sorted[i][trajectory_id] == self.trc_file_hmm_sorted[i+1][trajectory_id]:
                 step_count += 1
             else:
@@ -184,33 +193,27 @@ class TrcFormat():
         # get rid of last column with track_length (easier with rows being lists instead of np.voids)
         self.trc_file_hmm_filtered = list(map(lambda row: list(row)[:6], self.trc_file_hmm_filtered))
 # =============================================================================
-#         continuous_index_track = 1
 #         for i in range(len(self.trc_file_hmm_filtered)-1):
-#             if self.trc_file_hmm_filtered[i][0] == self.trc_file_hmm_filtered[i+1][0]:
-#                 self.trc_file_hmm_filtered[i][0] = continuous_index_track
-#             else:
-#                 self.trc_file_hmm_filtered[i][0] = continuous_index_track
-#                 continuous_index_track += 1 
+#             if self.trc_file_hmm[i][2] == self.trc_file_hmm[i+1][2] and self.trc_file_hmm[i][3] == self.trc_file_hmm[i+1][3]:
+#                 print("i, xi, xi+1, yi, yi+1", i, self.trc_file_hmm[i][2], self.trc_file_hmm[i+1][2], self.trc_file_hmm[i][3], self.trc_file_hmm[i+1][3])
+#         
 # =============================================================================
-        # because the min length has to be >= 2. Therefore the index has to be the same as the entry before.
-        # the last entry can't compare the following entry because it is the last. It will get the index from the entry before
-        try:
-            self.trc_file_hmm_filtered[len(self.trc_file_hmm_filtered)-1][0] = self.trc_file_hmm_filtered[len(self.trc_file_hmm_filtered)-2][0]  # track id
-        except IndexError:
-            print("All trajecoties are shorter as the minimum trajectory length inserted, please select a smaller minimum threshold.")
-        
     def trc_type_filter(self):
         """
         Throw all trajectories < self.min_track_length_type out.
+        Steps = length of trajectory - 1.
+        the 7th column entry is steps +1 = length!
+        id starts at 0!
         """     
-        # determine the max trajectory index
-        max_trajectory_index = 0
-        for i in self.trc_file_type_sorted:
-            if int(i[self.trajectory_id]) > max_trajectory_index:
-                max_trajectory_index = int(i[self.trajectory_id])      
         step_count = 0   
         # determine the trajectory lengths and insert the value in the 7th column for all steps of one trajectory
         for i in range(len(self.trc_file_type_sorted)-1):
+            if i == len(self.trc_file_type_sorted)-2:  # second last entry in file
+                if self.trc_file_type_sorted[i+1][self.trajectory_id] == self.trc_file_type_sorted[i][self.trajectory_id]:
+                    step_count += 1
+                    for frame in range(step_count+1):  # the last column is the duration of the track
+                        self.trc_file_type_sorted[i+1-frame][7] = step_count+1
+                    step_count = 0
             if self.trc_file_type_sorted[i][self.trajectory_id] == self.trc_file_type_sorted[i+1][self.trajectory_id]:
                 step_count += 1
             else:
@@ -221,88 +224,6 @@ class TrcFormat():
         self.trc_file_type_filtered = list(filter(lambda row: row[7] >= int(self.min_track_length_type), self.trc_file_type_sorted))
         # get rid of last column with track_length (easier with rows being lists instead of np.voids)
         self.trc_file_type_filtered = list(map(lambda row: list(row)[:7], self.trc_file_type_filtered)) 
-# =============================================================================
-#         # because the min length has to be >= 2. Therefore the index has to be the same as the entry before.
-#         # the last entry can't compare the following entry because it is the last. It will get the index from the entry before
-#         try:
-#             self.trc_file_type_filtered[len(self.trc_file_type_filtered)-1][0] = self.trc_file_type_filtered[len(self.trc_file_type_filtered)-2][0]  # track id
-#             self.trc_file_type_filtered[len(self.trc_file_type_filtered)-1][6] = self.trc_file_type_filtered[len(self.trc_file_type_filtered)-2][6]  # seg id
-#             print("Conversion successful.")
-#         except IndexError:
-#             print("All trajecoties are shorter as the minimum trajectory length inserted, please select a smaller minimum threshold.")          
-#             
-# =============================================================================
-# =============================================================================
-#     def filter_trc_file(self):
-#         """
-#         Throw all trajectories < self.min_track_length out & index continuously starting from 1.
-#         """       
-# # =============================================================================
-# #         # minimum track length has to be at least 2, because otherwise no HMM is possible.
-# #         if int(self.min_track_length) < 2:
-# #             self.min_track_length = 2
-# # =============================================================================
-#         # determine the max trajectory index
-#         max_trajectory_index = 0
-#         for i in self.trc_file_sorted:
-#             if int(i[self.trajectory_id]) > max_trajectory_index:
-#                 max_trajectory_index = int(i[self.trajectory_id])      
-#         step_count = 0   
-#         # determine the trajectory lengths and insert the value in the 7th column for all steps of one trajectory
-#         for i in range(len(self.trc_file_sorted)-1):
-#             if self.trc_file_sorted[i][self.trajectory_id] == self.trc_file_sorted[i+1][self.trajectory_id]:
-#                 step_count += 1
-#             else:
-#                 for frame in range(step_count+1):  # the last column is the duration of the track
-#                     self.trc_file_sorted[i-frame][7] = step_count+1
-#                 step_count = 0
-#         # filter for trajectories with lengths > min length
-#         self.trc_filtered = list(filter(lambda row: row[7] >= int(self.min_track_length_type), self.trc_file_sorted))
-# # =============================================================================
-# #         out_file_name = "C:\\Users\\pcoffice37\\Documents\\thunderSTORM\\swift_analysis\\pySPT_cell01_fp1\\analysis\\trc_format_filtered.trc"
-# #         header = "seg_id\t frame\t x [pixel]\t y [pixel]\t placeholder\t intensity [photon]\t"
-# #         np.savetxt(out_file_name, 
-# #                    X=self.trc_filtered,
-# #                    fmt = ("%i","%i", "%.3f", "%.3f", "%i", "%.3f", "%.3f"),
-# #                    header = header)
-# # =============================================================================
-#         # get rid of last column with track_length (easier with rows being lists instead of np.voids)
-#         self.trc_filtered = list(map(lambda row: list(row)[:7], self.trc_filtered)) 
-#         # continuously index the trajectories starting from 1
-#         continuous_index_track = 1
-#         for i in range(len(self.trc_filtered)-1):
-#             #print("i", i, self.trc_filtered[i][0])
-#             if self.trc_filtered[i][0] == self.trc_filtered[i+1][0]:
-#                 self.trc_filtered[i][0] = continuous_index_track
-#             else:
-#                 self.trc_filtered[i][0] = continuous_index_track
-#                 continuous_index_track += 1 
-#         # continuously index the seg id starting from 1
-#         continuous_index_seg = 1
-#         for i in range(len(self.trc_filtered)-1):
-#             if self.trc_filtered[i][6] == self.trc_filtered[i+1][6]:
-#                 self.trc_filtered[i][6] = continuous_index_seg
-#             else:
-#                 self.trc_filtered[i][6] = continuous_index_seg
-#                 continuous_index_seg += 1 
-#         # because the min length has to be >= 2. Therefore the index has to be the same as the entry before.
-#         # the last entry can't compare the following entry because it is the last. It will get the index from the entry before
-#         try:
-#             self.trc_filtered[len(self.trc_filtered)-1][0] = self.trc_filtered[len(self.trc_filtered)-2][0]  # track id
-#             self.trc_filtered[len(self.trc_filtered)-1][6] = self.trc_filtered[len(self.trc_filtered)-2][6]  # seg id
-#             print("Conversion successful.")
-#         except IndexError:
-#             print("All trajecoties are shorter as the minimum trajectory length inserted, please select a smaller minimum threshold.")
-# =============================================================================
-            
-# =============================================================================
-#     def get_rid_of_columns(self, column_idx):
-#         """
-#         For filtering by length, an additional column.
-#         """
-#         self.trc_filtered = list(map(lambda row: list(row)[:column_idx], self.trc_filtered))
-#         self.trc_file_sorted = list(map(lambda row: list(row)[:column_idx], self.trc_filtered))
-# =============================================================================
         
     def save_trc_file_analysis(self, directory, base_name):
         """

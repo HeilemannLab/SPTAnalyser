@@ -67,9 +67,10 @@ class SaveTrcHmm():
             day = str(0) + day
         #out_file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\pySPT_cell_1_MMStack_Pos0\\preAnalysis\\sorted.txt"
         out_file_name = self.save_dir + "\\" + year + month + day + "_" + self.raw_base_name + "_trc_hmm.trc"
-        header = "track_id\t frame\t x [pixel]\t y [pixel]\t placeholder\t intensity [photon]\t"
+        header = "track_id\tframe\tx [pixel]\ty [pixel]\tplaceholder\tintensity [photon]\t"
         #trc_hmm = list(map(lambda row: list(row)[:6], self.trc_filtered))  # get rid of seg id
         np.savetxt(out_file_name, 
                    X=self.trc_file,
                    header=header,
-                   fmt = ("%i","%i", "%.3f", "%.3f", "%i", "%.3f"))     
+                   delimiter="\t",
+                   fmt = ("%i","%i", "%.5f", "%.5f", "%i", "%.5f"))     

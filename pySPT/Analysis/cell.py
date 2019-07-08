@@ -59,6 +59,8 @@ class Cell():
         # self.calc_sigma_dyn_type()  # at this point calculating sigma dyn does not make sence, because D < 0 and not fitted trajectories exist.
         self.convert_trc_type()  # np arrays instead of lists in list
         
+
+        
     def create_trajectories_hmm(self):
         trc_file = np.zeros([len(self.trc_file_hmm),6])
         trc_file[:,0] = list(map(lambda row: row[0], self.trc_file_hmm))  # col0 = track id
@@ -85,7 +87,19 @@ class Cell():
             trajectory.analyse_particle()
             if trajectory.D > 0:
                 self.analysed_trajectories_hmm.append(trajectory)
-        #self.analysed_trajectories_hmm = self.trajectories_hmm  
+        #print("neg D", len([trajectory.D for trajectory in self.analysed_trajectories_hmm]))
+        #print("neg D neg MSD0", len([(trajectory.D, trajectory.MSD_0) for trajectory in self.analysed_trajectories_hmm if trajectory.D < 0 and trajectory.MSD_0 < 0]))
+# =============================================================================
+#         count_D_MSD0_pos = [(trajectory.D, trajectory.MSD_0) for trajectory in self.analysed_trajectories_hmm if trajectory.D > 0 and trajectory.MSD_0 > 0]
+#         count_D_MSD0_neg = [(trajectory.D, trajectory.MSD_0) for trajectory in self.analysed_trajectories_hmm if trajectory.D < 0 and trajectory.MSD_0 < 0]
+#         count_Dpos_MSD0neg = [(trajectory.D, trajectory.MSD_0) for trajectory in self.analysed_trajectories_hmm if trajectory.D > 0 and trajectory.MSD_0 < 0]
+#         count_Dneg_MSD0pos = [(trajectory.D, trajectory.MSD_0) for trajectory in self.analysed_trajectories_hmm if trajectory.D < 0 and trajectory.MSD_0 > 0]
+#         print(count_D_MSD0_pos, count_D_MSD0_neg, count_Dpos_MSD0neg, count_Dneg_MSD0pos)
+#         
+#         summe = len(count_D_MSD0_pos) + len(count_D_MSD0_neg) + len(count_Dpos_MSD0neg) + len(count_Dneg_MSD0pos) 
+#         print(len(count_D_MSD0_pos)/summe, len(count_D_MSD0_neg)/summe, len(count_Dpos_MSD0neg)/summe, len(count_Dneg_MSD0pos)/summe)
+# =============================================================================
+        self.analysed_trajectories_hmm = self.trajectories_hmm  
         
     def filter_trc_hmm(self):
         """
@@ -138,9 +152,9 @@ class Cell():
         Calculate the dynamic localization error, based on the mean D, mean MSD_0, dt and dof values.
         Only trajectories with D < 0 are taken into account.
         """
-        MSD_0 = np.mean([trajectory.MSD_0 for trajectory in self.analysed_trajectories if trajectory.D > 0])
-        #print([trajectory.MSD0 for trajectory in self.analysed_trajectories if trajectory.D > 0]])
-        D = np.mean([trajectory.D for trajectory in self.analysed_trajectories if trajectory.D > 0])
+        MSD_0 = np.mean([trajectory.MSD_0 for trajectory in self.analysed_trajectories_hmm])
+        D = np.mean([trajectory.D for trajectory in self.analysed_trajectories_hmm])
+        #print("MSD0 & D", MSD_0, D, [trajectory.MSD_0 for trajectory in self.analysed_trajectories_hmm], [trajectory.D for trajectory in self.analysed_trajectories_hmm])
         self.sigma_dyn_hmm = math.sqrt((MSD_0+(4/3)*D*self.dt)/4)
     
     def calc_sigma_dyn_type(self):
@@ -205,7 +219,12 @@ class Cell():
         for trajectory in tqdm(self.trajectories):
             trajectory.analyse_particle()
         self.analysed_trajectories = self.trajectories
-        x = [trajectory.trajectory_number for trajectory in self.analysed_trajectories]
+        #print("immobile", len([(trajectory.D) for trajectory in self.analysed_trajectories if trajectory.D < self.D_min]), [(trajectory.D) for trajectory in self.analysed_trajectories if trajectory.D < self.D_min])
+        #print("confined", len([(trajectory.tau, trajectory.D) for trajectory in self.analysed_trajectories if trajectory.tau < self.tau_threshold and not trajectory.immobility and trajectory.analyse_successful]), [(trajectory.tau, trajectory.D) for trajectory in self.analysed_trajectories if trajectory.tau < self.tau_threshold and not trajectory.immobility and trajectory.analyse_successful])
+        #print("free", len([(trajectory.tau, trajectory.D) for trajectory in self.analysed_trajectories if trajectory.tau > self.tau_threshold and not trajectory.immobility and trajectory.analyse_successful]), [(trajectory.tau, trajectory.D) for trajectory in self.analysed_trajectories if trajectory.tau > self.tau_threshold and not trajectory.immobility and trajectory.analyse_successful])
+        #print("not success", len([trajectory for trajectory in self.analysed_trajectories if not trajectory.analyse_successful]), [trajectory for trajectory in self.analysed_trajectories if not trajectory.analyse_successful])
+        #print("total trajectories", len(self.analysed_trajectories))
+
         
     def plot_trajectory(self, trajectory_number):
         """

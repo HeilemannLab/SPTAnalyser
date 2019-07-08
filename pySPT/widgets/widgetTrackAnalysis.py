@@ -19,8 +19,8 @@ from IPython.display import clear_output
 class WidgetTrackAnalysis():
     def __init__(self):
         self.data_set_dir = ""
-        #self.ignore_words_box = self.create_ignore_words_box()
-        #self.masked_words = []
+        self.ignore_words_box = self.create_ignore_words_box()
+        self.masked_words = []
         self.software_button = self.create_software_button()
         self.file_names = []
         self.suffix = ""
@@ -95,16 +95,14 @@ class WidgetTrackAnalysis():
                 disabled = False)
         return button
         
-# =============================================================================
-#     def create_ignore_words_box(self, val = "hmm", desc = "Mask words"):
-#         """
-#         The string in the box contains words that lead to not loading a file if one of the words is contained.
-#         Commaseparate mask words.
-#         """
-#         style = {"description_width": "initial"}
-#         text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
-#         return text       
-# =============================================================================
+    def create_ignore_words_box(self, val = "", desc = "Mask words"):
+        """
+        The string in the box contains words that lead to not loading a file if one of the words is contained.
+        Commaseparate mask words.
+        """
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder='type something', description=str(desc), disabled=False, style = style)
+        return text       
         
     def create_trajectory_id_button(self):
         """
@@ -136,13 +134,18 @@ class WidgetTrackAnalysis():
                 
     def extendList(self, root, files):
         # create mask word list
-        #ignore_words = self.ignore_words_box.value.replace(" ", "")
-        #self.masked_words = ignore_words.split(",")                
+        ignore_words = self.ignore_words_box.value.replace(" ", "")
+        self.masked_words = ignore_words.split(",")          
+        if self.masked_words == [""]:
+            self.masked_words = [] 
         for name in files:
             #if name.endswith(self.suffix) and "background" not in name:
             if name.endswith(self.suffix):
-                #if not any(x in name for x in self.masked_words):
-                self.file_names.append(os.path.join(root, name))
+                if self.masked_words:
+                    if not any(x in name for x in self.masked_words):  #does not work with empty string
+                        self.file_names.append(os.path.join(root, name))
+                else:
+                    self.file_names.append(os.path.join(root, name))
                 
     def create_dir_button(self):
         """
@@ -167,24 +170,24 @@ class WidgetTrackAnalysis():
         self.dir_box.value=self.dir_name
         self.got_dir = True
         
-    def create_dir_box(self, val = "directory to be searched in", desc = "directory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+    def create_dir_box(self, val = "", desc = "Directory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
         """
         Box for inserting the directory with description, alternative for dir loading button.
         """
         style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder='directory to be searched in', description=str(desc), disabled=False, style = style)
         return text
     
     def change_dir_box(self, change):
         self.dir_name = self.dir_box.value  
         self.got_dir = True
 
-    def create_roi_box(self, val = "path of roi", desc = "roi"):  # val = "F:\\Marburg\\single_colour_tracking\\resting\\roi.log"
+    def create_roi_box(self, val = "", desc = "roi"):  # val = "F:\\Marburg\\single_colour_tracking\\resting\\roi.log"
         """
         Box for inserting the roi file, alternative for roi loading button.
         """
         style = {"description_width": "initial"}
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder='path of roi', description=str(desc), disabled=False, style = style)
         return text
 
     def change_roi_box(self, change):
@@ -259,7 +262,7 @@ class WidgetTrackAnalysis():
         text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
         return text
     
-    def create_dof_box(self, val = "4", desc = "degree of freedom of D"):
+    def create_dof_box(self, val = "4", desc = "Degree of freedom of D"):
         """
         Box for inserting the camera integration time for tau threshold calculation.
         """

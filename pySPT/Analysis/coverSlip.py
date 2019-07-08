@@ -96,9 +96,17 @@ class CoverSlip():
                 else:
                     raw_base_name += i   
             one_cell.name = raw_base_name
-            if self.roi_file:
-                for file in roi_file:
-                    if one_cell.name in file[0]:
+            if self.roi_file:  # if the raw base name of the cell equals the raw roi_file [0] entry, the cell gets its size
+                for file in roi_file:  # raw_cell_name = cell01, roi_file [0] = cell01.tracked.csv, cell01.tracked, cell01 -> all would be ok
+                    raw_file = ""  
+                    for i in file[0]:
+                        if i == ".":
+                            break
+                        else:
+                            raw_file += i
+                    raw_file = raw_file.replace('"', "")
+                    if one_cell.name == raw_file:
+                        print("roi check", file)
                         one_cell.size = file[1]     
             # in PT the column order is set and not necessary.
             if self.software == "PALMTracer":
@@ -127,24 +135,27 @@ class CoverSlip():
             
             trc_file_type = trc_format.trc_file_type_filtered
             trc_file_hmm = trc_format.trc_file_hmm_filtered
-            one_cell.trc_file_type = trc_file_type
-            one_cell.trc_file_hmm = trc_file_hmm
-            one_cell.seg_id = self.seg_id
-            one_cell.min_track_length_type = self.min_track_length_type
-            one_cell.min_track_length_hmm = self.min_track_length_hmm
-            one_cell.tau_threshold = float(self.tau_threshold)
-            one_cell.dt = float(self.dt)
-            one_cell.pixel_amount = float(self.pixel_amount)
-            one_cell.pixel_size = float(self.pixel_size)
-            one_cell.dof = float(self.dof)
-            one_cell.D_min = float(self.D_min)
-            one_cell.points_fit_D = int(self.points_fit_D)
-            one_cell.run_analysis()
-            self.cell_trajectories.append(one_cell.analysed_trajectories)
-            self.cells.append(one_cell)
-        print("Analysis took {} s".format(time.time()-start))
-        
-    def plot_trajectory(self, cell_name, trajectory):
+            if trc_file_type and trc_file_hmm:
+                one_cell.trc_file_type = trc_file_type
+                one_cell.trc_file_hmm = trc_file_hmm
+                one_cell.seg_id = self.seg_id
+                one_cell.min_track_length_type = self.min_track_length_type
+                one_cell.min_track_length_hmm = self.min_track_length_hmm
+                one_cell.tau_threshold = float(self.tau_threshold)
+                one_cell.dt = float(self.dt)
+                one_cell.pixel_amount = float(self.pixel_amount)
+                one_cell.pixel_size = float(self.pixel_size)
+                one_cell.dof = float(self.dof)
+                one_cell.D_min = float(self.D_min)
+                one_cell.points_fit_D = int(self.points_fit_D)
+                one_cell.run_analysis()
+                self.cell_trajectories.append(one_cell.analysed_trajectories)
+                self.cells.append(one_cell)
+            else:
+                print("All trajecoties are shorter as the minimum trajectory length inserted, please select a smaller minimum threshold.")
+            print("Analysis took {} s".format(time.time()-start))
+            
+    def plot_trajectory(self, cell_name, trajectory_idx):
         """
         Plot a trajectory.
         :param cell_name: name of cell, index will be created to cell name.
@@ -153,7 +164,10 @@ class CoverSlip():
         for cell in self.cells:
             if cell.name == cell_name:
                 cell_index = self.cells.index(cell)
-        self.cell_trajectories[cell_index][int(trajectory)-1].plot_particle()
+                for trajectory in cell.analysed_trajectories:
+                    if trajectory_idx == trajectory.trajectory_number:
+                        target_trajectory = cell.analysed_trajectories.index(trajectory)
+        self.cell_trajectories[cell_index][target_trajectory].plot_particle()
 
         
 

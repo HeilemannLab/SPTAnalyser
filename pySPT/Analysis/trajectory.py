@@ -83,6 +83,8 @@ class Trajectory():
         if diffusion is 2D -> D = slope/4, if 3D D = slope/6 ...
         """
         self.MSD_D = np.zeros([self.points_fit_D,4])
+        if len(self.MSDs) < 4:
+            print(self.trajectory_number, self.MSDs)
         self.MSD_D[:,1] = self.MSDs[:self.points_fit_D]
         for i in range(self.points_fit_D):
             self.MSD_D[i,0] = (i+1)*self.dt
@@ -94,7 +96,6 @@ class Trajectory():
         self.chi_D = chisq
         self.dD = std_err/self.dof
         self.MSD_0 = intercept
-        self.dMSD_0 = ""
         
     def calc_sigma_dyn(self):
         """
@@ -223,8 +224,8 @@ class Trajectory():
             [chisq, p] = chisquare(MSDs, self.function_full_MSD(times, self.r, self.D_conf))
             self.chi_MSD_fit = chisq
             self.tau = self.r**2/(3*self.D_conf)
-            self.dr = self.cov[0,0]
-            self.dD_conf = self.cov[1,1]  
+            self.dr = self.cov[0,0]**0.5
+            self.dD_conf = self.cov[1,1]**0.5  
             self.dtau = math.sqrt((2*self.r/(3*self.D_conf)*self.dr)**2 + (-self.r**2/(3*self.D_conf**2)*self.dD_conf)**2)
             self.MSD_fit[:,2] = self.function_full_MSD(times, self.r, self.D_conf)
             self.MSD_fit[:,3] = self.MSD_fit[:,1] - self.MSD_fit[:,2]

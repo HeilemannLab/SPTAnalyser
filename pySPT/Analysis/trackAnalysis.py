@@ -88,10 +88,12 @@ class TrackAnalysis():
             count_immobile = 0
             count_confined = 0
             count_free = 0
+            count_not_successful = 0
             for cell in self.cell_trajectories_filtered:
                 count_immobile_cell = 0
                 count_confined_cell = 0
                 count_free_cell = 0
+                count_not_successful_cell = 0
                 for trajectory in cell:
                     if trajectory.immobility and trajectory.confined and trajectory.analyse_successful:
                         count_immobile_cell += 1
@@ -103,22 +105,29 @@ class TrackAnalysis():
                     if not trajectory.confined and not trajectory.immobility and trajectory.analyse_successful:
                         count_free_cell += 1
                         count_free +=1
+                    if not trajectory.analyse_successful:
+                        count_not_successful_cell += 1
+                        count_not_successful += 1
                 cell_index = self.cell_trajectories_filtered.index(cell)
                 ratio_immobile_cell = count_immobile_cell/self.total_trajectories_cell[cell_index]*100
                 ratio_confined_cell = count_confined_cell/self.total_trajectories_cell[cell_index]*100
                 ratio_free_cell = count_free_cell/self.total_trajectories_cell[cell_index]*100
-                cell_types_percent = (ratio_immobile_cell, ratio_confined_cell, ratio_free_cell)
+                ratio_not_successful_cell = count_not_successful_cell/self.total_trajectories_cell[cell_index]*100
+                cell_types_percent = (ratio_immobile_cell, ratio_confined_cell, ratio_free_cell, ratio_not_successful_cell)
                 self.cell_type_count.append(cell_types_percent)
             ratio_immobile = count_immobile/self.total_trajectories*100
             ratio_confined = count_confined/self.total_trajectories*100
             ratio_free = count_free/self.total_trajectories*100
+            ratio_not_successful = count_not_successful/self.total_trajectories*100
         else:
             ratio_immobile = 0
             ratio_confined = 0
             ratio_free = 0
+            ratio_not_successful = 0
         print("%.1f %% are immobile" %(ratio_immobile))
         print("%.1f %% are confined" %(ratio_confined))
         print("%.1f %% are free" %(ratio_free)) 
+        print("%.1f %% could not be analysed" %(ratio_not_successful)) 
         print("Total trajectories:", self.total_trajectories)
 
     def run_plot_diffusion_histogram(self, desired_bin_size):
@@ -230,7 +239,7 @@ class TrackAnalysis():
         plt.xlim(self.min_D, self.max_D)
         plt.legend()
         plt.title("Distribution of diffusion coefficients")
-        plt.ylabel("normalized relative occurence [%]")
+        plt.ylabel("Normalized relative occurence [%]")
         plt.xlabel("D [\u03BCm\u00b2/s]")
         plt.show() 
 
