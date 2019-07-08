@@ -15,13 +15,12 @@ with open("README.md", "r") as fh:
     
 setuptools.setup(name = "pySPT",
                  version = "8.07",
-                 data_files = [("", ["LICENSE.txt"])],
                  author = "Johanna Rahm and Sebastian Malkusch",
                  author_email = "johanna.rahm@stud.uni-frankfurt.de",
                  description = "a package for analysing SPT data",
                  long_description = long_description,
                  long_description_content_type = "text/markdown",
-                 #licence_file = "LICENSE", how to get license?? 
+                 licence = "GNU GENERAL PUBLIC LICENSE"
                  url="https://github.com/JohannaRahm/pySPT",
                  packages = setuptools.find_packages(),
                  install_requires=["numpy",
