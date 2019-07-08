@@ -204,7 +204,7 @@ def init_save_track_analysis(cover_slip, cell_index, track_analysis, widget_trac
     if widget_track_analysis.hmm_check_box.value:
         widget_dir_structure.sub_folder = "\\hmm"
         widget_dir_structure.create_folder()
-        save_trc_hmm = saveTrcHmm.SaveTrcHmm(cell.filtered_trc_file_hmm, cell.pixel_size, widget_dir_structure.sub_folder_dir, widget_dir_structure.raw_base_name)
+        save_trc_hmm = saveTrcHmm.SaveTrcHmm(cell.filtered_trc_file_hmm, cell.pixel_size, widget_dir_structure.sub_folder_dir, widget_dir_structure.raw_base_name, widget_track_analysis.hmm_trc_float_precision_box.value)
         save_trc_hmm.run_save()
     
     
@@ -325,7 +325,7 @@ def init_save_hmm_vis_stats(hmm_vis, directory, folder_name):
         one_cell = (hmm_vis.cells[cell_idx].hmm_cell_name, hmm_vis.cells[cell_idx].cell_size, hmm_vis.loc_density[cell_idx]*hmm_vis.cells[cell_idx].cell_size, hmm_vis.loc_density[cell_idx], hmm_vis.aic_values[cell_idx])
         cell_info.append(one_cell)
     save_hmm_vis.cell_info(cell_info)
-    save_hmm_vis.mean_aic_value(hmm_vis.mean_aic_value)
+    #save_hmm_vis.mean_aic_value(hmm_vis.mean_aic_value)
     save_hmm_vis.mean_states(hmm_vis.states_percentages, hmm_vis.mean_D, hmm_vis.mean_D_error)
     save_hmm_vis.mean_tps(hmm_vis.mean_tps)
     for cell_idx in range(len(hmm_vis.cells)):

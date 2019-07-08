@@ -28,7 +28,7 @@ class HmmVisualization():
         self.number_of_states = 0  # number of hidden states = diffusion coefficients 
         self.cell_names = []
         self.aic_values = []
-        self.mean_aic_value = 0
+        #self.mean_aic_value = 0
         self.single_states_percentages = []
         self.states_percentages = []  # population of states in %
         self.states_percentages_error = []  # statistic error of mean
@@ -46,7 +46,7 @@ class HmmVisualization():
         self.colour_palett_hex = ["#4169e1", "#228b22", "#ff8c00", "#8b008b", "#ff4500"]
         self.colour_palett_rgba = [i+"80" for i in self.colour_palett_hex] # "#%2x%2x%2x%2x"; alpha channel hex opacity values: https://medium.com/@magdamiu/android-transparent-colors-a2d55a9b4e66
         self.figures = []  # list with figure objects
-        self.figure_names = []  # "figure_name + .png"
+        self.figure_names = []  # "figure_name"
         self.pixel_sizes = []
         # saving
         self.save_plots = False  # if true -> plots will be saved
@@ -80,9 +80,8 @@ class HmmVisualization():
             print("Folder already exists.")
         else:
             for figure, name in zip(self.figures, self.figure_names):
-                figure.savefig(self.save_dir + "\\" + self.save_folder_name + "\\" + name, format="png", transparent=True)
+                figure.savefig(self.save_dir + "\\" + self.save_folder_name + "\\" + name + ".pdf", format="pdf", transparent=True)
             self.state_transition_diagram()
-        
         
     def get_number_of_states(self):
         self.number_of_states = np.shape(self.cells[0].diffusion_coef)[0]
@@ -107,9 +106,9 @@ class HmmVisualization():
         for cell in self.cells:
             cell_idx = self.cells.index(cell)
             self.aic_values[cell_idx] = cell.aic
-        self.mean_aic_value = np.mean(self.aic_values)
+        #self.mean_aic_value = np.mean(self.aic_values)
         #print("AIC values: ", self.aic_values)
-        print("Mean AIC value: %.3f"% self.mean_aic_value)
+        #print("Mean AIC value: %.3f"% self.mean_aic_value)
         
     def get_single_tps(self):
         for cell in self.cells:
@@ -261,7 +260,7 @@ class HmmVisualization():
 
         plt.show()
         self.figures.append(fig)
-        self.figure_names.append("Diffusion_coefficients_boxplot.png")
+        self.figure_names.append("Diffusion_coefficients_boxplot")
 # =============================================================================
 #         if self.save_plots:
 #             plt.savefig(self.save_dir + "\\" + self.save_folder_name + "\\" + "D_boxplot.png", format="png", transparent=True)
@@ -285,7 +284,7 @@ class HmmVisualization():
         plt.xlabel("Cell number")
         plt.show()
         self.figures.append(fig)
-        self.figure_names.append("Diffusion_coefficients_cells.png")
+        self.figure_names.append("Diffusion_coefficients_cells")
         
     def plot_loc_density(self):
         """
@@ -304,7 +303,7 @@ class HmmVisualization():
         plt.xlabel("Cell number")
         plt.show()
         self.figures.append(fig)
-        self.figure_names.append("Localization_density.png")
+        self.figure_names.append("Localization_density")
         
     def plot_bar_state_percentages(self):
         bars = self.states_percentages
@@ -333,7 +332,7 @@ class HmmVisualization():
         plt.title(title_name)
         plt.show()
         self.figures.append(fig)
-        self.figure_names.append("State_distrubution_bar_plot.png")
+        self.figure_names.append("State_distrubution_bar_plot")
  
     def plot_pie_state_percentages(self):
         values = self.states_percentages
@@ -350,10 +349,8 @@ class HmmVisualization():
         plt.title(title_name)
         plt.show()
         self.figures.append(fig)
-        self.figure_names.append("State_distrubution_pie_plot.png")
+        self.figure_names.append("State_distrubution_pie_plot")
 
-        
-        
     def plot_trajectory(self, cell_name, trajectory_idx):
         """
         Plot a trajectory.
@@ -424,21 +421,13 @@ class HmmVisualization():
                 dot.edge(str(column+1), str(row+1), label=" "+label_name,
                          color=(self.gv_edge_color_gradient(self.colour_palett_hex[column], self.colour_palett_hex[row], 25) if colored_edges else "black"),
                          fontsize=edge_fontsize, style="filled", penwidth=(str(self.tp_px_mapping(tp, row, column)) if var_width else "1"))
-        
-        
-        #dot.render('test-output/Dmin.gv', view=True)
+
         if not self.save_plots:
-            dot.render('tmp/State_transiton_diagram.svg', view=True)
+            dot.render('tmp/State_transition_diagram.svg', view=True)
         else:
-            dot.render(self.save_dir + "\\" + self.save_folder_name + "\\" + 'State_transiton_diagram.svg', view=False)
+            dot.render(self.save_dir + "\\" + self.save_folder_name + "\\" + 'State_transition_diagram.svg', view=False)
             dot.format = "svg"
-            dot.render(self.save_dir + "\\" + self.save_folder_name + "\\" + 'State_transiton_diagram.svg', view=False)
-            dot.format = "png"
-            dot.render(self.save_dir + "\\" + self.save_folder_name + "\\" + 'State_transiton_diagram.png', view=False)
-# =============================================================================
-#         print("mean edge size", self.mean_edge_size)
-#         print("mean node size", self.mean_node_size)
-# =============================================================================
+
         
     def tp_percentage_rounded(self, tp):
         """

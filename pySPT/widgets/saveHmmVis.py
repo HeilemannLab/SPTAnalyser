@@ -43,10 +43,12 @@ class SaveHmmVis():
         data_array = np.array(data, dtype=my_datatype)
         dset[...] = data_array        
         
-    def mean_aic_value(self, mean_aic):
-        dset = self.grp01.create_dataset("mean AIC value", (1,1), dtype = np.dtype([("mean AIC value", float)]))
-        dset["mean AIC value"] = mean_aic
-        
+# =============================================================================
+#     def mean_aic_value(self, mean_aic):
+#         dset = self.grp01.create_dataset("mean AIC value", (1,1), dtype = np.dtype([("mean AIC value", float)]))
+#         dset["mean AIC value"] = mean_aic
+#         
+# =============================================================================
     def mean_states(self, population, D_coeff, dD_coeff):
         dset = self.grp01.create_dataset("mean states", (np.shape(population)), dtype = np.dtype([("mean population", float),
                                                              ("diffusion coefficient [\u03BCm\u00b2/s]", float),

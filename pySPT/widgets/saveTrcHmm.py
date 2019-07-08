@@ -16,11 +16,12 @@ import numpy as np
 
 
 class SaveTrcHmm():
-    def __init__(self, trc_file, pixel_size, save_dir, raw_base_name):
+    def __init__(self, trc_file, pixel_size, save_dir, raw_base_name, float_precision):
         self.trc_file = trc_file
         self.pixel_size = pixel_size
         self.raw_base_name = raw_base_name
         self.save_dir = save_dir
+        self.float_precision = float_precision
         
     def run_save(self):
         self.ym_to_px()
@@ -73,4 +74,4 @@ class SaveTrcHmm():
                    X=self.trc_file,
                    header=header,
                    delimiter="\t",
-                   fmt = ("%i","%i", "%.5f", "%.5f", "%i", "%.5f"))     
+                   fmt = ("%i","%i", "%." + self.float_precision + "f", "%." + self.float_precision + "f", "%i", "%." + self.float_precision + "f"))     

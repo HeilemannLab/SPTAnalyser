@@ -40,6 +40,7 @@ class WidgetTrackAnalysis():
         self.D_min_box = self.create_D_min_box()
         self.points_D_fit_box = self.create_points_D_fit_box()
         self.hmm_check_box = self.create_hmm_check_box()
+        self.hmm_trc_float_precision_box = self.create_hmm_trc_float_precision_box()
         self.microscope_check_box = self.create_microscope_check_box()
         self.min_track_length_hmm_box = self.create_min_track_length_hmm_box()
         self.run_button = self.create_run_button()
@@ -55,6 +56,15 @@ class WidgetTrackAnalysis():
         self.bin_size_box = self.create_bin_size_box()
         self.plot_diff_button = self.create_plot_diff_button()
         
+    
+    def create_hmm_trc_float_precision_box(self, val = "5", desc = "Trc float precision"):  # val = "F:\\Marburg\\single_colour_tracking\\resting\\roi.log"
+        """
+        Box for inserting the min track length for hmm.
+        """        
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(self.calc_min_track_length_hmm()), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text
+    
     def create_hmm_check_box(self):
         """
         True -> Save hmm.trc file in pySPT/hmm folder.
