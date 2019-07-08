@@ -18,11 +18,12 @@ import matplotlib.pyplot as plt
 from graphviz import Digraph
 import os
 
-os.environ["PATH"] += os.pathsep + 'C:\\Program Files (x86)\\Graphviz2.38\\bin'
+
 
 
 class HmmVisualization():
-    def __init__(self):
+    def __init__(self, bin_path):
+        self.bin_path = bin_path
         self.cells = []  # list of loadMergedHmm cell objects
         self.number_of_cells = 0
         self.number_of_states = 0  # number of hidden states = diffusion coefficients 
@@ -54,6 +55,7 @@ class HmmVisualization():
         self.save_folder_name = ""        
         
     def run(self):
+        self.set_path()
         self.get_cell_names()
         self.get_number_of_cells()
         self.get_number_of_states()
@@ -72,6 +74,9 @@ class HmmVisualization():
         self.plot_bar_state_percentages()
         self.plot_pie_state_percentages()
         self.state_transition_diagram()
+        
+    def set_path(self):
+        os.environ["PATH"] += os.pathsep + self.bin_path # 'C:\\Program Files (x86)\\Graphviz2.38\\bin'
         
     def run_save_plots(self):
         try:

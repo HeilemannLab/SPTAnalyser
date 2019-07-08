@@ -21,6 +21,7 @@ import datetime
 class WidgetHmmVis():
     def __init__(self):
         # loading
+        self.add_graphviz_bin_box = self.create_add_graphviz_bin_box()
         self.load_dir_box = self.create_load_dir_box()
         self.load_dir_button = self.create_load_dir_button()
         self.load_dir_name = ""
@@ -40,6 +41,14 @@ class WidgetHmmVis():
         self.save_dir_name = ""
         self.save_folder_name_box = self.create_save_folder_name_box() 
         self.save_button = self.create_save_button()
+        
+    def create_add_graphviz_bin_box(self, val = "C:\\Program Files (x86)\\Graphviz2.38\\bin", desc = "Graphviz bin path"):  # val = in box, desc = infront of box
+        """
+        Box for inserting the path to the bin folder of the graphviz installation (in programs).
+        """
+        style = {'description_width': 'initial'}  # display too long desc
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text
         
     def create_load_dir_box(self, val = "directory", desc = "Directory"):  # val = in box, desc = infront of box
         """
