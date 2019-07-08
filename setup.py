@@ -15,6 +15,7 @@ with open("README.md", "r") as fh:
     
 setuptools.setup(name = "pySPT",
                  version = "8.07",
+                 data_files = [("", ["LICENSE.txt"])],
                  author = "Johanna Rahm and Sebastian Malkusch",
                  author_email = "johanna.rahm@stud.uni-frankfurt.de",
                  description = "a package for analysing SPT data",

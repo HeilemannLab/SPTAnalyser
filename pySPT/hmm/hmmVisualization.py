@@ -22,8 +22,9 @@ import os
 
 
 class HmmVisualization():
-    def __init__(self, bin_path):
-        self.bin_path = bin_path
+    def __init__(self):
+        self.bin_path = ""
+        self.tmp_path = ""
         self.cells = []  # list of loadMergedHmm cell objects
         self.number_of_cells = 0
         self.number_of_states = 0  # number of hidden states = diffusion coefficients 
@@ -428,7 +429,8 @@ class HmmVisualization():
                          fontsize=edge_fontsize, style="filled", penwidth=(str(self.tp_px_mapping(tp, row, column)) if var_width else "1"))
 
         if not self.save_plots:
-            dot.render('tmp/State_transition_diagram.svg', view=True)
+            #dot.render('tmp/State_transition_diagram.svg', view=True)
+            dot.render(self.tmp_path + '/State_transition_diagram.svg', view=True)
         else:
             dot.render(self.save_dir + "\\" + self.save_folder_name + "\\" + 'State_transition_diagram.svg', view=False)
             dot.format = "svg"
