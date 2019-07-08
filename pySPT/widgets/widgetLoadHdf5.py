@@ -231,36 +231,36 @@ class WidgetLoadHdf5():
                 tooltip = "apply filter")
         return button
     
-    def create_min_length_box(self, val = "min length" , desc = "Trajectory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+    def create_min_length_box(self, val = "" , desc = "Trajectory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
         """
         Box for inserting the minimum length of a trajectory.
         """
         style = {'description_width': 'initial'}  # display too long desc
-        text_min = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text_min = widgets.Text(value=str(val), placeholder='min length', description=str(desc), disabled=False, style = style)
         return text_min
     
-    def create_max_length_box(self, val = "max length", desc = "Trajectory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+    def create_max_length_box(self, val = "", desc = "Trajectory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
         """
         Box for inserting the max length of a trajectory.
         """
         style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder='max length', description=str(desc), disabled=False, style = style)
         return text
     
-    def create_min_D_box(self, val = "min value" , desc = "Diffusion coefficient"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+    def create_min_D_box(self, val = "" , desc = "Diffusion coefficient"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
         """
         Box for inserting the minimum D value.
         """
         style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder='min value', description=str(desc), disabled=False, style = style)
         return text
     
-    def create_max_D_box(self, val = "max value", desc = "Diffusion coefficient"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+    def create_max_D_box(self, val = "", desc = "Diffusion coefficient"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
         """
         Box for inserting the max D value.
         """
         style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder='max value', description=str(desc), disabled=False, style = style)
         return text
     
     def create_immob_type_check_box(self):

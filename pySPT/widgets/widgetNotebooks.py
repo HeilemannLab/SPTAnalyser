@@ -77,7 +77,6 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
         load_hdf5.file_names = widget_load_hdf5.file_names_bg
     load_hdf5.run_load_hdf5()  # initialize the loadHdf5 class -> fill all needed attributes with values.
     for cell_index in range(load_hdf5.cell_numbers):  # distribute the attributes to the objects  
-        print("name", load_hdf5.names[cell_index])
         one_cell = cell.Cell()
         one_cell.filtered_trc_file_hmm = load_hdf5.trc_files_hmm[cell_index]
         one_cell.converted_trc_file_type = load_hdf5.trc_files_type[cell_index]
@@ -97,7 +96,6 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
         one_cell.points_fit_D = load_hdf5.points_fit_Ds[cell_index]
         one_cell.min_track_length_type = load_hdf5.min_trajectory_lengths_type[cell_index]
         one_cell.min_track_length_hmm = load_hdf5.min_trajectory_lengths_hmm[cell_index]
-        print(len(load_hdf5.cells_trajectories_number[cell_index]), len(load_hdf5.locs[cell_index]))
         if one_cell.seg_id:
             trajectory_seg_idx = 6
         else:

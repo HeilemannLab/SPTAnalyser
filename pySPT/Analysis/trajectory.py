@@ -37,7 +37,6 @@ class Trajectory():
         self.chi_MSD_fit = 0.0  # chi^2 for the MSD 60% fit
         self.MSD_0 = 0.0  # y-intercept
         self.dMSD_0 = 0.0  # not determined yet ...
-        self.sigma_dyn = 0.0  # dynamic localization error
         self.fit_area = 0.6  # 60 % of the MSD plot will be fitted
         self.tau = 0.0  # tau value, derived by rossier fit parameters Dconfined and r
         self.dtau = 10.0  # error of tau value, derived with gauß
@@ -96,15 +95,6 @@ class Trajectory():
         self.chi_D = chisq
         self.dD = std_err/self.dof
         self.MSD_0 = intercept
-        
-    def calc_sigma_dyn(self):
-        """
-        Dynamic localization error based on Michalet 2010. If not calculatable -> error remains 0.
-        """
-        try:
-            self.sigma_dyn = math.sqrt((self.MSD_0+(4/3)*self.D*self.dt)/4)
-        except ValueError:
-            pass
         
     def function_linear_fit(self, times, slope, intercept):
         return times*slope + intercept    
@@ -292,7 +282,6 @@ class Trajectory():
         self.calc_length_MSD()
         self.calc_MSD()
         self.calc_diffusion()
-        self.calc_sigma_dyn()
         self.check_immobility()
         self.create_MSD_values()
         if not (self.immobility):
@@ -305,7 +294,6 @@ class Trajectory():
         print("Diffusion coefficient: {} \u03BCm\u00b2/s".format(self.D))
         print("MSD0: {} \u03BCm\u00b2".format(self.MSD_0))
         print("chi\u00b2 linear fit: {} \u03BCm\u2074".format(self.chi_D))
-        print("sigma dynamic: {} \u03BCm".format(self.sigma_dyn))
         print("Type immobile:", self.immobility)
         if not self.immobility:
             print("Analyse successful?", self.analyse_successful)

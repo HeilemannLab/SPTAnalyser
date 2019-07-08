@@ -124,10 +124,10 @@ class TrackAnalysis():
             ratio_confined = 0
             ratio_free = 0
             ratio_not_successful = 0
-        print("%.1f %% are immobile" %(ratio_immobile))
-        print("%.1f %% are confined" %(ratio_confined))
-        print("%.1f %% are free" %(ratio_free)) 
-        print("%.1f %% could not be analysed" %(ratio_not_successful)) 
+        print("%.2f %% are immobile" %(ratio_immobile))
+        print("%.2f %% are confined" %(ratio_confined))
+        print("%.2f %% are free" %(ratio_free)) 
+        print("%.2f %% could not be analysed" %(ratio_not_successful)) 
         print("Total trajectories:", self.total_trajectories)
 
     def run_plot_diffusion_histogram(self, desired_bin_size):

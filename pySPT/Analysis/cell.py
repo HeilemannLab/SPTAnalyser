@@ -58,9 +58,7 @@ class Cell():
         self.calc_sigma_dyn_hmm()  # take mean value of sigma dyn of filtered trajectories
         # self.calc_sigma_dyn_type()  # at this point calculating sigma dyn does not make sence, because D < 0 and not fitted trajectories exist.
         self.convert_trc_type()  # np arrays instead of lists in list
-        
-
-        
+            
     def create_trajectories_hmm(self):
         trc_file = np.zeros([len(self.trc_file_hmm),6])
         trc_file[:,0] = list(map(lambda row: row[0], self.trc_file_hmm))  # col0 = track id

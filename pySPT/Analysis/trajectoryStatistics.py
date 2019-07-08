@@ -148,9 +148,11 @@ class TrajectoryStatistics():
             print("Filter for type determination successful only.")
         elif filter_analyse_not_successful:
             print("Include type determination not successful.")
-        print("%.2f %% are immobile" %(self.type_percentage()[0]))
-        print("%.2f %% are confined" %(self.type_percentage()[1]))
-        print("%.2f %% are free" %(self.type_percentage()[2]))        
+        type_percentage = self.type_percentage()
+        print("%.2f %% are immobile" %(type_percentage[0]))
+        print("%.2f %% are confined" %(type_percentage[1]))
+        print("%.2f %% are free" %(type_percentage[2]))      
+        print("%.2f %% could not be analysed" %(type_percentage[3]))
         if self.total_trajectories_filtered == 0:
             print("The selection excludes all data.")
         print("Trajectories included:", self.total_trajectories_filtered)
@@ -340,11 +342,13 @@ class TrajectoryStatistics():
             count_immobile = 0
             count_confined = 0
             count_free = 0
+            count_not_successful = 0
             for cell in self.cell_trajectories_filtered:
                 # overview for one cell
                 count_immobile_cell = 0
                 count_confined_cell = 0
                 count_free_cell = 0
+                count_not_successful_cell = 0
                 for trajectory in cell:
                     if trajectory.immobility and not trajectory.confined and not trajectory.analyse_successful:
                         count_immobile_cell += 1
@@ -356,23 +360,29 @@ class TrajectoryStatistics():
                     if not trajectory.confined and not trajectory.immobility and trajectory.analyse_successful:
                         count_free_cell += 1
                         count_free +=1
+                    if not trajectory.analyse_successful and not trajectory.immobility:
+                        count_not_successful_cell += 1
+                        count_not_successful += 1
                 cell_index = self.cell_trajectories_filtered.index(cell)
                 if self.total_trajectories_filtered_cell[cell_index]:
                     ratio_immobile_cell = count_immobile_cell/self.total_trajectories_filtered_cell[cell_index]*100
                     ratio_confined_cell = count_confined_cell/self.total_trajectories_filtered_cell[cell_index]*100
                     ratio_free_cell = count_free_cell/self.total_trajectories_filtered_cell[cell_index]*100
-                    cell_types_percent = (ratio_immobile_cell, ratio_confined_cell, ratio_free_cell)
+                    ratio_not_successful_cell = count_not_successful_cell/self.total_trajectories_filtered_cell[cell_index]*100
+                    cell_types_percent = (ratio_immobile_cell, ratio_confined_cell, ratio_free_cell, ratio_not_successful_cell)
                 else:
                     cell_types_percent = (0.0,0.0,0.0)  # if all trajectories from a cell are filtered, the type % are 0
                 self.cell_type_count.append(cell_types_percent)
             ratio_immobile = count_immobile/self.total_trajectories_filtered*100
             ratio_confined = count_confined/self.total_trajectories_filtered*100
             ratio_free = count_free/self.total_trajectories_filtered*100
+            ratio_not_successful = count_not_successful/self.total_trajectories_filtered*100
         else:  # if all trajectories are filtered the type % are 0 
             ratio_immobile = 0
             ratio_confined = 0
             ratio_free = 0
-        return ratio_immobile, ratio_confined, ratio_free
+            ratio_not_successful = 0
+        return ratio_immobile, ratio_confined, ratio_free, ratio_not_successful
     
     # plot diffusion vs frequencies.
     
