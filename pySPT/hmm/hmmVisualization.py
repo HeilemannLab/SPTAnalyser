@@ -30,7 +30,8 @@ class HmmVisualization():
         self.number_of_states = 0  # number of hidden states = diffusion coefficients 
         self.cell_names = []
         self.aic_values = []
-        #self.mean_aic_value = 0
+        self.bic_values = []
+        self.log_likelihoods = []
         self.single_states_percentages = []
         self.states_percentages = []  # population of states in %
         self.states_percentages_error = []  # statistic error of mean
@@ -60,7 +61,7 @@ class HmmVisualization():
         self.get_cell_names()
         self.get_number_of_cells()
         self.get_number_of_states()
-        self.get_aic_values()
+        self.get_information_values()
         self.get_single_tps()
         self.get_pixel_sizes()
         self.calc_states_percentages()
@@ -107,14 +108,15 @@ class HmmVisualization():
             self.cell_names.append(cell.hmm_cell_name)
         #print("Cell names: ", self.cell_names)
         
-    def get_aic_values(self):
+    def get_information_values(self):
         self.aic_values = np.zeros(len(self.cells))
+        self.bic_values = np.zeros(len(self.cells))
+        self.log_likelihoods = np.zeros(len(self.cells))
         for cell in self.cells:
             cell_idx = self.cells.index(cell)
             self.aic_values[cell_idx] = cell.aic
-        #self.mean_aic_value = np.mean(self.aic_values)
-        #print("AIC values: ", self.aic_values)
-        #print("Mean AIC value: %.3f"% self.mean_aic_value)
+            self.bic_values[cell_idx] = cell.bic
+            self.log_likelihoods[cell_idx] = cell.log_likelihood
         
     def get_single_tps(self):
         for cell in self.cells:
@@ -184,7 +186,7 @@ class HmmVisualization():
         self.mean_D = np.mean(self.single_Ds, 0)
         
         self.mean_D_error = np.std(self.single_Ds, 0, ddof=1) / (self.number_of_cells)**(1/2) 
-        print("Mean diffusion coefficients [\u00B5m\u00B2/s]", end=" ")
+        print("Mean diffusion coefficients [\u00B5m\u00B2/s]:", end=" ")
         for i in self.mean_D:
             print("%.5f"%i, end=' ')
         print(" ")
@@ -321,7 +323,6 @@ class HmmVisualization():
         x = np.arange(len(bars))
         x_name = [i+1 for i in range(self.number_of_states)]
         label_name = list(map(lambda x: self.D_rounded(x) +" \u00B5m\u00B2/s", label_name))
-        #label_name = list(map(lambda x: str(x)[:5]+" \u00B5m\u00B2/s", label_name))  # nearly zero isnt handeled right !!!!!!!!
         fig, ax = plt.subplots()
         ax.set_xticklabels(label_name)
         ax.set_axisbelow(True)
@@ -330,11 +331,12 @@ class HmmVisualization():
         plt.ylabel("Population")
         plt.xlabel("Number of states")
         if y_error:
-            plt.bar(x, bars, yerr=error, capsize=5, edgecolor="black", color=self.colour_palett[:self.number_of_states], label=label_name)  # label=label_name
+            lines = plt.bar(x, bars, yerr=error, capsize=5, edgecolor="black", color=self.colour_palett[:self.number_of_states], label=label_name)  # label=label_name
             plt.xticks(x, x_name)
         else:
-            plt.bar(x, bars, capsize=5, edgecolor="black", color=self.colour_palett[:self.number_of_states])
-        plt.legend()
+            lines = plt.bar(x, bars, capsize=5, edgecolor="black", color=self.colour_palett[:self.number_of_states])
+        
+        plt.legend((lines),(label_name))
         plt.title(title_name)
         plt.show()
         self.figures.append(fig)

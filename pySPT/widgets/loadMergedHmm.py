@@ -24,7 +24,7 @@ class LoadMergedHmm():
         # hmm -> statistics
         self.number_of_states = 0  # floats/int
         self.symbols = 0
-        self.log_likelohood = 0
+        self.log_likelihood = 0
         self.dof = 0
         self.bic = 0
         self.aic = 0
@@ -58,7 +58,7 @@ class LoadMergedHmm():
         dset_statistics = self.group_hmm["statistics"]
         self.number_of_states = dset_statistics["states"][0]
         self.symbols = dset_statistics["symbols"][0]
-        self.log_likelohood = dset_statistics["logLikelihood"][0]
+        self.log_likelihood = dset_statistics["logLikelihood"][0]
         self.dof = dset_statistics["dof"][0]
         self.bic = dset_statistics["bic"][0]
         self.aic = dset_statistics["aic"][0]

@@ -38,7 +38,9 @@ class SaveHmmVis():
                                 ("cell size [\u03BCm\u00b2]", float),
                                 ("localizations", int),
                                 ("density [locs/cell size]", float),
-                                ("aic value", float)])
+                                ("aic value", float),
+                                ("bic value", float),
+                                ("log likelihood", float)])
         dset = self.grp00.create_dataset("cell infos", (np.shape(data)[0],), dtype = my_datatype)
         data_array = np.array(data, dtype=my_datatype)
         dset[...] = data_array        

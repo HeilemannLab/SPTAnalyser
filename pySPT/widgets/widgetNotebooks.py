@@ -322,7 +322,8 @@ def init_save_hmm_vis_stats(hmm_vis, directory, folder_name):
     save_hmm_vis.groups()
     cell_info = []  # name, size, localizations, density, aic
     for cell_idx in range(len(hmm_vis.cells)):
-        one_cell = (hmm_vis.cells[cell_idx].hmm_cell_name, hmm_vis.cells[cell_idx].cell_size, hmm_vis.loc_density[cell_idx]*hmm_vis.cells[cell_idx].cell_size, hmm_vis.loc_density[cell_idx], hmm_vis.aic_values[cell_idx])
+        one_cell = (hmm_vis.cells[cell_idx].hmm_cell_name, hmm_vis.cells[cell_idx].cell_size, hmm_vis.loc_density[cell_idx]*hmm_vis.cells[cell_idx].cell_size,
+                    hmm_vis.loc_density[cell_idx], hmm_vis.aic_values[cell_idx], hmm_vis.bic_values[cell_idx], hmm_vis.log_likelihoods[cell_idx])
         cell_info.append(one_cell)
     save_hmm_vis.cell_info(cell_info)
     #save_hmm_vis.mean_aic_value(hmm_vis.mean_aic_value)
