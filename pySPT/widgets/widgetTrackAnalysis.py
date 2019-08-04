@@ -57,12 +57,12 @@ class WidgetTrackAnalysis():
         self.plot_diff_button = self.create_plot_diff_button()
         
     
-    def create_hmm_trc_float_precision_box(self, val = "5", desc = "Trc float precision"):  # val = "F:\\Marburg\\single_colour_tracking\\resting\\roi.log"
+    def create_hmm_trc_float_precision_box(self, val = "8", desc = "Trc float precision"):  # val = "F:\\Marburg\\single_colour_tracking\\resting\\roi.log"
         """
         Box for inserting the min track length for hmm.
         """        
         style = {"description_width": "initial"}
-        text = widgets.Text(value=str(self.calc_min_track_length_hmm()), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value = str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
         return text
     
     def create_hmm_check_box(self):
@@ -83,17 +83,19 @@ class WidgetTrackAnalysis():
                          disabled=False)
         return checkbox
     
-    def calc_min_track_length_hmm(self):
-        min_track_length = int(self.points_D_fit_box.value)+1
-        return str(min_track_length)
+# =============================================================================
+#     def calc_min_track_length_hmm(self):
+#         min_track_length = int(self.points_D_fit_box.value)+1
+#         return str(min_track_length)
+# =============================================================================
     
-    def create_min_track_length_hmm_box(self, desc = "Min track length"):  # val = "F:\\Marburg\\single_colour_tracking\\resting\\roi.log"
+    def create_min_track_length_hmm_box(self, val = "20", desc = "Min track length"):  # val = "F:\\Marburg\\single_colour_tracking\\resting\\roi.log"
         """
         Box for inserting the min track length for hmm.
         """        
         style = {"description_width": "initial"}
-        text = widgets.Text(value=str(self.calc_min_track_length_hmm()), placeholder='Type something', description=str(desc), disabled=False, style = style)
-        return text
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text #value=str(self.calc_min_track_length_hmm()
         
     def create_software_button(self):
         """
@@ -264,7 +266,7 @@ class WidgetTrackAnalysis():
         text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
         return text
         
-    def create_D_min_box(self, val = "0.0065", desc = "Minimal detectable D  [\u03BCm\u00b2/s]"):
+    def create_D_min_box(self, val = "0.0025", desc = "Minimal detectable D  [\u03BCm\u00b2/s]"):
         """
         Box for inserting the camera integration time for tau threshold calculation.
         """

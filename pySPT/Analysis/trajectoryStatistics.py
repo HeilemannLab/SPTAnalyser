@@ -62,6 +62,27 @@ class TrajectoryStatistics():
         self.corrected_frequencies_percent = []  # mean cell frequencies - mean bg frequencies   
         self.sigma_dyns = []  # dynamic localization error, based on filtered trajectories         
         self.diff_fig = []  # log diffusion plot
+        self.D_mean_types = []  # containes averaged D for immobile, confined and free diffusion
+
+    def calc_D_mean_types(self):
+        immobile_tracks = []
+        confined_tracks = []
+        free_tracks = []
+        for cell in self.cell_trajectories_filtered:
+            for i in cell:
+                if i.immobility and not i.analyse_successful and not i.confined:
+                    immobile_tracks.append(i)
+                elif not i.immobility and i.confined and i.analyse_successful:
+                    confined_tracks.append(i)
+                elif not i.immobility and not i.confined and i.analyse_successful:
+                    free_tracks.append(i)
+        immobile_D_mean = np.mean([track.D for track in immobile_tracks])
+        confined_D_mean = np.mean([track.D for track in confined_tracks])
+        free_D_mean = np.mean([track.D for track in free_tracks])
+        self.D_mean_types.append(immobile_D_mean)
+        self.D_mean_types.append(confined_D_mean)
+        self.D_mean_types.append(free_D_mean)
+        
 
     def calc_min_rossier_length(self):
         #self.tau_threshold_min_length = float(math.inf)
@@ -82,6 +103,7 @@ class TrajectoryStatistics():
             self.cell_trajectories_filtered.append([])
         
     def default_statistics(self):
+        self.D_mean_types = []
         self.cell_trajectories_filtered = []  # deep copy of original cell trajectories
         self.cell_trajectories_filtered_thresholds = []
         self.cell_trajectories_filtered_index = []
@@ -137,6 +159,7 @@ class TrajectoryStatistics():
         self.sort_filtered_trajectories()
         self.create_index_lst()
         self.calc_sigma_dyns()
+        self.calc_D_mean_types()
         print("Initialization took {} s".format(time.time()-start))
         if filter_immob:
             print("Filter for immobile.")
@@ -149,14 +172,15 @@ class TrajectoryStatistics():
         elif filter_analyse_not_successful:
             print("Include type determination not successful.")
         type_percentage = self.type_percentage()
-        print("%.2f %% are immobile" %(type_percentage[0]))
-        print("%.2f %% are confined" %(type_percentage[1]))
-        print("%.2f %% are free" %(type_percentage[2]))      
+        print("%.2f %% are immobile with an average diffusion coefficient of %.5f \u03BCm\u00b2/s" %(type_percentage[0], self.D_mean_types[0]))
+        print("%.2f %% are confined with an average diffusion coefficient of %.5f \u03BCm\u00b2/s" %(type_percentage[1], self.D_mean_types[1]))
+        print("%.2f %% are free with an average diffusion coefficient of %.5f \u03BCm\u00b2/s" %(type_percentage[2], self.D_mean_types[2]))      
         print("%.2f %% could not be analysed" %(type_percentage[3]))
         if self.total_trajectories_filtered == 0:
             print("The selection excludes all data.")
         print("Trajectories included:", self.total_trajectories_filtered)
         print("Trajectories excluded:", self.total_trajectories - self.total_trajectories_filtered)
+        
 # =============================================================================
         # filter testing
         #print("cell types %", self.cell_type_count)
@@ -611,12 +635,15 @@ class TrajectoryStatistics():
         Parameters: Mean D, mean MSD_0 per cell & loc, dt.
         """
         for cell_idx in range(len(self.cell_trajectories_filtered)):
-            dof = self.cell_trajectories_filtered[cell_idx][0].dof
-            dt = self.cell_trajectories_filtered[cell_idx][0].dt
-            mean_D = np.mean([track.D for track in self.cell_trajectories_filtered[cell_idx]])
-            mean_MSD_0 = np.mean([track.MSD_0 for track in self.cell_trajectories_filtered[cell_idx]])
-            sigma_dyn = math.sqrt((mean_MSD_0+(4/3)*mean_D*dt)/dof)
-            self.sigma_dyns.append(sigma_dyn)      
+            if len(self.cell_trajectories_filtered[cell_idx]) == 0:
+                self.sigma_dyns.append("no trajectories included")
+            else:
+                dof = self.cell_trajectories_filtered[cell_idx][0].dof
+                dt = self.cell_trajectories_filtered[cell_idx][0].dt
+                mean_D = np.mean([track.D for track in self.cell_trajectories_filtered[cell_idx]])
+                mean_MSD_0 = np.mean([track.MSD_0 for track in self.cell_trajectories_filtered[cell_idx]])
+                sigma_dyn = math.sqrt((mean_MSD_0+(4/3)*mean_D*dt)/dof)
+                self.sigma_dyns.append(sigma_dyn)      
  
     
 def main():

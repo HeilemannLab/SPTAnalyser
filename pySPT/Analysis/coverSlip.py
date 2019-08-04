@@ -32,12 +32,12 @@ class CoverSlip():
         self.background_files = []  # list with full paths of bg files
         # initialization parameters for cell (only from trc -> h5)
         self.pixel_size = 0.0   # [nm], hand down to cell
-        self.pixel_amount = 0.0  # amount of pixels of detector (eg. 256*256), hand down to cell 
+        self.pixel_amount = 0  # amount of pixels of detector (eg. 256*256), hand down to cell 
         self.dt = 0.0   # hand down to cell -> trajectory
         self.tau_threshold = 0.0  # hand down to cell -> trajectory
         self.dof = 0.0  # hand down to cell -> trajectory
         self.D_min = 0.0  # hand down to cell -> trajectory
-        self.points_fit_D = 4  # hand down to cell -> trajectory
+        self.points_fit_D = 0  # hand down to cell -> trajectory
         self.seg_id = True  # hand down to cell
         self.software = ""
         self.min_track_length_type = 0
@@ -106,7 +106,6 @@ class CoverSlip():
                             raw_file += i
                     raw_file = raw_file.replace('"', "")
                     if one_cell.name == raw_file:
-                        print("roi check", file)
                         one_cell.size = file[1]     
             # in PT the column order is set and not necessary.
             if self.software == "PALMTracer":
@@ -153,7 +152,7 @@ class CoverSlip():
                 self.cells.append(one_cell)
             else:
                 print("All trajecoties are shorter as the minimum trajectory length inserted, please select a smaller minimum threshold.")
-            print("Analysis took {} s".format(time.time()-start))
+        print("Analysis took {} s".format(time.time()-start))
             
     def plot_trajectory(self, cell_name, trajectory_idx):
         """

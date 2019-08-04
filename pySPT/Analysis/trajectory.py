@@ -39,7 +39,7 @@ class Trajectory():
         self.dMSD_0 = 0.0  # not determined yet ...
         self.fit_area = 0.6  # 60 % of the MSD plot will be fitted
         self.tau = 0.0  # tau value, derived by rossier fit parameters Dconfined and r
-        self.dtau = 10.0  # error of tau value, derived with gauß
+        self.dtau = 0.0  # error of tau value, derived with gauß
         self.D_conf = 0.01  # confined diffusion
         self.dD_conf = 0.0  # error of confined diffusion, determined by covariance matrix of fit
         self.r = 0.01  # confinement radius

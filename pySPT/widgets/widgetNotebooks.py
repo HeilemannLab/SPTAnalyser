@@ -294,7 +294,7 @@ def init_save_track_stats(h5_stats, track_stats, directory, folder_name, name):
     h5_stats.filter_info(track_stats.filter_settings, track_stats.filter_thresholds_values)
     h5_stats.statistics(track_stats.type_percentage()[0], track_stats.type_percentage()[1],
                          track_stats.type_percentage()[2], track_stats.total_trajectories_filtered,
-                         (track_stats.total_trajectories - track_stats.total_trajectories_filtered))
+                         (track_stats.total_trajectories - track_stats.total_trajectories_filtered), track_stats.D_mean_types)
     h5_stats.diffusion_bin_size(track_stats.bin_size)
     # cell files are always loaded
     for cell in track_stats.cells:

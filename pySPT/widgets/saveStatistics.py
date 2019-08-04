@@ -94,18 +94,24 @@ class SaveStatistics():
         dset["min diffusion coefficient [\u03BCm\u00b2/s]"] = filter_thresholds_values[2]
         dset["max diffusion coefficient [\u03BCm\u00b2/s]"] = filter_thresholds_values[3]
         
-    def statistics(self, immobile, confined, free, trajectories_included, trajectories_excluded):
+    def statistics(self, immobile, confined, free, trajectories_included, trajectories_excluded, mean_Ds):
         dset = self.grp06.create_dataset("statistics", (1,1), dtype = np.dtype([("immobile [%]", float),
                                                          ("confined [%]", float),
                                                          ("free [%]", float),
                                                          ("trajectories included", int),
-                                                         ("trajectories excluded", int)]))
+                                                         ("trajectories excluded", int),
+                                                         ("mean D immobile [\u03BCm\u00b2/s]", float),
+                                                         ("mean D confined [\u03BCm\u00b2/s]", float),
+                                                         ("mean D free [\u03BCm\u00b2/s]", float)]))
 
         dset["immobile [%]"] = immobile
         dset["confined [%]"] = confined
         dset["free [%]"] = free
         dset["trajectories included"] = trajectories_included
         dset["trajectories excluded"] = trajectories_excluded
+        dset["mean D immobile [\u03BCm\u00b2/s]"] = mean_Ds[0]
+        dset["mean D confined [\u03BCm\u00b2/s]"] = mean_Ds[1]
+        dset["mean D free [\u03BCm\u00b2/s]"] = mean_Ds[2]
         
     def diffusion_plot(self, number, diffusion, mean_cell, dmean_cell):
         dset = self.grp05.create_dataset("histogram values", (number,), dtype = np.dtype([("diffusion coefficient [\u03BCm\u00b2/s]", float),
