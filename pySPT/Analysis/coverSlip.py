@@ -38,6 +38,7 @@ class CoverSlip():
         self.dof = 0.0  # hand down to cell -> trajectory
         self.D_min = 0.0  # hand down to cell -> trajectory
         self.points_fit_D = 0  # hand down to cell -> trajectory
+        self.rossier_fit_area = 0  # hand down to cell -> trajectory
         self.seg_id = True  # hand down to cell
         self.software = ""
         self.min_track_length_type = 0
@@ -145,6 +146,7 @@ class CoverSlip():
                 one_cell.pixel_amount = float(self.pixel_amount)
                 one_cell.pixel_size = float(self.pixel_size)
                 one_cell.dof = float(self.dof)
+                one_cell.rossier_fit_area = float(self.rossier_fit_area)
                 one_cell.D_min = float(self.D_min)
                 one_cell.points_fit_D = int(self.points_fit_D)
                 one_cell.run_analysis()

@@ -37,6 +37,7 @@ class Cell():
         self.tau_threshold = 0.0  # hand down to trajectory
         self.dt = 0.0   # hand down to trajectory
         self.dof = 0.0  # hand down to trajectory
+        self.rossier_fit_area = 0.0  # hand down to trajectory
         self.D_min = 0.0  # hand down to trajectory
         self.points_fit_D = 0  # hand down to trajectory
         self.min_track_length_type = 0.0 
@@ -44,6 +45,7 @@ class Cell():
         self.seg_id = True  # if True the seg id will be loaded as trajectory id, else the track id will be loaded
         self.sigma_dyn_type = 0.0  # dynamic localization error
         self.sigma_dyn_hmm = 0.0
+        
         
     def run_analysis(self):
         # trc hmm
@@ -74,7 +76,7 @@ class Cell():
             localizations = trc_file[idx,:]
             #print("Trajectory number len loc", trajectory_number, len(localizations))
             if not (localizations.size==0):
-                self.trajectories_hmm.append(trajectory.Trajectory(localizations, self.tau_threshold, self.dt, self.dof, self.D_min, self.points_fit_D))
+                self.trajectories_hmm.append(trajectory.Trajectory(localizations, self.tau_threshold, self.dt, self.dof, self.D_min, self.points_fit_D, self.rossier_fit_area))
 
     def run_analysis_hmm(self):
         """
@@ -184,7 +186,7 @@ class Cell():
             idx = trc_file[:,0] == trajectory_number
             localizations = trc_file[idx,:]
             if not (localizations.size==0):
-                self.trajectories.append(trajectory.Trajectory(localizations, self.tau_threshold, self.dt, self.dof, self.D_min, self.points_fit_D))
+                self.trajectories.append(trajectory.Trajectory(localizations, self.tau_threshold, self.dt, self.dof, self.D_min, self.points_fit_D, self.rossier_fit_area))
         
     def convert_trc_type(self):
         """

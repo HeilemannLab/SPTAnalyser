@@ -19,7 +19,7 @@ from scipy.optimize import curve_fit
 import matplotlib.gridspec as gridspec
 
 class Trajectory():
-    def __init__(self, locs, tau_thresh, camera_dt, degree, min_D, points_D):
+    def __init__(self, locs, tau_thresh, camera_dt, degree, min_D, points_D, rossier_fit_area):
         self.trajectory_number = 0  # equals first column of localization
         self.MSDs = []  # stores all MSD values
         self.times = []  # stores all time steps for MSD values
@@ -37,7 +37,7 @@ class Trajectory():
         self.chi_MSD_fit = 0.0  # chi^2 for the MSD 60% fit
         self.MSD_0 = 0.0  # y-intercept
         self.dMSD_0 = 0.0  # not determined yet ...
-        self.fit_area = 0.6  # 60 % of the MSD plot will be fitted
+        self.fit_area = rossier_fit_area  # 60 % of the MSD plot will be fitted
         self.tau = 0.0  # tau value, derived by rossier fit parameters Dconfined and r
         self.dtau = 0.0  # error of tau value, derived with gauß
         self.D_conf = 0.01  # confined diffusion
@@ -145,16 +145,17 @@ class Trajectory():
         if self.tau < self.tau_threshold:
             self.confined = True
             
-    def plot_full_MSD_immob(self):
+    def plot_full_MSD(self):
         """
-        Plot 60% of MSD if molecule is immob without rossier fit.
+        Plot full MSD
         """
-        self.create_MSD_values()
+        #self.create_MSD_values()
         #x1, x2 = 0, self.MSD_fit[:,0].max()  # x1 = min, x2 = max
         #y1, y2 = 0, self.MSD_fit[:,1].max()
-        plt.plot(self.MSD_fit[:,0], self.MSD_fit[:,1], "o", color = "0.5", label="MSD values")
+        plt.plot(self.times, self.MSDs, "o", color = "0.5", label="MSD values")
+        #plt.plot(self.MSD_fit[:,0], self.MSD_fit[:,1], "o", color = "0.5", label="MSD values")
         plt.legend()
-        plt.title("MSD-Plot (60 % of values)")
+        plt.title("MSD-plot")
         plt.xlabel("Time step [s]")
         plt.ylabel("MSD")
         plt.show()
@@ -225,7 +226,7 @@ class Trajectory():
     def function_full_MSD(self, t, r, D):
         return (4.0*r**2.0)/3.0*(1.0-np.exp(-t*3*D/r**2.0))
         
-    def plot_full_MSD(self):
+    def plot_rossier_MSD(self):
         #x1, x2 = 0, self.MSD_fit[:,0].max()  # x1 = min, x2 = max
         #sp1_y1, sp1_y2 = 0, self.MSD_fit[:,1].max()
         #sp2_y1, sp2_y2 = self.MSD_fit[:,3].min(), self.MSD_fit[:,3].max()
@@ -242,7 +243,7 @@ class Trajectory():
         sp_1.plot(self.MSD_fit[:,0], self.MSD_fit[:,2], "--c", label="rossier fit")
         #sp_1.plot(self.MSD_fit_ML[:,0], self.MSD_fit_ML[:,2], "--m", label="origin fit")
         sp_1.legend()
-        sp_1.set_title("MSD-Plot: Type")
+        sp_1.set_title("MSD-plot Rossier analysis")
         #sp_1.set_xlabel("Number of data points used in MJD calculation")
         sp_1.set_ylabel("MSD")
         #sp_1.axis((x1, x2, sp1_y1, sp1_y2))
@@ -310,9 +311,10 @@ class Trajectory():
         self.show_trajectory()
         self.plot_diffusion()
         if not self.immobility:
+            self.plot_rossier_MSD()
             self.plot_full_MSD()
         elif self.immobility:
-            self.plot_full_MSD_immob()
+            self.plot_full_MSD()
         self.print_particle()
    
    

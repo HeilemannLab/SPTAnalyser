@@ -36,6 +36,7 @@ class WidgetTrackAnalysis():
         self.camera_pixel_amount_box = self.create_camera_pixel_amount_box()
         self.camera_integration_time_box = self.create_camera_integration_time_box()
         self.min_track_length_box = self.create_min_track_length_box()
+        self.rossier_fit_area_box = self.create_rossier_fit_area_box()
         self.dof_box = self.create_dof_box()
         self.D_min_box = self.create_D_min_box()
         self.points_D_fit_box = self.create_points_D_fit_box()
@@ -56,8 +57,16 @@ class WidgetTrackAnalysis():
         self.bin_size_box = self.create_bin_size_box()
         self.plot_diff_button = self.create_plot_diff_button()
         
+        
+    def create_rossier_fit_area_box(self, val = "0.6", desc = "Fit area Rossier"):  
+        """
+        Box for inserting amount of MSD values to be fitted by rossier [0..1].
+        """        
+        style = {"description_width": "initial"}
+        text = widgets.Text(value = str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        return text
     
-    def create_hmm_trc_float_precision_box(self, val = "8", desc = "Trc float precision"):  # val = "F:\\Marburg\\single_colour_tracking\\resting\\roi.log"
+    def create_hmm_trc_float_precision_box(self, val = "10", desc = "Trc float precision"):  
         """
         Box for inserting the min track length for hmm.
         """        
