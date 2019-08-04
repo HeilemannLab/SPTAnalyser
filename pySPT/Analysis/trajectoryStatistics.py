@@ -62,12 +62,17 @@ class TrajectoryStatistics():
         self.corrected_frequencies_percent = []  # mean cell frequencies - mean bg frequencies   
         self.sigma_dyns = []  # dynamic localization error, based on filtered trajectories         
         self.diff_fig = []  # log diffusion plot
+        self.fig_name = []
         self.D_mean_types = []  # containes averaged D for immobile, confined and free diffusion
+        self.dD_mean_types = []
+        self.length_mean_types = []
+        self.dlength_mean_types = []
 
-    def calc_D_mean_types(self):
+    def calc_mean_statistics(self):
         immobile_tracks = []
         confined_tracks = []
         free_tracks = []
+        notype_tracks = []
         for cell in self.cell_trajectories_filtered:
             for i in cell:
                 if i.immobility and not i.analyse_successful and not i.confined:
@@ -76,12 +81,48 @@ class TrajectoryStatistics():
                     confined_tracks.append(i)
                 elif not i.immobility and not i.confined and i.analyse_successful:
                     free_tracks.append(i)
-        immobile_D_mean = np.mean([track.D for track in immobile_tracks])
-        confined_D_mean = np.mean([track.D for track in confined_tracks])
-        free_D_mean = np.mean([track.D for track in free_tracks])
+                elif not i.immobility and not i.analyse_successful:
+                    notype_tracks.append(i)
+        immob_D = [track.D for track in immobile_tracks]
+        immobile_D_mean = np.mean(immob_D)
+        immobile_dD_mean = np.std(immob_D, ddof=1)/math.sqrt(len(immob_D))
+        conf_D = [track.D for track in confined_tracks]
+        confined_D_mean = np.mean(conf_D)
+        confined_dD_mean = np.std(conf_D, ddof=1)/math.sqrt(len(conf_D))
+        free_D = [track.D for track in free_tracks]
+        free_D_mean = np.mean(free_D)
+        free_dD_mean = np.std(free_D, ddof=1)/math.sqrt(len(free_D))
+        notype_D = [track.D for track in notype_tracks]
+        notype_D_mean = np.mean(notype_D)
+        notype_dD_mean = np.std(notype_D, ddof=1)/math.sqrt(len(notype_D))
         self.D_mean_types.append(immobile_D_mean)
         self.D_mean_types.append(confined_D_mean)
         self.D_mean_types.append(free_D_mean)
+        self.D_mean_types.append(notype_D_mean)
+        self.dD_mean_types.append(immobile_dD_mean)
+        self.dD_mean_types.append(confined_dD_mean)
+        self.dD_mean_types.append(free_dD_mean)
+        self.dD_mean_types.append(notype_dD_mean)
+        immob_length = [track.length_trajectory for track in immobile_tracks]
+        immobile_length_mean = np.mean(immob_length)
+        immobile_dlength_mean = np.std(immob_length, ddof=1)/math.sqrt(len(immob_length))
+        conf_length = [track.length_trajectory for track in confined_tracks]
+        confined_length_mean = np.mean(conf_length)
+        confined_dlength_mean = np.std(conf_length, ddof=1)/math.sqrt(len(conf_length))
+        free_length = [track.length_trajectory for track in free_tracks]
+        free_length_mean = np.mean(free_length)
+        free_dlength_mean = np.std(free_length, ddof=1)/math.sqrt(len(free_length))
+        notype_length = [track.length_trajectory for track in notype_tracks]
+        notype_length_mean = np.mean(notype_length)
+        notype_dlength_mean = np.std(notype_length, ddof=1)/math.sqrt(len(notype_length))
+        self.length_mean_types.append(immobile_length_mean)
+        self.length_mean_types.append(confined_length_mean)
+        self.length_mean_types.append(free_length_mean)
+        self.length_mean_types.append(notype_length_mean)
+        self.dlength_mean_types.append(immobile_dlength_mean)
+        self.dlength_mean_types.append(confined_dlength_mean)
+        self.dlength_mean_types.append(free_dlength_mean)
+        self.dlength_mean_types.append(notype_dlength_mean)
         
 
     def calc_min_rossier_length(self):
@@ -103,7 +144,6 @@ class TrajectoryStatistics():
             self.cell_trajectories_filtered.append([])
         
     def default_statistics(self):
-        self.D_mean_types = []
         self.cell_trajectories_filtered = []  # deep copy of original cell trajectories
         self.cell_trajectories_filtered_thresholds = []
         self.cell_trajectories_filtered_index = []
@@ -116,7 +156,10 @@ class TrajectoryStatistics():
         self.sigma_dyns = []
         #######self.filtered_trc_files = []
         self.trc_files_hmm = []
-        
+        self.D_mean_types = []  
+        self.dD_mean_types = []
+        self.length_mean_types = []
+        self.dlength_mean_types = []
     def run_statistics(self, min_length, max_length, min_D, max_D, filter_immob, filter_confined,
                        filter_free, filter_analyse_not_successful):
         """
@@ -159,7 +202,7 @@ class TrajectoryStatistics():
         self.sort_filtered_trajectories()
         self.create_index_lst()
         self.calc_sigma_dyns()
-        self.calc_D_mean_types()
+        self.calc_mean_statistics()
         print("Initialization took {} s".format(time.time()-start))
         if filter_immob:
             print("Filter for immobile.")
@@ -172,10 +215,10 @@ class TrajectoryStatistics():
         elif filter_analyse_not_successful:
             print("Include type determination not successful.")
         type_percentage = self.type_percentage()
-        print("%.2f %% are immobile with an average diffusion coefficient of %.5f \u03BCm\u00b2/s" %(type_percentage[0], self.D_mean_types[0]))
-        print("%.2f %% are confined with an average diffusion coefficient of %.5f \u03BCm\u00b2/s" %(type_percentage[1], self.D_mean_types[1]))
-        print("%.2f %% are free with an average diffusion coefficient of %.5f \u03BCm\u00b2/s" %(type_percentage[2], self.D_mean_types[2]))      
-        print("%.2f %% could not be analysed" %(type_percentage[3]))
+        print("%.2f %% are immobile, mean diffusion coefficient = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(type_percentage[0], self.D_mean_types[0], self.length_mean_types[0]))
+        print("%.2f %% are confined, mean diffusion coefficient = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(type_percentage[1], self.D_mean_types[1], self.length_mean_types[1]))
+        print("%.2f %% are free, mean diffusion coefficient = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(type_percentage[2], self.D_mean_types[2], self.length_mean_types[2]))      
+        print("%.2f %% could not be analysed, mean diffusion coefficient = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(type_percentage[3], self.D_mean_types[3], self.length_mean_types[3]))
         if self.total_trajectories_filtered == 0:
             print("The selection excludes all data.")
         print("Trajectories included:", self.total_trajectories_filtered)
@@ -513,8 +556,8 @@ class TrajectoryStatistics():
         :param desired_bin: bin size.
         """
         # min & max determined by diffusions_log_complete function
-        min_bin = np.ceil(np.log10(self.min_D)/desired_bin)*desired_bin
-        max_bin = np.ceil(np.log10(self.max_D)/desired_bin)*desired_bin 
+        min_bin = np.ceil(-6/desired_bin)*desired_bin
+        max_bin = np.ceil(2/desired_bin)*desired_bin 
         bin_size = int(np.ceil((max_bin - min_bin)/desired_bin))
         #print(max_bin, min_bin, bin_size)
         hist = np.histogram(log_diff,
@@ -583,7 +626,8 @@ class TrajectoryStatistics():
         self.corrected_frequencies_percent = self.corrected_frequencies * self.normalization_factor_corrected
         
     def plot_bar_log_bins(self):
-        self.diff_fig = plt.figure()
+        self.diff_fig.append(plt.figure())
+        self.fig_name.append("diffusion_hist")
         plt.subplot(111, xscale="log")
         (_, caps, _) = plt.errorbar(self.hist_diffusion, self.mean_frequencies_percent, yerr=self.mean_error_percent, capsize=4, label="relative frequency")  # capsize length of cap
         for cap in caps:
@@ -596,9 +640,12 @@ class TrajectoryStatistics():
         plt.show() 
     
     def save_diff_fig(self, directory, folder_name):
-        self.diff_fig.savefig(directory + "\\"+ folder_name +  "\\" + "diffusion_histogram.pdf", format="pdf", transparent=True)
+        for fig, name in zip(self.diff_fig, self.fig_name):
+            fig.savefig(directory + "\\"+ folder_name +  "\\" + name + ".pdf", format="pdf", transparent=True)
 
     def plot_bar_log_bins_bg_corrected(self):
+        self.diff_fig.append(plt.figure())
+        self.fig_name.append("diffusion_hist_background")
         plt.subplot(111, xscale="log")
         (_, caps, _) = plt.errorbar(self.hist_diffusion, self.corrected_frequencies_percent, yerr=self.corrected_frequencies_error_percent, capsize=4, label="relative frequency")  # capsize length of cap
         for cap in caps:

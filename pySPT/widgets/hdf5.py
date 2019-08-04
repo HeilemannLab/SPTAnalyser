@@ -41,16 +41,53 @@ class Hdf5():
         self.grp04 = self.h5_file.create_group("settings")
         self.grp05 = self.h5_file.create_group("statistics")
         
-    def statistics(self, immobile, confined, free, total_trajectories):
+    def statistics(self, immobile, confined, free, notype, D_immobile, D_conf, D_free, D_notype, dD_immobile, dD_conf,
+                   dD_free, dD_notype, length_immobile, length_conf, length_free, length_notype, dlength_immobile, dlength_conf,
+                   dlength_free, dlength_notype, total_trajectories):
         dset = self.grp05.create_dataset("statistics", (1,1), dtype = np.dtype([("immobile [%]", float),
                                                          ("confined [%]", float),
                                                          ("free [%]", float),
-                                                         ("amount trajectories", int)]))
+                                                         ("no type [%]", float),
+                                                         ("amount trajectories", int),
+                                                         ("mean D immobile [\u03BCm\u00b2/s]", float),
+                                                         ("mean D confined [\u03BCm\u00b2/s]", float),
+                                                         ("mean D free [\u03BCm\u00b2/s]", float),
+                                                         ("mean D no type [\u03BCm\u00b2/s]", float),
+                                                         ("\u0394 mean D immobile [\u03BCm\u00b2/s]", float),
+                                                         ("\u0394 mean D confined [\u03BCm\u00b2/s]", float),
+                                                         ("\u0394 mean D free [\u03BCm\u00b2/s]", float),
+                                                         ("\u0394 mean D no type [\u03BCm\u00b2/s]", float),
+                                                         ("mean length immobile [frames]", float),
+                                                         ("mean length confined [frames]", float),
+                                                         ("mean length free [frames]", float),
+                                                         ("mean length no type [frames]", float),
+                                                         ("\u0394 mean length immobile [frames]", float),
+                                                         ("\u0394 mean length confined [frames]", float),
+                                                         ("\u0394 mean length free [frames]", float),
+                                                         ("\u0394 mean length no type [frames]", float)]))
 
         dset["immobile [%]"] = immobile
         dset["confined [%]"] = confined
         dset["free [%]"] = free
+        dset["no type [%]"] = notype
         dset["amount trajectories"] = total_trajectories
+        dset["mean D immobile [\u03BCm\u00b2/s]"] = D_immobile
+        dset["mean D confined [\u03BCm\u00b2/s]"] = D_conf
+        dset["mean D free [\u03BCm\u00b2/s]"] = D_free
+        dset["mean D no type [\u03BCm\u00b2/s]"] = D_notype
+        dset["\u0394 mean D immobile [\u03BCm\u00b2/s]"] = dD_immobile
+        dset["\u0394 mean D confined [\u03BCm\u00b2/s]"] = dD_conf
+        dset["\u0394 mean D free [\u03BCm\u00b2/s]"] = dD_free
+        dset["\u0394 mean D no type [\u03BCm\u00b2/s]"] = dD_notype
+        dset["mean length immobile [frames]"] = length_immobile
+        dset["mean length confined [frames]"] = length_conf
+        dset["mean length free [frames]"] = length_free
+        dset["mean length no type [frames]"] = length_notype
+        dset["\u0394 mean length immobile [frames]"] = dlength_immobile
+        dset["\u0394 mean length confined [frames]"] = dlength_conf
+        dset["\u0394 mean length free [frames]"] = dlength_free
+        dset["\u0394 mean length no type [frames]"] = dlength_notype
+
         
     def data_settings(self, dt, pixelsize, pixelamount, cell_size, tau_threshold, min_track_length_type, fit_area, dof, D_min, seg_bool,
                       dloc_dyn_type, min_track_length_hmm, dloc_dyn_hmm):

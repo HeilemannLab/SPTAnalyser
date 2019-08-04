@@ -35,6 +35,13 @@ class TrackAnalysis():
         self.mean_frequencies = []  # mean frequencies, size corrected
         self.mean_error = []  # standard error of mean value
         self.normalization_factor = 0.0  # 100/sum of all mean frequencies
+        self.mean_D_cells = []
+        self.mean_dD_cells = []
+        self.mean_D = []
+        self.mean_length_cells = []
+        self.mean_dlength_cells = []
+        self.mean_length = []
+        self.type_ratios = []
         # Save
         self.diffusion_info = []
         self.number_of_trajectories = 0
@@ -50,6 +57,13 @@ class TrackAnalysis():
         self.get_index()
         self.create_init_filter_lst()
         self.type_percentage_pre()
+        self.calc_mean_D_cells()
+        self.calc_mean_D()
+        self.calc_mean_length_cells()
+        self.calc_mean_length()
+        self.print_stats()
+        
+        
         
     def create_init_filter_lst(self):
         """
@@ -124,10 +138,16 @@ class TrackAnalysis():
             ratio_confined = 0
             ratio_free = 0
             ratio_not_successful = 0
-        print("%.2f %% are immobile" %(ratio_immobile))
-        print("%.2f %% are confined" %(ratio_confined))
-        print("%.2f %% are free" %(ratio_free)) 
-        print("%.2f %% could not be analysed" %(ratio_not_successful)) 
+        self.type_ratios.append(ratio_immobile)
+        self.type_ratios.append(ratio_confined)
+        self.type_ratios.append(ratio_free)
+        self.type_ratios.append(ratio_not_successful)
+            
+    def print_stats(self):
+        print("%.2f %% are immobile, mean D = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(self.type_ratios[0],self.mean_D[0],self.mean_length[0]))
+        print("%.2f %% are confined, mean D = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(self.type_ratios[1],self.mean_D[1],self.mean_length[1]))
+        print("%.2f %% are free, mean D = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(self.type_ratios[2],self.mean_D[2],self.mean_length[2])) 
+        print("%.2f %% could not be analysed, mean D = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(self.type_ratios[3],self.mean_D[3],self.mean_length[3])) 
         print("Total trajectories:", self.total_trajectories)
 
     def run_plot_diffusion_histogram(self, desired_bin_size):
@@ -190,8 +210,10 @@ class TrackAnalysis():
         :param desired_bin: bin size.
         """
         # min & max determined by diffusions_log_complete function
-        min_bin = np.ceil(np.log10(self.min_D)/desired_bin)*desired_bin
-        max_bin = np.ceil(np.log10(self.max_D)/desired_bin)*desired_bin 
+        #min_bin = np.ceil(np.log10(self.min_D)/desired_bin)*desired_bin
+        #max_bin = np.ceil(np.log10(self.max_D)/desired_bin)*desired_bin
+        min_bin = np.ceil(-6/desired_bin)*desired_bin
+        max_bin = np.ceil(2/desired_bin)*desired_bin 
         bin_size = int(np.ceil((max_bin - min_bin)/desired_bin))
         #print(max_bin, min_bin, bin_size)
         hist = np.histogram(log_diff,
@@ -260,8 +282,80 @@ class TrackAnalysis():
         :return: return a numpy array.
         """
         np_array = np.zeros((length,columns))
-        return np_array        
+        return np_array    
+
+    def calc_mean_D(self):
+        mean_D_immob, mean_D_conf, mean_D_free, mean_D_notype = [], [], [], []
+        immob_weight, conf_weight, free_weight, notype_weight = [], [], [], []
+        for i in range(len(self.mean_D_cells)):
+            mean_D_immob.append(self.mean_D_cells[i][0]*self.cell_type_count[i][0]*self.total_trajectories_cell[i])
+            mean_D_conf.append(self.mean_D_cells[i][1]*self.cell_type_count[i][1]*self.total_trajectories_cell[i])
+            mean_D_free.append(self.mean_D_cells[i][2]*self.cell_type_count[i][2]*self.total_trajectories_cell[i])
+            mean_D_notype.append(self.mean_D_cells[i][3]*self.cell_type_count[i][3]*self.total_trajectories_cell[i])
+            immob_weight.append(self.cell_type_count[i][0]*self.total_trajectories_cell[i])
+            conf_weight.append(self.cell_type_count[i][1]*self.total_trajectories_cell[i])
+            free_weight.append(self.cell_type_count[i][2]*self.total_trajectories_cell[i])
+            notype_weight.append(self.cell_type_count[i][3]*self.total_trajectories_cell[i])
+        self.mean_D.append(np.nansum(mean_D_immob)/np.nansum(immob_weight))
+        self.mean_D.append(np.nansum(mean_D_conf)/np.nansum(conf_weight))
+        self.mean_D.append(np.nansum(mean_D_free)/np.nansum(free_weight))
+        self.mean_D.append(np.nansum(mean_D_notype)/np.nansum(notype_weight))    
     
+    def calc_mean_D_cells(self):
+        for cell in self.cell_trajectories_filtered:
+            immob = [trajectory.D for trajectory in cell if trajectory.immobility and trajectory.confined and trajectory.analyse_successful]
+            mean_D_immob = np.mean(immob)
+            mean_dD_immob = np.std(immob, ddof=1)/math.sqrt(len(immob))
+            conf = [trajectory.D for trajectory in cell if not trajectory.immobility and trajectory.confined and trajectory.analyse_successful]
+            mean_D_conf= np.mean(conf)
+            mean_dD_conf = np.std(conf, ddof=1)/math.sqrt(len(conf))
+            free = [trajectory.D for trajectory in cell if not trajectory.immobility and not trajectory.confined and trajectory.analyse_successful]
+            mean_D_free = np.mean(free)
+            mean_dD_free = np.std(free, ddof=1)/math.sqrt(len(free))
+            notype = [trajectory.D for trajectory in cell if not trajectory.analyse_successful]
+            mean_D_notype = np.mean(notype)
+            mean_dD_notype = np.std(notype, ddof=1)/math.sqrt(len(notype))
+            mean_cell = (mean_D_immob, mean_D_conf, mean_D_free, mean_D_notype)
+            mean_dD_cell = (mean_dD_immob, mean_dD_conf, mean_dD_free, mean_dD_notype)
+            self.mean_D_cells.append(mean_cell)
+            self.mean_dD_cells.append(mean_dD_cell)
+            
+    def calc_mean_length_cells(self):
+        for cell in self.cell_trajectories_filtered:
+            immob = [trajectory.length_trajectory for trajectory in cell if trajectory.immobility and trajectory.confined and trajectory.analyse_successful]
+            mean_length_immob = np.mean(immob)
+            mean_dlength_immob = np.std(immob, ddof=1)/math.sqrt(len(immob))
+            conf = [trajectory.length_trajectory for trajectory in cell if not trajectory.immobility and trajectory.confined and trajectory.analyse_successful]
+            mean_length_conf= np.mean(conf)
+            mean_dlength_conf = np.std(conf, ddof=1)/math.sqrt(len(conf))
+            free = [trajectory.length_trajectory for trajectory in cell if not trajectory.immobility and not trajectory.confined and trajectory.analyse_successful]
+            mean_length_free = np.mean(free)
+            mean_dlength_free = np.std(free, ddof=1)/math.sqrt(len(free))
+            notype = [trajectory.length_trajectory for trajectory in cell if not trajectory.analyse_successful]
+            mean_length_notype = np.mean(notype)
+            mean_dlength_notype = np.std(notype, ddof=1)/math.sqrt(len(notype))
+            mean_cell = (mean_length_immob, mean_length_conf, mean_length_free, mean_length_notype)
+            mean_dlength_cell = (mean_dlength_immob, mean_dlength_conf, mean_dlength_free, mean_dlength_notype)
+            self.mean_length_cells.append(mean_cell)
+            self.mean_dlength_cells.append(mean_dlength_cell)
+            
+    def calc_mean_length(self):
+        mean_length_immob, mean_length_conf, mean_length_free, mean_length_notype = [], [], [], []
+        immob_weight, conf_weight, free_weight, notype_weight = [], [], [], []
+        for i in range(len(self.mean_D_cells)):
+            mean_length_immob.append(self.mean_length_cells[i][0]*self.cell_type_count[i][0]*self.total_trajectories_cell[i])
+            mean_length_conf.append(self.mean_length_cells[i][1]*self.cell_type_count[i][1]*self.total_trajectories_cell[i])
+            mean_length_free.append(self.mean_length_cells[i][2]*self.cell_type_count[i][2]*self.total_trajectories_cell[i])
+            mean_length_notype.append(self.mean_length_cells[i][3]*self.cell_type_count[i][3]*self.total_trajectories_cell[i])
+            immob_weight.append(self.cell_type_count[i][0]*self.total_trajectories_cell[i])
+            conf_weight.append(self.cell_type_count[i][1]*self.total_trajectories_cell[i])
+            free_weight.append(self.cell_type_count[i][2]*self.total_trajectories_cell[i])
+            notype_weight.append(self.cell_type_count[i][3]*self.total_trajectories_cell[i])
+        self.mean_length.append(np.nansum(mean_length_immob)/np.nansum(immob_weight))
+        self.mean_length.append(np.nansum(mean_length_conf)/np.nansum(conf_weight))
+        self.mean_length.append(np.nansum(mean_length_free)/np.nansum(free_weight))
+        self.mean_length.append(np.nansum(mean_length_notype)/np.nansum(notype_weight))
+        
     # Save
     
     def save_diff(self, trajectories):

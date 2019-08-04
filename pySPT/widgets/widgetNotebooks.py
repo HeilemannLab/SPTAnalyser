@@ -89,6 +89,7 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
         one_cell.tau_threshold = load_hdf5.tau_thresholds[cell_index]
         one_cell.dt = load_hdf5.dts[cell_index]
         one_cell.dof = load_hdf5.dofs[cell_index]
+        one_cell.rossier_fit_area = load_hdf5.fit_areas[cell_index]
         one_cell.D_min = load_hdf5.D_mins[cell_index]
         one_cell.seg_id = load_hdf5.seg_ids[cell_index]
         one_cell.sigma_dyn_type = load_hdf5.sigma_dyns_type[cell_index]
@@ -102,7 +103,7 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
             trajectory_seg_idx = 0
         for trajectory_index in range(0, load_hdf5.trajectory_numbers[cell_index]):
             one_trajectory = trajectory.Trajectory(load_hdf5.locs[cell_index][trajectory_index], one_cell.tau_threshold, one_cell.dt,
-                                                   one_cell.dof, one_cell.D_min, one_cell.points_fit_D)
+                                                   one_cell.dof, one_cell.D_min, one_cell.points_fit_D, one_cell.rossier_fit_area)
             one_trajectory.trajectory_number = int(load_hdf5.locs[cell_index][trajectory_index][0][trajectory_seg_idx])
             one_trajectory.MSDs = load_hdf5.cells_trajectories_MSDs[cell_index][trajectory_index]
             one_trajectory.times = load_hdf5.cells_trajectories_times[cell_index][trajectory_index]
@@ -171,7 +172,16 @@ def init_save_track_analysis(cover_slip, cell_index, track_analysis, widget_trac
                      cover_slip.min_track_length_type, one_trajectory.fit_area, cell.dof, cell.D_min, cell.seg_id, cell.sigma_dyn_type,
                      cover_slip.min_track_length_hmm, cell.sigma_dyn_hmm)
     h5.statistics(track_analysis.cell_type_count[cell_index][0], track_analysis.cell_type_count[cell_index][1],
-                  track_analysis.cell_type_count[cell_index][2], track_analysis.total_trajectories_cell[cell_index])
+                  track_analysis.cell_type_count[cell_index][2], track_analysis.cell_type_count[cell_index][3],
+                  track_analysis.mean_D_cells[cell_index][0], track_analysis.mean_D_cells[cell_index][1],
+                  track_analysis.mean_D_cells[cell_index][2], track_analysis.mean_D_cells[cell_index][3],
+                  track_analysis.mean_dD_cells[cell_index][0], track_analysis.mean_dD_cells[cell_index][1],
+                  track_analysis.mean_dD_cells[cell_index][2], track_analysis.mean_dD_cells[cell_index][3],
+                  track_analysis.mean_length_cells[cell_index][0], track_analysis.mean_length_cells[cell_index][1],
+                  track_analysis.mean_length_cells[cell_index][2], track_analysis.mean_length_cells[cell_index][3],
+                  track_analysis.mean_dlength_cells[cell_index][0], track_analysis.mean_dlength_cells[cell_index][1],
+                  track_analysis.mean_dlength_cells[cell_index][2], track_analysis.mean_dlength_cells[cell_index][3],
+                  track_analysis.total_trajectories_cell[cell_index])
     # if analysis is based on PALMTracer file with no seg id -> track id = seg id
     h5.trc_type(np.shape(cell.converted_trc_file_type), cell.converted_trc_file_type[:,0], cell.converted_trc_file_type[:,1], cell.converted_trc_file_type[:,2],
                 cell.converted_trc_file_type[:,3], cell.converted_trc_file_type[:,4], cell.converted_trc_file_type[:,5], cell.converted_trc_file_type[:,6])
@@ -293,8 +303,9 @@ def init_save_track_stats(h5_stats, track_stats, directory, folder_name, name):
         h5_stats.backgrounds(background_info)
     h5_stats.filter_info(track_stats.filter_settings, track_stats.filter_thresholds_values)
     h5_stats.statistics(track_stats.type_percentage()[0], track_stats.type_percentage()[1],
-                         track_stats.type_percentage()[2], track_stats.total_trajectories_filtered,
-                         (track_stats.total_trajectories - track_stats.total_trajectories_filtered), track_stats.D_mean_types)
+                         track_stats.type_percentage()[2], track_stats.type_percentage()[3], track_stats.total_trajectories_filtered,
+                         (track_stats.total_trajectories - track_stats.total_trajectories_filtered), track_stats.D_mean_types,
+                         track_stats.dD_mean_types, track_stats.length_mean_types, track_stats.dlength_mean_types)
     h5_stats.diffusion_bin_size(track_stats.bin_size)
     # cell files are always loaded
     for cell in track_stats.cells:

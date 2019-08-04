@@ -46,7 +46,7 @@ class CoverSlip():
         self.column_orders = []
         
     def calc_tau_threshold(self):
-        self.tau_threshold = float(self.min_track_length_type)*float(self.dt)*0.6*0.5
+        self.tau_threshold = float(self.min_track_length_type)*float(self.dt)*float(self.rossier_fit_area)*0.5
         
     def calc_min_track_lengths(self):
         """
