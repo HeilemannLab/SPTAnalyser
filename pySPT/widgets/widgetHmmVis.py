@@ -28,6 +28,7 @@ class WidgetHmmVis():
         self.load_dir_name = ""
         self.file_names = []
         self.suffix = ".h5"
+        self.state_radiobutton = self.create_state_radiobutton()
         # plotting
         self.plot_button = self.create_plot_button()
         self.cell_options = []
@@ -42,6 +43,19 @@ class WidgetHmmVis():
         self.save_dir_name = ""
         self.save_folder_name_box = self.create_save_folder_name_box() 
         self.save_button = self.create_save_button()
+        
+        
+    def create_state_radiobutton(self):
+        """
+        Radiobutton to choose if the state population is based on the equilibrium matrix or
+        physical model.
+        """
+        button = widgets.RadioButtons(
+                options = ["physical model", "equilibrium matrix", "state occurence"],
+                disabled = False)
+        return button
+        
+        #physical model, equilibrium matrix
         
     def create_add_graphviz_bin_box(self, val = "C:\\Program Files (x86)\\Graphviz2.38\\bin", desc = "Graphviz bin path"):  # val = in box, desc = infront of box 
         """
