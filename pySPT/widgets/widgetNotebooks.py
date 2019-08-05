@@ -218,7 +218,6 @@ def init_save_track_analysis(cover_slip, cell_index, track_analysis, widget_trac
         save_trc_hmm.run_save()
     
     
-    
 def init_save_filtered_analysis(cover_slip, cell_index, track_stats, directory, folder_name):
     """
     JNB Track Statistics, create filtered h5 files for cells that are not excluded by filters.
@@ -233,8 +232,9 @@ def init_save_filtered_analysis(cover_slip, cell_index, track_stats, directory, 
                               one_trajectory.fit_area, cell.dof, cell.D_min, track_stats.sigma_dyns[cell_index], cell.seg_id,
                               cell.min_track_length_hmm, cell.sigma_dyn_hmm)    
     h5_filtered.statistics(track_stats.cell_type_count[cell_index][0], track_stats.cell_type_count[cell_index][1],
-                           track_stats.cell_type_count[cell_index][2], track_stats.total_trajectories_filtered_cell[cell_index],
-                           (track_stats.total_trajectories_cell[cell_index]-track_stats.total_trajectories_filtered_cell[cell_index]))
+                           track_stats.cell_type_count[cell_index][2], track_stats.cell_type_count[cell_index][3],
+                           track_stats.total_trajectories_filtered_cell[cell_index], (track_stats.total_trajectories_cell[cell_index]-track_stats.total_trajectories_filtered_cell[cell_index]),
+                           track_stats.D_cell_types[cell_index], track_stats.dD_cell_types[cell_index], track_stats.length_cell_types[cell_index], track_stats.dlength_cell_types[cell_index])   
     h5_filtered.trc_type(np.shape(track_stats.filtered_trc_files[cell_index]), track_stats.filtered_trc_files[cell_index][:,0],
                     track_stats.filtered_trc_files[cell_index][:,1], track_stats.filtered_trc_files[cell_index][:,2],
                     track_stats.filtered_trc_files[cell_index][:,3], track_stats.filtered_trc_files[cell_index][:,4],
@@ -323,6 +323,7 @@ def init_save_track_stats(h5_stats, track_stats, directory, folder_name, name):
         h5_stats.diffusion_plot(len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.mean_frequencies,
                                    track_stats.mean_error)
     h5_stats.cells(cell_info)
+    print("The statistics file is saved.")
 
 def init_save_hmm_vis_stats(hmm_vis, directory, folder_name):
     """

@@ -67,6 +67,10 @@ class TrajectoryStatistics():
         self.dD_mean_types = []
         self.length_mean_types = []
         self.dlength_mean_types = []
+        self.D_cell_types = []  
+        self.dD_cell_types = []
+        self.length_cell_types = []
+        self.dlength_cell_types = []
 
     def calc_mean_statistics(self):
         immobile_tracks = []
@@ -74,15 +78,54 @@ class TrajectoryStatistics():
         free_tracks = []
         notype_tracks = []
         for cell in self.cell_trajectories_filtered:
+            immobile_tracks_cell = []
+            confined_tracks_cell = []
+            free_tracks_cell = []
+            notype_tracks_cell = []
             for i in cell:
                 if i.immobility and not i.analyse_successful and not i.confined:
                     immobile_tracks.append(i)
+                    immobile_tracks_cell.append(i)
                 elif not i.immobility and i.confined and i.analyse_successful:
                     confined_tracks.append(i)
+                    confined_tracks_cell.append(i)
                 elif not i.immobility and not i.confined and i.analyse_successful:
                     free_tracks.append(i)
+                    free_tracks_cell.append(i)
                 elif not i.immobility and not i.analyse_successful:
                     notype_tracks.append(i)
+            immob_trajectories_cell = [track.D for track in immobile_tracks_cell]
+            immobile_D_cell = np.mean(immob_trajectories_cell)
+            immobile_dD_cell = np.std(immob_trajectories_cell, ddof=1)/math.sqrt(len(immob_trajectories_cell))
+            conf_trajectories_cell = [track.D for track in confined_tracks_cell]
+            confined_D_cell = np.mean(conf_trajectories_cell)
+            confined_dD_cell = np.std(conf_trajectories_cell, ddof=1)/math.sqrt(len(conf_trajectories_cell))
+            free_trajectories_cell = [track.D for track in free_tracks_cell]
+            free_D_cell = np.mean(free_trajectories_cell)
+            free_dD_cell = np.std(free_trajectories_cell, ddof=1)/math.sqrt(len(free_trajectories_cell))
+            notype_trajectories_cell = [track.D for track in notype_tracks_cell]
+            notype_D_cell = np.mean(notype_trajectories_cell)
+            notype_dD_cell = np.std(notype_trajectories_cell, ddof=1)/math.sqrt(len(notype_trajectories_cell))
+            D_type_cell = (immobile_D_cell, confined_D_cell, free_D_cell, notype_D_cell)
+            dD_type_cell = (immobile_dD_cell, confined_dD_cell, free_dD_cell, notype_dD_cell)
+            self.D_cell_types.append(D_type_cell)
+            self.dD_cell_types.append(dD_type_cell)
+            immob_trajectories_l_cell = [track.length_trajectory for track in immobile_tracks_cell]
+            immobile_length_cell = np.mean(immob_trajectories_l_cell)
+            immobile_dlength_cell = np.std(immob_trajectories_l_cell, ddof=1)/math.sqrt(len(immob_trajectories_l_cell))
+            conf_trajectories_l_cell = [track.length_trajectory for track in confined_tracks_cell]
+            confined_length_cell = np.mean(conf_trajectories_l_cell)
+            confined_dlength_cell = np.std(conf_trajectories_l_cell, ddof=1)/math.sqrt(len(conf_trajectories_l_cell))
+            free_trajectories_l_cell = [track.length_trajectory for track in free_tracks_cell]
+            free_length_cell = np.mean(free_trajectories_l_cell)
+            free_dlength_cell = np.std(free_trajectories_l_cell, ddof=1)/math.sqrt(len(free_trajectories_l_cell))
+            notype_trajectories_l_cell = [track.length_trajectory for track in notype_tracks_cell]
+            notype_length_cell = np.mean(notype_trajectories_l_cell)
+            notype_dlength_cell = np.std(notype_trajectories_l_cell, ddof=1)/math.sqrt(len(notype_trajectories_l_cell))
+            length_type_cell = (immobile_length_cell, confined_length_cell, free_length_cell, notype_length_cell)
+            dlength_type_cell = (immobile_dlength_cell, confined_dlength_cell, free_dlength_cell, notype_dlength_cell)            
+            self.length_cell_types.append(length_type_cell)
+            self.dlength_cell_types.append(dlength_type_cell)
         immob_D = [track.D for track in immobile_tracks]
         immobile_D_mean = np.mean(immob_D)
         immobile_dD_mean = np.std(immob_D, ddof=1)/math.sqrt(len(immob_D))
@@ -123,7 +166,7 @@ class TrajectoryStatistics():
         self.dlength_mean_types.append(confined_dlength_mean)
         self.dlength_mean_types.append(free_dlength_mean)
         self.dlength_mean_types.append(notype_dlength_mean)
-        
+      
 
     def calc_min_rossier_length(self):
         #self.tau_threshold_min_length = float(math.inf)
@@ -160,6 +203,11 @@ class TrajectoryStatistics():
         self.dD_mean_types = []
         self.length_mean_types = []
         self.dlength_mean_types = []
+        self.D_cell_types = []  
+        self.dD_cell_types = []
+        self.length_cell_types = []
+        self.dlength_cell_types = []
+        
     def run_statistics(self, min_length, max_length, min_D, max_D, filter_immob, filter_confined,
                        filter_free, filter_analyse_not_successful):
         """
@@ -438,7 +486,7 @@ class TrajectoryStatistics():
                     ratio_not_successful_cell = count_not_successful_cell/self.total_trajectories_filtered_cell[cell_index]*100
                     cell_types_percent = (ratio_immobile_cell, ratio_confined_cell, ratio_free_cell, ratio_not_successful_cell)
                 else:
-                    cell_types_percent = (0.0,0.0,0.0)  # if all trajectories from a cell are filtered, the type % are 0
+                    cell_types_percent = (0.0,0.0,0.0,0.0)  # if all trajectories from a cell are filtered, the type % are 0
                 self.cell_type_count.append(cell_types_percent)
             ratio_immobile = count_immobile/self.total_trajectories_filtered*100
             ratio_confined = count_confined/self.total_trajectories_filtered*100

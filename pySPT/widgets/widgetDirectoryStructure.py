@@ -44,7 +44,7 @@ class WidgetDirStructure():
         Create folder pySPT + raw base name in same directory as target file.
         Create sub folder with chosen name in pySPT folder.
         """
-        self.pySPT_dir = self.folder_name + "\pySPT_" + self.raw_base_name
+        self.pySPT_dir = self.folder_name + "\SPTAnalyser_" + self.raw_base_name
         if not os.path.exists(self.pySPT_dir):
             os.makedirs(self.pySPT_dir)
         self.sub_folder_dir = self.pySPT_dir + self.sub_folder

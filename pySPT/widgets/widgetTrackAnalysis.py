@@ -275,7 +275,7 @@ class WidgetTrackAnalysis():
         text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
         return text
         
-    def create_D_min_box(self, val = "0.0025", desc = "Minimal detectable D  [\u03BCm\u00b2/s]"):
+    def create_D_min_box(self, val = "0.0038", desc = "Minimal detectable D  [\u03BCm\u00b2/s]"):
         """
         Box for inserting the camera integration time for tau threshold calculation.
         """
