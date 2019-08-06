@@ -160,7 +160,6 @@ class LoadHdf5():
                 else:
                     raw_base_name += i   
             self.names.append(raw_base_name)
-        #print("names", self.names)
         
     def get_points_fit_Ds(self):
         """
