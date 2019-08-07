@@ -339,7 +339,7 @@ def init_save_hmm_vis_stats(hmm_vis, directory, folder_name):
         cell_info.append(one_cell)
     save_hmm_vis.cell_info(cell_info)
     #save_hmm_vis.mean_aic_value(hmm_vis.mean_aic_value)
-    save_hmm_vis.mean_states(hmm_vis.states_percentages, hmm_vis.mean_D, hmm_vis.mean_D_error)
+    save_hmm_vis.mean_states(hmm_vis.states_percentages, hmm_vis.states_percentages_error, hmm_vis.mean_D, hmm_vis.mean_D_error)
     save_hmm_vis.mean_tps(hmm_vis.mean_tps)
     for cell_idx in range(len(hmm_vis.cells)):
         save_hmm_vis.single_states(hmm_vis.single_Ds[cell_idx], hmm_vis.cells[cell_idx].hmm_cell_name, hmm_vis.single_states_percentages[cell_idx])
@@ -347,5 +347,6 @@ def init_save_hmm_vis_stats(hmm_vis, directory, folder_name):
     save_hmm_vis.node_sizes(hmm_vis.mean_node_size)
     save_hmm_vis.edge_sizes(hmm_vis.mean_edge_size)
     save_hmm_vis.dmean_tps(hmm_vis.mean_tps_error)
+    print("Plots are saved!")
 
         

@@ -136,28 +136,42 @@ class HmmVisualization():
         """
         Population of states in % based on the equilibrium matrix.
         """
+        self.single_states_percentages = np.zeros([self.number_of_cells, self.number_of_states])
         self.state_percentages = np.zeros(self.number_of_states)
         self.states_percentages_error = np.zeros(self.number_of_states)
         eq_matrix = []
         for cell in self.cells:
+            cell_idx = self.cells.index(cell)
             eq_matrix.append(cell.equilibrium_matrix)
+            self.single_states_percentages[cell_idx] = cell.equilibrium_matrix 
         self.states_percentages = np.mean(eq_matrix, 0) 
         self.states_percentages_error = np.std(eq_matrix, 0,  ddof=1) / (self.number_of_cells) **(1/2)
+        print("Mean population of states:", end=' ')
+        for i in self.states_percentages:
+            print("%.5f"%i, end=' ')
+        print(" ")
     
     def calc_states_percentages_phys_mod(self):
         """
         Population of states in % based on the physical model.
         """
+        self.single_states_percentages = np.zeros([self.number_of_cells, self.number_of_states])
         self.state_percentages = np.zeros(self.number_of_states)
         self.states_percentages_error = np.zeros(self.number_of_states)
         weight_coefs = []
         for cell in self.cells:
+            cell_idx = self.cells.index(cell)
             cell_weights = []
             for state in range(self.number_of_states):
                 cell_weights.append(cell.weight_coef[state][0])
+            self.single_states_percentages[cell_idx] = cell_weights
             weight_coefs.append(cell_weights)
         self.states_percentages = np.mean(weight_coefs, 0)
         self.states_percentages_error = np.std(weight_coefs, 0,  ddof=1) / (self.number_of_cells) **(1/2)
+        print("Mean population of states:", end=' ')
+        for i in self.states_percentages:
+            print("%.5f"%i, end=' ')
+        print(" ")
  
     def calc_states_percentages_occurence(self):
         """
@@ -177,8 +191,6 @@ class HmmVisualization():
             cell_states[cell_idx] = state_counter
         self.states_percentages = np.mean(cell_states, 0)
         self.states_percentages_error = np.std(cell_states, 0,  ddof=1) / (self.number_of_cells) **(1/2)
-        print(self.states_percentages, type(self.states_percentages), type(self.states_percentages[0]))
-        print(self.states_percentages_error)
         print("Mean population of states:", end=' ')
         for i in self.states_percentages:
             print("%.5f"%i, end=' ')
@@ -355,7 +367,7 @@ class HmmVisualization():
     def plot_bar_state_percentages(self):
         bars = self.states_percentages
         label_name = self.mean_D
-        title_name = "State distribution based on frequency of states"
+        title_name = "State distribution"
         error = self.states_percentages_error
         y_error = True
         
@@ -383,7 +395,7 @@ class HmmVisualization():
  
     def plot_pie_state_percentages(self):
         values = self.states_percentages
-        title_name = "State distribution based on frequency of states"
+        title_name = "State distribution"
         label = self.mean_D
         mean_pi = self.states_percentages
         fig = plt.figure()
