@@ -69,6 +69,7 @@ class TrcFormat():
             self.load_trc_file_PT()
         self.sort_trc_file()
         self.trc_hmm_filter()
+        self.trc_hmm_filter_doublelocs()
         self.trc_type_filter()
     
     def load_localization_file(self):
@@ -198,6 +199,20 @@ class TrcFormat():
 #                 print("i, xi, xi+1, yi, yi+1", i, self.trc_file_hmm[i][2], self.trc_file_hmm[i+1][2], self.trc_file_hmm[i][3], self.trc_file_hmm[i+1][3])
 #         
 # =============================================================================
+        
+    def trc_hmm_filter_doublelocs(self):
+        """
+        Get rid of trajectories that have jumpdistances of 0.
+        -> would result in error in ermine.
+        """
+        target_ids = [] # list of trajectory ids that will be deleted
+        for i in range(len(self.trc_file_hmm_filtered)-1):           
+            if self.trc_file_hmm_filtered[i][2] == self.trc_file_hmm_filtered[i+1][2] and self.trc_file_hmm_filtered[i][3] == self.trc_file_hmm_filtered[i+1][3]:
+                target_ids.append(self.trc_file_hmm_filtered[i][0])
+        # delete trajectories with target ids
+        self.trc_file_hmm_filtered = [row for row in self.trc_file_hmm_filtered if row[0] not in target_ids]
+        #print("deleted trajectories because of double locs", len(target_ids))
+        
     def trc_type_filter(self):
         """
         Throw all trajectories < self.min_track_length_type out.

@@ -13,15 +13,15 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
     
-setuptools.setup(name = "pySPT",
-                 version = "6.08",
+setuptools.setup(name = "SPTAnalyser",
+                 version = "30.08",
                  author = "Johanna Rahm and Sebastian Malkusch",
-                 author_email = "johanna.rahm@stud.uni-frankfurt.de",
+                 author_email = "johanna-rahm@gmx.de",
                  description = "a package for analysing SPT data",
                  long_description = long_description,
                  long_description_content_type = "text/markdown",
                  licence = "GNU GENERAL PUBLIC LICENSE",
-                 url="https://github.com/JohannaRahm/pySPT",
+                 url="https:/github.com/JohannaRahm/pySPT",
                  packages = setuptools.find_packages(),
                  install_requires=["numpy",
                                    "matplotlib",
