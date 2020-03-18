@@ -216,8 +216,11 @@ class Cell():
         """
         Analyse trajectories without multiprocessing
         """
-        for trajectory in tqdm(self.trajectories):
-            trajectory.analyse_particle()
+#        for trajectory in tqdm(self.trajectories):
+        with tqdm(total=len(self.trajectories), desc="Trajectory", leave=False) as pbar:
+            for trajectory in self.trajectories:
+                trajectory.analyse_particle()
+                pbar.update(1)
         self.analysed_trajectories = self.trajectories
         #print("immobile", len([(trajectory.D) for trajectory in self.analysed_trajectories if trajectory.D < self.D_min]), [(trajectory.D) for trajectory in self.analysed_trajectories if trajectory.D < self.D_min])
         #print("confined", len([(trajectory.tau, trajectory.D) for trajectory in self.analysed_trajectories if trajectory.tau < self.tau_threshold and not trajectory.immobility and trajectory.analyse_successful]), [(trajectory.tau, trajectory.D) for trajectory in self.analysed_trajectories if trajectory.tau < self.tau_threshold and not trajectory.immobility and trajectory.analyse_successful])

@@ -86,36 +86,42 @@ class CoverSlip():
         #print("min track hmm, min track type, tau threshold", self.min_track_length_hmm, self.min_track_length_type, self.tau_threshold)
         if self.roi_file:  # if no roi file path was inserted, no file can be loaded  
             roi_file = np.genfromtxt(self.roi_file, dtype=None, delimiter=",", skip_header=3, encoding=None)
-        for file_name in tqdm(self.cell_files):
-            cell_idx = self.cell_files.index(file_name)
-            one_cell = cell.Cell()  # create cell object for each file
-            base_name = os.path.basename(file_name)
-            raw_base_name = ""
-            for i in base_name:
-                if i == ".":
-                    break
+
+        # for file_name in tqdm(self.cell_files):
+
+        with tqdm(total=len(self.cell_files), desc="Cell") as pbar:
+
+            for file_name in self.cell_files:
+                cell_idx = self.cell_files.index(file_name)
+                one_cell = cell.Cell()  # create cell object for each file
+                base_name = os.path.basename(file_name)
+                raw_base_name = ""
+                for i in base_name:
+                    if i == ".":
+                        break
+                    else:
+                        raw_base_name += i
+                one_cell.name = raw_base_name
+                if self.roi_file:  # if the raw base name of the cell equals the raw roi_file [0] entry, the cell gets its size
+                    for file in roi_file:  # raw_cell_name = cell01, roi_file [0] = cell01.tracked.csv, cell01.tracked, cell01 -> all would be ok
+                        raw_file = ""
+                        for i in file[0]:
+                            if i == ".":
+                                break
+                            else:
+                                raw_file += i
+                        raw_file = raw_file.replace('"', "")
+                        if one_cell.name == raw_file:
+                            one_cell.size = file[1]
+                # in PT the column order is set and not necessary.
+                if self.software == "PALMTracer":
+                    trc_format = trcFormat.TrcFormat(self.software, file_name, self.pixel_size, self.min_track_length_type,
+                                                     self.min_track_length_hmm, self.seg_id)
                 else:
-                    raw_base_name += i   
-            one_cell.name = raw_base_name
-            if self.roi_file:  # if the raw base name of the cell equals the raw roi_file [0] entry, the cell gets its size
-                for file in roi_file:  # raw_cell_name = cell01, roi_file [0] = cell01.tracked.csv, cell01.tracked, cell01 -> all would be ok
-                    raw_file = ""  
-                    for i in file[0]:
-                        if i == ".":
-                            break
-                        else:
-                            raw_file += i
-                    raw_file = raw_file.replace('"', "")
-                    if one_cell.name == raw_file:
-                        one_cell.size = file[1]     
-            # in PT the column order is set and not necessary.
-            if self.software == "PALMTracer":
-                trc_format = trcFormat.TrcFormat(self.software, file_name, self.pixel_size, self.min_track_length_type,
-                                                 self.min_track_length_hmm, self.seg_id)
-            else:
-                trc_format = trcFormat.TrcFormat(self.software, file_name, self.pixel_size, self.min_track_length_type,
-                                 self.min_track_length_hmm, self.seg_id, column_order=self.column_orders[cell_idx])
-            trc_format.run()
+                    trc_format = trcFormat.TrcFormat(self.software, file_name, self.pixel_size, self.min_track_length_type,
+                                     self.min_track_length_hmm, self.seg_id, column_order=self.column_orders[cell_idx])
+                trc_format.run()
+
         
 # =============================================================================
 #             # testing purpose
@@ -132,29 +138,32 @@ class CoverSlip():
 #             print("min track length hmm", self.min_track_length_hmm)
 #             print("column orders", self.column_orders)
 # =============================================================================
-            
-            trc_file_type = trc_format.trc_file_type_filtered
-            trc_file_hmm = trc_format.trc_file_hmm_filtered
-            if trc_file_type and trc_file_hmm:
-                one_cell.trc_file_type = trc_file_type
-                one_cell.trc_file_hmm = trc_file_hmm
-                one_cell.seg_id = self.seg_id
-                one_cell.min_track_length_type = self.min_track_length_type
-                one_cell.min_track_length_hmm = self.min_track_length_hmm
-                one_cell.tau_threshold = float(self.tau_threshold)
-                one_cell.dt = float(self.dt)
-                one_cell.pixel_amount = float(self.pixel_amount)
-                one_cell.pixel_size = float(self.pixel_size)
-                one_cell.dof = float(self.dof)
-                one_cell.rossier_fit_area = float(self.rossier_fit_area)
-                one_cell.D_min = float(self.D_min)
-                one_cell.points_fit_D = int(self.points_fit_D)
-                one_cell.run_analysis()
-                self.cell_trajectories.append(one_cell.analysed_trajectories)
-                self.cells.append(one_cell)
-            else:
-                print("All trajecoties are shorter as the minimum trajectory length inserted, please select a smaller minimum threshold.")
+
+                trc_file_type = trc_format.trc_file_type_filtered
+                trc_file_hmm = trc_format.trc_file_hmm_filtered
+                if trc_file_type and trc_file_hmm:
+                    one_cell.trc_file_type = trc_file_type
+                    one_cell.trc_file_hmm = trc_file_hmm
+                    one_cell.seg_id = self.seg_id
+                    one_cell.min_track_length_type = self.min_track_length_type
+                    one_cell.min_track_length_hmm = self.min_track_length_hmm
+                    one_cell.tau_threshold = float(self.tau_threshold)
+                    one_cell.dt = float(self.dt)
+                    one_cell.pixel_amount = float(self.pixel_amount)
+                    one_cell.pixel_size = float(self.pixel_size)
+                    one_cell.dof = float(self.dof)
+                    one_cell.rossier_fit_area = float(self.rossier_fit_area)
+                    one_cell.D_min = float(self.D_min)
+                    one_cell.points_fit_D = int(self.points_fit_D)
+                    one_cell.run_analysis()
+                    self.cell_trajectories.append(one_cell.analysed_trajectories)
+                    self.cells.append(one_cell)
+                else:
+                    print("All trajecoties are shorter as the minimum trajectory length inserted, please select a smaller minimum threshold.")
+                pbar.update(1)
+
         print("Analysis took {} s".format(time.time()-start))
+        print(" ")
             
     def plot_trajectory(self, cell_name, trajectory_idx):
         """
