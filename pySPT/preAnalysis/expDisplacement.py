@@ -32,8 +32,6 @@ class ExpDisplacement():
     def load_seg_file(self):
         """
         If True Create self.mjd (numpy.ndarray) col0 = mjd, col1 = mjd_n else raise error.
-        
-        :param file_name: Name of the inserted file by widgetExpDisp. 
         """
         # get the key for a certain value
         mjd_index = list(self.column_order.keys())[list(self.column_order.values()).index('"seg.mjd"')]

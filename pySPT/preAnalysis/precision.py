@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 import datetime
 import pandas as pd
+import math
 #import seaborn as sns
 
 
@@ -82,8 +83,9 @@ class Precision():
         elif self.software == "rapidSTORM":
             x_uncertainty_index = list(self.column_order.keys())[list(self.column_order.values()).index('"Position-0-0-uncertainty"')]
             y_uncertainty_index = list(self.column_order.keys())[list(self.column_order.values()).index('"Position-1-0-uncertainty"')]
-            self.position_uncertainties = np.loadtxt(self.file_name, usecols = (x_uncertainty_index, y_uncertainty_index)) # col0 = x uncertainty, col1 = y uncertainty
-                
+            # col0 = x uncertainty, col1 = y uncertainty
+            self.position_uncertainties = np.loadtxt(self.file_name, usecols = (x_uncertainty_index, y_uncertainty_index))
+
     def rs_log_columns(self):
         """
         Natural logarithm of position uncertainties x and y.
@@ -93,6 +95,8 @@ class Precision():
         self.position_uncertainties_log = np.zeros([np.size(self.position_uncertainties[:,0]),2])
         log_x = np.log(self.position_uncertainties[:,0])
         log_y = np.log(self.position_uncertainties[:,1])
+        self.mean_x = math.exp(np.mean(log_x))
+        self.mean_y = math.exp(np.mean(log_y))
         self.position_uncertainties_log[:,0] = log_x
         self.position_uncertainties_log[:,1] = log_y
         
@@ -103,8 +107,9 @@ class Precision():
         """
         self.position_uncertainties_log = np.zeros([np.size(self.position_uncertainties[:,0]),2])
         log = np.log(self.position_uncertainties[:,0])
+        self.mean_x = math.exp(np.mean(log))
         self.position_uncertainties_log[:,0] = log
-        
+
     def hist_x(self):
         """
         Create hist.
@@ -112,12 +117,12 @@ class Precision():
         position_uncertainties_hist_x col1 = normalized frequencies
         """
         max_bin = int(np.ceil(np.ceil(self.position_uncertainties[:,0].max()/0.5)*0.5))  # max mjd ceiled and divisible by 20
-        bin_size = int(np.ceil(np.ceil(self.position_uncertainties[:,0].max())/0.5))  # divides the bin range in sizes -> desired bin = max_bin/bin_size
+        # divides the bin range in sizes -> desired bin = max_bin/bin_size
+        bin_size = int(np.ceil(np.ceil(self.position_uncertainties[:,0].max())/0.5))
         hist = np.histogram(self.position_uncertainties[:,0],
                                         range = (0, max_bin),
                                         bins = bin_size,
                                         density = True)
-        #print("histx", hist[0])
         self.position_uncertainties_hist_x = np.zeros([np.size(hist[0]),2])
         self.position_uncertainties_hist_x[:,0] = hist[1][:-1]  #hist0 = freq, hist1 = bins, hist1>hist0
         self.position_uncertainties_hist_x[:,1] = hist[0][:]
@@ -135,7 +140,6 @@ class Precision():
         self.position_uncertainties_hist_log_x[:,0] = hist[1][:-1]
         self.position_uncertainties_hist_log_x[:,1] = hist[0][:]
         self.position_uncertainties_hist_log_x[:,1] = self.normalize_hist(self.position_uncertainties_hist_log_x[:,1])
-        #print("hist x log", hist)
         
     def hist_y(self):
         """
@@ -144,7 +148,8 @@ class Precision():
         position_uncertainties_hist_y col1 = normalized frequencies
         """
         max_bin = int(np.ceil(np.ceil(self.position_uncertainties[:,1].max()/0.5)*0.5))  # max mjd ceiled and divisible by 20
-        bin_size = int(np.ceil(np.ceil(self.position_uncertainties[:,1].max())/0.5))  # divides the bin range in sizes -> desired bin = max_bin/bin_size
+        # divides the bin range in sizes -> desired bin = max_bin/bin_size
+        bin_size = int(np.ceil(np.ceil(self.position_uncertainties[:,1].max())/0.5))
         hist = np.histogram(self.position_uncertainties[:,1],
                                         range = (0, max_bin),
                                         bins = bin_size,
@@ -155,7 +160,6 @@ class Precision():
         
     def hist_y_log(self):
         max_bin = int(np.ceil(np.ceil(self.position_uncertainties_log[:,1].max()/0.05)*0.05))
-        #min_bin = np.ceil(self.position_uncertainties_log[:,1].min())
         bin_size = int(np.ceil(np.ceil(self.position_uncertainties_log[:,1].max())/0.05))
         hist = np.histogram(self.position_uncertainties_log[:,1],
                             range = (0, max_bin),
@@ -165,7 +169,6 @@ class Precision():
         self.position_uncertainties_hist_log_y[:,0] = hist[1][:-1]
         self.position_uncertainties_hist_log_y[:,1] = hist[0][:]
         self.position_uncertainties_hist_log_y[:,1] = self.normalize_hist(self.position_uncertainties_hist_log_y[:,1])
-        #print("hist y log", hist)
         
     def normalize_hist(self, normalized_col):
         """
@@ -182,7 +185,6 @@ class Precision():
         :param x: x
         :return: gaus function
         """
-        #A, mu, sigma = p
         return A*np.exp(-(x-mu)**2/(2.*sigma**2))
     
     def gauss_fit(self): 
@@ -196,7 +198,6 @@ class Precision():
         self.position_uncertainties_hist_log_x[:,2] = self.gauss_func(self.position_uncertainties_hist_log_x[:,0],
                                             coeff_x[0], coeff_x[1], coeff_x[2])  # fit
         self.position_uncertainties_hist_log_x[:,3] = self.position_uncertainties_hist_log_x[:,1] - self.position_uncertainties_hist_log_x[:,2]  # residues
-        self.mean_x = np.exp(coeff_x[1])
         if self.software == "ThunderSTORM":
             print("The mean localization uncertainty is %.3f nm in the x/y-plane." %(self.mean_x))
         if self.software == "rapidSTORM":
@@ -206,7 +207,6 @@ class Precision():
             self.position_uncertainties_hist_log_y[:,2] = self.gauss_func(self.position_uncertainties_hist_log_y[:,0],
                                                   coeff_y[0], coeff_y[1], coeff_y[2])  # fit
             self.position_uncertainties_hist_log_y[:,3] = self.position_uncertainties_hist_log_y[:,1] - self.position_uncertainties_hist_log_y[:,2]  # residues
-            self.mean_y = np.exp(coeff_y[1])
             print("The mean localization uncertainty is %.3f nm in x and %.3f nm in y direction." %(self.mean_x, self.mean_y))
         
     def plot_hist(self, x_axis, y_axis, width, fit=False, fit_data=[], colour="gray", fit_style="--c", log = False, direction = False):
@@ -423,4 +423,3 @@ def main():
     
 if __name__ == "__main__":
     main()
-    
