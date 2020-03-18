@@ -20,9 +20,9 @@ from . import saveTrcHmm
 from . import widgetDirectoryStructure
 from . import loadMergedHmm
 from . import saveHmmVis
-from ..analysis import cell  # two dots for switching the folder
-from ..analysis import trajectory
-from ..analysis import trackAnalysis
+from ..Analysis import cell  # two dots for switching the folder
+from ..Analysis import trajectory
+from ..Analysis import trackAnalysis
 from ..hmm import mergeHdf5
 from ..hmm import microscope
 import time
