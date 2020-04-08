@@ -167,7 +167,7 @@ class Trajectory():
         sp_1.plot(self.MSD_D[:, 0], self.MSD_D[:, 2], "--c", label="linear fit")
         sp_1.legend()
         sp_1.set_title("MSD-Plot: Diffusion")
-        sp_1.set_ylabel("MSD")
+        sp_1.set_ylabel("MSD [\u03BCm\u00b2]")
         sp_2 = plt.subplot2grid((4, 4), (3, 0), colspan=4, rowspan=1)
         residue_line = np.zeros(len(self.MSD_D[:, 0]))
         sp_2.plot(self.MSD_D[:, 0], residue_line, ":", color="0.75")
@@ -186,7 +186,7 @@ class Trajectory():
         plt.legend()
         plt.title("MSD-plot")
         plt.xlabel("Time step [s]")
-        plt.ylabel("MSD")
+        plt.ylabel("MSD [\u03BCm\u00b2]")
         plt.show()
 
     def plot_rossier_MSD(self):
@@ -204,7 +204,7 @@ class Trajectory():
         sp_1.plot(self.MSD_fit[:,0], self.MSD_fit[:,2], "--c", label="type analysis fit")
         sp_1.legend()
         sp_1.set_title("MSD-plot type analysis")
-        sp_1.set_ylabel("MSD")
+        sp_1.set_ylabel("MSD [\u03BCm\u00b2]")
         sp_2 = plt.subplot2grid((4,4), (3,0), colspan=4, rowspan=1)
         residue_line = np.zeros(len(self.MSD_fit[:,0]))
         sp_2.plot(self.MSD_fit[:,0], residue_line, ":", color="0.75")

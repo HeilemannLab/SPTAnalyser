@@ -15,6 +15,7 @@ import numpy as np
 import copy
 import math
 import matplotlib.pyplot as plt
+import time
 
 
 class TrackAnalysis():
@@ -49,6 +50,13 @@ class TrackAnalysis():
         self.diff_plot = []
         self.rossier_plot = []
         self.diff_fig = []  # log diffusion plot
+        self.diff_fig_types = []  # log diffusion plot types
+        self.MSD_fig_types = []  # MSD mean values plot types
+
+        self.trajectories_immob_cells = []
+        self.trajectories_conf_cells = []
+        self.trajectories_free_cells = []
+        self.trajectories_notype_cells = []
 
     def run_statistics_no_filter(self):
         """
@@ -62,8 +70,6 @@ class TrackAnalysis():
         self.calc_mean_length_cells()
         self.calc_mean_length()
         self.print_stats()
-        
-        
         
     def create_init_filter_lst(self):
         """
@@ -108,20 +114,37 @@ class TrackAnalysis():
                 count_confined_cell = 0
                 count_free_cell = 0
                 count_not_successful_cell = 0
+
+                trajectories_immob = []
+                trajectories_conf = []
+                trajectories_free = []
+                trajectories_notype = []
+
                 for trajectory in cell:
                     if trajectory.immobility and trajectory.confined and trajectory.analyse_successful:
                         count_immobile_cell += 1
                         count_immobile += 1
+                        trajectories_immob.append(trajectory)
                     if trajectory.confined and not trajectory.immobility and trajectory.analyse_successful:
                         count_confined_cell += 1
                         count_confined += 1
+                        trajectories_conf.append(trajectory)
                     # has to be not confined AND not immobile (otherwise it will count the immobile particles as well)
                     if not trajectory.confined and not trajectory.immobility and trajectory.analyse_successful:
                         count_free_cell += 1
                         count_free +=1
+                        trajectories_free.append(trajectory)
                     if not trajectory.analyse_successful:
                         count_not_successful_cell += 1
                         count_not_successful += 1
+                        trajectories_notype.append(trajectory)
+
+                self.trajectories_immob_cells.append(trajectories_immob)
+                self.trajectories_conf_cells.append(trajectories_conf)
+                self.trajectories_free_cells.append(trajectories_free)
+                self.trajectories_notype_cells.append(trajectories_notype)
+
+
                 cell_index = self.cell_trajectories_filtered.index(cell)
                 ratio_immobile_cell = count_immobile_cell/self.total_trajectories_cell[cell_index]*100
                 ratio_confined_cell = count_confined_cell/self.total_trajectories_cell[cell_index]*100
@@ -150,7 +173,7 @@ class TrackAnalysis():
         print("%.2f %% could not be analysed, mean D = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(self.type_ratios[3],self.mean_D[3],self.mean_length[3])) 
         print("Total trajectories:", self.total_trajectories)
 
-    def run_plot_diffusion_histogram(self, desired_bin_size):
+    def run_plot_diffusion_histogram(self, desired_bin_size, MSD_delta_t_n, y_lim):
         # bin size can only be something that can be converted to float (integer or float, comma separated)
         try:
             float(desired_bin_size)
@@ -159,16 +182,230 @@ class TrackAnalysis():
         # bin size can not be 0
         else:
             if float(desired_bin_size) != 0.0:
+                # Histogram of log D
                 self.clear_attributes()
                 self.determine_max_min_diffusion()
-                self.diffusions_log(float(desired_bin_size))
+                log_hist_immob, log_hist_conf, log_hist_free, log_hist_fit_fail = self.diffusions_log(
+                    float(desired_bin_size))
                 self.calc_nonlogarithmic_diffusions()
                 self.determine_mean_frequency()
                 self.calc_mean_error()
                 self.plot_bar_log_bins()
+                # Histogram of log D per type
+                self.diffusion_hist_types(float(desired_bin_size))
+                # MSD plot per type
+                MSD_delta_t_n = None if MSD_delta_t_n == "None" else float(MSD_delta_t_n)
+                y_lim = None if y_lim == "None" else float(y_lim)
+                self.MSD_types(MSD_delta_t_n, y_lim)
+
             else:
                 print("Bin size can not be zero.")
-        
+
+    def plot_diffusion_hist_types(self, mean_log_hist_immob, error_log_hist_immob, mean_log_hist_conf,
+                                  error_log_hist_conf, mean_log_hist_free, error_log_hist_free,
+                                  mean_log_hist_fit_fail, error_log_hist_fit_fail):
+        self.diff_fig_types = plt.figure()
+        plt.subplot(111, xscale="log")
+        (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_immob, yerr=error_log_hist_immob, capsize=4,
+                                    label="relative frequency immobile", ecolor="#4169e1", color="#4169e1")  # capsize length of cap
+        for cap in caps:
+            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+
+        (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_conf, yerr=error_log_hist_conf, capsize=4,
+                                    label="relative frequency confined", ecolor="#228b22", color="#228b22")  # capsize length of cap
+        for cap in caps:
+            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+
+        (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_free, yerr=error_log_hist_free, capsize=4,
+                                    label="relative frequency free", ecolor="#ff8c00", color="#ff8c00")  # capsize length of cap
+        for cap in caps:
+            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+
+        (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_fit_fail, yerr=error_log_hist_fit_fail, capsize=4,
+                                    label="relative frequency no type", ecolor="#8b008b", color="#8b008b")  # capsize length of cap
+        for cap in caps:
+            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+
+        plt.xlim(self.min_D, self.max_D)
+        plt.legend()
+        plt.title("Distribution of diffusion coefficients per type")
+        plt.ylabel("Normalized relative occurence [%]")
+        plt.xlabel("D [\u03BCm\u00b2/s]")
+        plt.show()
+
+    def diffusion_hist_types(self, desired_bin_size):
+        log_Ds_immob = []
+        Ds_immob = []
+        for cell in self.trajectories_immob_cells:
+            log_Ds_immob_cell = [np.log10(trajectory.D) for trajectory in cell]
+            log_Ds_immob_cell = [i for i in log_Ds_immob_cell if not np.isnan(i)]
+            log_Ds_immob.append(log_Ds_immob_cell)
+            Ds_cell = [trajectory.D for trajectory in cell]
+            Ds_immob.append(Ds_cell)
+
+        log_Ds_conf = []
+        Ds_conf = []
+        for cell in self.trajectories_conf_cells:
+            log_Ds_conf_cell = [np.log10(trajectory.D) for trajectory in cell]
+            log_Ds_conf.append(log_Ds_conf_cell)
+            Ds_cell = [trajectory.D for trajectory in cell]
+            Ds_conf.append(Ds_cell)
+
+        log_Ds_free = []
+        Ds_free = []
+        for cell in self.trajectories_free_cells:
+            log_Ds_free_cell = [np.log10(trajectory.D) for trajectory in cell]
+            log_Ds_free.append(log_Ds_free_cell)
+            Ds_cell = [trajectory.D for trajectory in cell]
+            Ds_free.append(Ds_cell)
+
+        log_Ds_notype = []
+        Ds_notype = []
+        for cell in self.trajectories_notype_cells:
+            log_Ds_notype_cell = [np.log10(trajectory.D) for trajectory in cell]
+            log_Ds_notype.append(log_Ds_notype_cell)
+            Ds_cell = [trajectory.D for trajectory in cell]
+            Ds_notype.append(Ds_cell)
+
+        hist_immob, hist_conf, hist_free, hist_notype = [], [], [], []
+        for i, cell_size in enumerate(self.cell_sizes):
+            hist_immob_cell = self.calc_diffusion_frequencies(log_Ds_immob[i], desired_bin_size, cell_size)
+            hist_conf_cell = self.calc_diffusion_frequencies(log_Ds_conf[i], desired_bin_size, cell_size)
+            hist_free_cell = self.calc_diffusion_frequencies(log_Ds_free[i], desired_bin_size, cell_size)
+            hist_notype_cell = self.calc_diffusion_frequencies(log_Ds_notype[i], desired_bin_size, cell_size)
+            hist_immob.append(hist_immob_cell[:,1])  # only frequency counts
+            hist_conf.append(hist_conf_cell[:, 1])
+            hist_free.append(hist_free_cell[:, 1])
+            hist_notype.append(hist_notype_cell[:, 1])
+
+        mean_log_hist_immob = np.mean(hist_immob, axis=0) * self.normalization_factor
+        error_log_hist_immob = np.std(hist_immob, axis=0, ddof=1) * self.normalization_factor
+        mean_log_hist_conf = np.mean(hist_conf, axis=0) * self.normalization_factor
+        error_log_hist_conf = np.std(hist_conf, axis=0, ddof=1) * self.normalization_factor
+        mean_log_hist_free = np.mean(hist_free, axis=0) * self.normalization_factor
+        error_log_hist_free = np.std(hist_free, axis=0, ddof=1) * self.normalization_factor
+        mean_log_hist_notype = np.mean(hist_notype, axis=0) * self.normalization_factor
+        error_log_hist_notype = np.std(hist_notype, axis=0, ddof=1) * self.normalization_factor
+
+        self.plot_diffusion_hist_types(mean_log_hist_immob, error_log_hist_immob, mean_log_hist_conf,
+                                       error_log_hist_conf, mean_log_hist_free, error_log_hist_free,
+                                       mean_log_hist_notype, error_log_hist_notype)
+
+    def plot_MSD_types(self, mean_MSD_immob, mean_error_MSD_immob, mean_MSD_conf, mean_error_MSD_conf,
+                       mean_MSD_free, mean_error_MSD_free, mean_MSD_fit_fail, mean_error_MSD_fit_fail,
+                       MSD_delta_t_n, y_lim):
+        """
+        Plot the mean MSD curve per diffusion type
+        """
+        camera_time = self.cell_trajectories[0][0].dt  # camera integration time in s
+
+        delta_t_immob = [camera_time * i for i in range(1, len(mean_MSD_immob)+1)]
+        delta_t_conf = [camera_time * i for i in range(1, len(mean_MSD_conf)+1)]
+        delta_t_free = [camera_time * i for i in range(1, len(mean_MSD_free)+1)]
+        delta_t_fit_fail = [camera_time * i for i in range(1, len(mean_MSD_fit_fail)+1)]
+
+        self.MSD_fig_types = plt.figure()
+        (_, caps, _) = plt.errorbar(delta_t_immob, mean_MSD_immob, yerr=mean_error_MSD_immob, capsize=4,
+                                    label="MSD immobile", ecolor="#4169e1", color="#4169e1")  # capsize length of cap
+        for cap in caps:
+            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+
+        (_, caps, _) = plt.errorbar(delta_t_conf, mean_MSD_conf, yerr=mean_error_MSD_conf, capsize=4,
+                                    label="MSD confined", ecolor="#228b22", color="#228b22")  # capsize length of cap
+        for cap in caps:
+            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+
+        (_, caps, _) = plt.errorbar(delta_t_free, mean_MSD_free, yerr=mean_error_MSD_free, capsize=4,
+                                    label="MSD free", ecolor="#ff8c00", color="#ff8c00")  # capsize length of cap
+        for cap in caps:
+            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+
+        (_, caps, _) = plt.errorbar(delta_t_fit_fail, mean_MSD_fit_fail, yerr=mean_error_MSD_fit_fail, capsize=4,
+                                    label="MSD no type", ecolor="#8b008b", color="#8b008b")  # capsize length of cap
+        for cap in caps:
+            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+
+        x_lim_max = None if MSD_delta_t_n == None else MSD_delta_t_n*camera_time
+        plt.xlim(0, x_lim_max)
+        plt.ylim(0, y_lim)
+        plt.legend()
+        plt.title("Mean MSD values per type")
+        plt.ylabel("Mean MSD [\u03BCm\u00b2]")
+        plt.xlabel("Time step [s]")
+        plt.show()
+
+    def calc_mean_error_different_lengths(self, arrays):
+        """
+        Calculate the mean and mean error of a list of arrays with varying array lengths.
+        [[1,2], [1,3,4]] -> [1,2.5,4]
+        :param arrays: List of arrays
+        :return: List of mean and mean error
+        """
+        # determine the maximum array length
+        max_length = 0
+        for i in arrays:
+            max_length = len(i) if len(i) > max_length else max_length
+
+        arrays_sorted = []
+        for i in range(max_length):
+            step = []
+            for j in arrays:
+                try:
+                    step.append(j[i])
+                except IndexError:
+                    pass
+            arrays_sorted.append(step)
+        mean = [np.mean(i) for i in arrays_sorted]
+        mean_error = [np.std(i, ddof=1) / math.sqrt(len(i)) for i in arrays_sorted]
+        return mean, mean_error
+
+    def MSD_types(self, MSD_delta_t_n, y_lim):
+        MSDs_immob = []
+        for cell in self.trajectories_immob_cells:
+            MSDs_cell = [trajectory.MSDs for trajectory in cell]
+            MSDs_immob.append(MSDs_cell)
+        MSDs_immob = [j for i in MSDs_immob for j in i]
+        mean_MSDs_immob, mean_error_MSDs_immob = self.calc_mean_error_different_lengths(MSDs_immob)
+
+        MSDs_conf = []
+        for cell in self.trajectories_conf_cells:
+            MSDs_cell = [trajectory.MSDs for trajectory in cell]
+            MSDs_conf.append(MSDs_cell)
+        MSDs_conf = [j for i in MSDs_conf for j in i]
+        mean_MSDs_conf, mean_error_MSDs_conf = self.calc_mean_error_different_lengths(MSDs_conf)
+
+        MSDs_free = []
+        for cell in self.trajectories_free_cells:
+            MSDs_cell = [trajectory.MSDs for trajectory in cell]
+            MSDs_free.append(MSDs_cell)
+        MSDs_free = [j for i in MSDs_free for j in i]
+        mean_MSDs_free, mean_error_MSDs_free = self.calc_mean_error_different_lengths(MSDs_free)
+
+        MSDs_notype = []
+        for cell in self.trajectories_notype_cells:
+            MSDs_cell = [trajectory.MSDs for trajectory in cell]
+            MSDs_notype.append(MSDs_cell)
+        MSDs_notype = [j for i in MSDs_notype for j in i]
+        mean_MSDs_notype, mean_error_MSDs_notype = self.calc_mean_error_different_lengths(MSDs_notype)
+
+        self.plot_MSD_types(mean_MSDs_immob, mean_error_MSDs_immob, mean_MSDs_conf, mean_error_MSDs_conf,
+                       mean_MSDs_free, mean_error_MSDs_free, mean_MSDs_notype, mean_error_MSDs_notype,
+                        MSD_delta_t_n, y_lim)
+
+
+    def plot_bar_log_bins(self):
+        self.diff_fig = plt.figure()
+        plt.subplot(111, xscale="log")
+        (_, caps, _) = plt.errorbar(self.hist_diffusion, self.mean_frequencies, yerr=self.mean_error, capsize=4, label="relative frequency")  # capsize length of cap
+        for cap in caps:
+            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+        plt.xlim(self.min_D, self.max_D)
+        plt.legend()
+        plt.title("Distribution of diffusion coefficients")
+        plt.ylabel("Normalized relative occurence [%]")
+        plt.xlabel("D [\u03BCm\u00b2/s]")
+        plt.show()
+
     def clear_attributes(self):
         """
         If one restarts filtering, these attributes are empy (otherwise they would append).
@@ -194,18 +431,57 @@ class TrackAnalysis():
         """
         For each cell initialize histogram with cell size and target array.
         """
-        #desired_bin_size = 0.05
-        for cell_index in range(0, len(self.cell_trajectories_filtered)):
+        log_hist_immob, log_hist_conf, log_hist_free, log_hist_fit_fail = [], [], [], []
+        for cell_index in range(len(self.cell_trajectories_filtered)):
             log_Ds = np.zeros(len(self.cell_trajectories_filtered[cell_index]))
+            trajectory_types = []
             cell_size = self.cell_sizes[cell_index]
-            for trajectory_index in range(0, len(self.cell_trajectories_filtered[cell_index])):
+            for trajectory_index in range(len(self.cell_trajectories_filtered[cell_index])):
                 if self.cell_trajectories_filtered[cell_index][trajectory_index].D > 0:
-                    log_Ds[trajectory_index] =  np.log10(self.cell_trajectories_filtered[cell_index][trajectory_index].D)
-            self.calc_diffusion_frequencies(log_Ds, desired_bin_size, cell_size) 
-            
+                    log_Ds[trajectory_index] = np.log10(self.cell_trajectories_filtered[cell_index][trajectory_index].D)
+                    trajectory_types.append((self.cell_trajectories_filtered[cell_index][trajectory_index].immobility,
+                                             self.cell_trajectories_filtered[cell_index][trajectory_index].confined,
+                                             self.cell_trajectories_filtered[cell_index][trajectory_index].analyse_successful))
+            # log diffusion for all trajectories
+            log_diffusion_hist = self.calc_diffusion_frequencies(log_Ds, desired_bin_size, cell_size)
+            self.hist_log_Ds.append(log_diffusion_hist)
+            # log diffusion for trajectory types
+            log_Ds_immob, log_Ds_conf, log_Ds_free, log_Ds_fit_fail = self.filter_types(log_Ds, trajectory_types)
+            log_hist_immob_cell = self.calc_diffusion_frequencies(log_Ds_immob, desired_bin_size, cell_size)
+            log_hist_conf_cell = self.calc_diffusion_frequencies(log_Ds_conf, desired_bin_size, cell_size)
+            log_hist_free_cell = self.calc_diffusion_frequencies(log_Ds_free, desired_bin_size, cell_size)
+            log_hist_fit_fail_cell = self.calc_diffusion_frequencies(log_Ds_fit_fail, desired_bin_size, cell_size)
+            log_hist_immob.append(log_hist_immob_cell[:,1])
+            log_hist_conf.append(log_hist_conf_cell[:,1])
+            log_hist_free.append(log_hist_free_cell[:,1])
+            log_hist_fit_fail.append(log_hist_fit_fail_cell[:,1])
+        return log_hist_immob, log_hist_conf, log_hist_free, log_hist_fit_fail
+
+    def filter_types(self, trajectory_info, trajectory_type):
+        """
+        Split an array of trajectory infos into 3 based on the 3 diffusion types.
+
+        :param trajectory_info: Target info of trajectory.
+        :param trajectory_type: Tuple of immobility and confined boolean, referring to the trajectory type.
+        :return: 3 arrays of trajectory infos, separated based on diffusion type.
+        """
+        info_immob, info_conf, info_free, info_fit_fail = [], [], [], []
+        for info, type in zip(trajectory_info, trajectory_type):
+            if type == (1, 1, 1):
+                info_immob.append(info)
+            elif type == (0, 1, 1):
+                info_conf.append(info)
+            elif type == (0, 0, 1):
+                info_free.append(info)
+            elif type == (0, 1, 0):
+                info_fit_fail.append(info)
+            else:
+                print("Error with type determination occurred, contact developer", info, type)
+        return info_immob, info_conf, info_free, info_fit_fail
+
     def calc_diffusion_frequencies(self, log_diff, desired_bin, size):
         """
-        :param log_diff: np array with log10(D) of one cell.
+        :param log_diff: np array with log10(D) + frequency of one cell.
         :param size: cell size.
         :param desired_bin: bin size.
         """
@@ -215,16 +491,15 @@ class TrackAnalysis():
         min_bin = np.ceil(-6/desired_bin)*desired_bin
         max_bin = np.ceil(2/desired_bin)*desired_bin 
         bin_size = int(np.ceil((max_bin - min_bin)/desired_bin))
-        #print(max_bin, min_bin, bin_size)
         hist = np.histogram(log_diff,
-                            range = (min_bin, max_bin),
-                            bins = bin_size)
+                            range=(min_bin, max_bin),
+                            bins=bin_size)
         log_diffusion_hist = np.zeros([np.size(hist[0]),2])
         log_diffusion_hist[:,0] = hist[1][:-1]  # log(D)
         log_diffusion_hist[:,1] = hist[0][:]  # freq
-        log_diffusion_hist[:,1] = log_diffusion_hist[:,1]  /size
-        self.hist_log_Ds.append(log_diffusion_hist)
-            
+        log_diffusion_hist[:,1] = log_diffusion_hist[:,1] / size
+        return log_diffusion_hist
+
     def calc_nonlogarithmic_diffusions(self):
         """
         Calculate the nonlogarithmic diffusion coefficients from log10(D) from histogram.
@@ -249,21 +524,8 @@ class TrackAnalysis():
         Standard deviation (N-1) divided by square root of number of elements.
         Normalize an array (sum of elements = 1) and represent is in percent (*100).
         """
-        self.mean_error =  np.std(self.diffusion_frequencies, axis=1, ddof=1)/(np.shape(self.diffusion_frequencies)[1])**(1/2) 
-        self.mean_error = self.mean_error * self.normalization_factor 
-        
-    def plot_bar_log_bins(self):
-        self.diff_fig = plt.figure()
-        plt.subplot(111, xscale="log")
-        (_, caps, _) = plt.errorbar(self.hist_diffusion, self.mean_frequencies, yerr=self.mean_error, capsize=4, label="relative frequency")  # capsize length of cap
-        for cap in caps:
-            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
-        plt.xlim(self.min_D, self.max_D)
-        plt.legend()
-        plt.title("Distribution of diffusion coefficients")
-        plt.ylabel("Normalized relative occurence [%]")
-        plt.xlabel("D [\u03BCm\u00b2/s]")
-        plt.show() 
+        self.mean_error = np.std(self.diffusion_frequencies, axis=1, ddof=1)/(np.shape(self.diffusion_frequencies)[1])**(1/2)
+        self.mean_error = self.mean_error * self.normalization_factor
 
     def calc_mean_frequencies(self, np_array):
         """
@@ -274,6 +536,21 @@ class TrackAnalysis():
         #mean_frequencies = np.zeros(np.size(self.hist_log_Ds[0]))
         mean_frequencies = np_array.mean(axis=1)
         return mean_frequencies
+        
+    # def plot_bar_log_bins(self):
+    #     self.diff_fig = plt.figure()
+    #     plt.subplot(111, xscale="log")
+    #     (_, caps, _) = plt.errorbar(self.hist_diffusion, self.mean_frequencies, yerr=self.mean_error, capsize=4, label="relative frequency")  # capsize length of cap
+    #     for cap in caps:
+    #         cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+    #     plt.xlim(self.min_D, self.max_D)
+    #     plt.legend()
+    #     plt.title("Distribution of diffusion coefficients")
+    #     plt.ylabel("Normalized relative occurence [%]")
+    #     plt.xlabel("D [\u03BCm\u00b2/s]")
+    #     plt.show()
+
+
             
     def create_np_array(self, length, columns=1):
         """

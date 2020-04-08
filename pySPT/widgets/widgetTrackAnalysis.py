@@ -55,6 +55,8 @@ class WidgetTrackAnalysis():
         self.trajectory_id_button = self.create_trajectory_id_button()
         # Plot diffusion histogram
         self.bin_size_box = self.create_bin_size_box()
+        self.MSD_delta_t_n = self.create_MSD_delta_t_n()
+        self.MSD_y_lim = self.create_MSD_y_lim()
         self.plot_diff_button = self.create_plot_diff_button()
         
         
@@ -376,6 +378,22 @@ class WidgetTrackAnalysis():
         """
         style = {'description_width': 'initial'}  # display too long desc
         text = widgets.Text(value=str(val), placeholder='size for log10(D) histogram', description=str(desc), disabled=False, style = style)
+        return text
+
+    def create_MSD_delta_t_n(self, val = "None" , desc = "x range"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+        """
+        Box for inserting the bin size for log10(D) histogram.
+        """
+        style = {'description_width': 'initial'}  # display too long desc
+        text = widgets.Text(value=str(val), placeholder='number of MSD values shown', description=str(desc), disabled=False, style = style)
+        return text
+
+    def create_MSD_y_lim(self, val = "None" , desc = "y range"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+        """
+        Box for inserting the bin size for log10(D) histogram.
+        """
+        style = {'description_width': 'initial'}  # display too long desc
+        text = widgets.Text(value=str(val), placeholder='y limit of MSD plot', description=str(desc), disabled=False, style = style)
         return text
     
     def create_plot_diff_button(self):
