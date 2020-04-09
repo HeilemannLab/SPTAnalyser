@@ -21,6 +21,10 @@ class TrajectoryStatistics():
         self.cells = []  # contains lists of cell objects
         self.cell_trajectories = [] # [[],[]] contains list of cells, cells contain trajectories
         self.cell_trajectories_filtered = []  # filtered for thresholds & booleans
+        self.trajectories_immob_cells_filtered = []  # filtered for thresholds & booleans & split into types
+        self.trajectories_conf_cells_filtered = []
+        self.trajectories_free_cells_filtered = []
+        self.trajectories_notype_cells_filtered = []
         self.cell_trajectories_filtered_thresholds = []  # filtered for thresholds only
         self.cell_trajectories_filtered_index = [] 
         self.backgrounds = []  # background objects
@@ -62,6 +66,7 @@ class TrajectoryStatistics():
         self.corrected_frequencies_percent = []  # mean cell frequencies - mean bg frequencies   
         self.sigma_dyns = []  # dynamic localization error, based on filtered trajectories         
         self.diff_fig = []  # log diffusion plot
+        self.diff_fig_types = []  # log diffusion plot per type
         self.fig_name = []
         self.D_mean_types = []  # containes averaged D for immobile, confined and free diffusion
         self.dD_mean_types = []
@@ -188,6 +193,10 @@ class TrajectoryStatistics():
         
     def default_statistics(self):
         self.cell_trajectories_filtered = []  # deep copy of original cell trajectories
+        self.trajectories_immob_cells_filtered = []
+        self.trajectories_conf_cells_filtered = []
+        self.trajectories_free_cells_filtered = []
+        self.trajectories_notype_cells_filtered = []
         self.cell_trajectories_filtered_thresholds = []
         self.cell_trajectories_filtered_index = []
         self.background_trajectories_filtered = []
@@ -346,19 +355,24 @@ class TrajectoryStatistics():
                 filtered_cell_immob = [trajectory for trajectory in self.cell_trajectories_filtered_thresholds[cell_index] if trajectory.immobility
                                    and not trajectory.confined and not trajectory.analyse_successful]
                 filtered_cell.extend(filtered_cell_immob)
+                self.trajectories_immob_cells_filtered.append(filtered_cell_immob)
             if filter_confined:
                 filtered_cell_confined = [trajectory for trajectory in self.cell_trajectories_filtered_thresholds[cell_index] if trajectory.confined
                                    and not trajectory.immobility and trajectory.analyse_successful]
                 filtered_cell.extend(filtered_cell_confined)
+                self.trajectories_conf_cells_filtered.append(filtered_cell_confined)
             if filter_free:
                 filtered_cell_free = [trajectory for trajectory in self.cell_trajectories_filtered_thresholds[cell_index] if not trajectory.confined
                                    and not trajectory.immobility and trajectory.analyse_successful]
                 filtered_cell.extend(filtered_cell_free)
+                self.trajectories_free_cells_filtered.append(filtered_cell_free)
             if filter_type_not_successful:
                 filtered_cell_type_not_successful = [trajectory for trajectory in self.cell_trajectories_filtered_thresholds[cell_index] if not trajectory.analyse_successful
                                                      and not trajectory.immobility]
                 filtered_cell.extend(filtered_cell_type_not_successful)
+                self.trajectories_notype_cells_filtered.append(filtered_cell_type_not_successful)
             self.cell_trajectories_filtered.append(filtered_cell)
+
         if self.background_trajectories:
             for bg_index in range(len(self.background_trajectories)):
                 filtered_bg = []
@@ -491,8 +505,86 @@ class TrajectoryStatistics():
         return ratio_immobile, ratio_confined, ratio_free, ratio_not_successful
     
     # plot diffusion vs frequencies.
+
+    def plot_diffusion_hist_types(self, mean_log_hist_immob, error_log_hist_immob, mean_log_hist_conf,
+                                  error_log_hist_conf, mean_log_hist_free, error_log_hist_free,
+                                  mean_log_hist_fit_fail, error_log_hist_fit_fail):
+        self.diff_fig_types = plt.figure()
+        plt.subplot(111, xscale="log")
+        (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_immob, yerr=error_log_hist_immob, capsize=4,
+                                    label="relative frequency immobile", ecolor="#4169e1", color="#4169e1")  # capsize length of cap
+        for cap in caps:
+            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+
+        (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_conf, yerr=error_log_hist_conf, capsize=4,
+                                    label="relative frequency confined", ecolor="#228b22", color="#228b22")  # capsize length of cap
+        for cap in caps:
+            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+
+        (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_free, yerr=error_log_hist_free, capsize=4,
+                                    label="relative frequency free", ecolor="#ff8c00", color="#ff8c00")  # capsize length of cap
+        for cap in caps:
+            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+
+        (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_fit_fail, yerr=error_log_hist_fit_fail, capsize=4,
+                                    label="relative frequency no type", ecolor="#8b008b", color="#8b008b")  # capsize length of cap
+        for cap in caps:
+            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+
+        plt.xlim(self.min_D, self.max_D)
+        plt.legend()
+        plt.title("Distribution of diffusion coefficients per type")
+        plt.ylabel("Normalized relative occurence [%]")
+        plt.xlabel("D [\u03BCm\u00b2/s]")
+        plt.show()
+
+    def diffusion_hist_types(self, desired_bin_size):
+        log_Ds_immob = [[] for i in self.cell_sizes]
+        for c, cell in enumerate(self.trajectories_immob_cells_filtered):
+            log_Ds_immob_cell = [np.log10(trajectory.D) for trajectory in cell]
+            log_Ds_immob_cell = [i for i in log_Ds_immob_cell if not np.isnan(i)]
+            log_Ds_immob[c] = log_Ds_immob_cell
+
+        log_Ds_conf = [[] for i in self.cell_sizes]
+        for c, cell in enumerate(self.trajectories_conf_cells_filtered):
+            log_Ds_conf_cell = [np.log10(trajectory.D) for trajectory in cell]
+            log_Ds_conf[c] = log_Ds_conf_cell
+
+        log_Ds_free = [[] for i in self.cell_sizes]
+        for c, cell in enumerate(self.trajectories_free_cells_filtered):
+            log_Ds_free_cell = [np.log10(trajectory.D) for trajectory in cell]
+            log_Ds_free[c] = log_Ds_free_cell
+
+        log_Ds_notype = [[] for i in self.cell_sizes]
+        for c, cell in enumerate(self.trajectories_notype_cells_filtered):
+            log_Ds_notype_cell = [np.log10(trajectory.D) for trajectory in cell]
+            log_Ds_notype[c] = log_Ds_notype_cell
+
+        hist_immob, hist_conf, hist_free, hist_notype = [], [], [], []
+        for i, cell_size in enumerate(self.cell_sizes):
+            hist_immob_cell = self.calc_diffusion_frequencies(log_Ds_immob[i], desired_bin_size, cell_size)
+            hist_conf_cell = self.calc_diffusion_frequencies(log_Ds_conf[i], desired_bin_size, cell_size)
+            hist_free_cell = self.calc_diffusion_frequencies(log_Ds_free[i], desired_bin_size, cell_size)
+            hist_notype_cell = self.calc_diffusion_frequencies(log_Ds_notype[i], desired_bin_size, cell_size)
+            hist_immob.append(hist_immob_cell[:,1])  # only frequency counts
+            hist_conf.append(hist_conf_cell[:, 1])
+            hist_free.append(hist_free_cell[:, 1])
+            hist_notype.append(hist_notype_cell[:, 1])
+
+        mean_log_hist_immob = np.mean(hist_immob, axis=0) * self.normalization_factor
+        error_log_hist_immob = np.std(hist_immob, axis=0, ddof=1) * self.normalization_factor
+        mean_log_hist_conf = np.mean(hist_conf, axis=0) * self.normalization_factor
+        error_log_hist_conf = np.std(hist_conf, axis=0, ddof=1) * self.normalization_factor
+        mean_log_hist_free = np.mean(hist_free, axis=0) * self.normalization_factor
+        error_log_hist_free = np.std(hist_free, axis=0, ddof=1) * self.normalization_factor
+        mean_log_hist_notype = np.mean(hist_notype, axis=0) * self.normalization_factor
+        error_log_hist_notype = np.std(hist_notype, axis=0, ddof=1) * self.normalization_factor
+
+        self.plot_diffusion_hist_types(mean_log_hist_immob, error_log_hist_immob, mean_log_hist_conf,
+                                       error_log_hist_conf, mean_log_hist_free, error_log_hist_free,
+                                       mean_log_hist_notype, error_log_hist_notype)
     
-    def run_diffusion_histogram(self, desired_bin_size, plot=True):
+    def run_diffusion_histogram(self, desired_bin_size, x_lim=None, y_lim=None, plot=True):
         # bin size can only be something that can be converted to float (integer or float, comma separated)
         try:
             float(desired_bin_size)
@@ -508,32 +600,14 @@ class TrajectoryStatistics():
                 self.calc_nonlogarithmic_diffusions()
                 self.determine_mean_frequency()
                 self.calc_mean_error()
-# =============================================================================
-#                 print("normalization factor", self.normalization_factor)
-#                 print("mean cell freq", self.mean_frequencies)
-#                 print("mean cell freq %", self.mean_frequencies_percent)
-#                 print("mean freq error", self.mean_error_percent)
-#                 print("mean freq error%", self.mean_error_percent)
-# =============================================================================
                 if self.background_trajectories:
                     self.diffusions_log_bg(float(desired_bin_size))
                     self.determine_mean_frequency(is_cell=False)
                     self.calc_mean_error(is_cell=False)
                     self.calc_bg_corrected_freq()
-# =============================================================================
-#                     print("D", self.hist_diffusion)
-#                     print("normalization factor corr", self.normalization_factor_corrected)
-#                     print("corr freq", self.corrected_frequencies)
-#                     print("corr freq %", self.corrected_frequencies_percent)
-#                     print("dcorr freq", self.corrected_frequencies_error)
-#                     print("dcorr freq%", self.corrected_frequencies_error_percent)
-#                     print("mean bg freq", self.mean_frequencies_bg)
-#                     print("cell", self.hist_log_Ds)
-#                     print("BG", self.hist_log_Ds_bg)
-#                     print("diffusion freq", self.diffusion_frequencies)
-# =============================================================================
                 if plot:
                     self.plot_bar_log_bins()
+                    self.diffusion_hist_types(float(desired_bin_size))
                     if self.background_trajectories:
                         self.plot_bar_log_bins_bg_corrected()
             else:
@@ -598,7 +672,6 @@ class TrajectoryStatistics():
         min_bin = np.ceil(-6/desired_bin)*desired_bin
         max_bin = np.ceil(2/desired_bin)*desired_bin 
         bin_size = int(np.ceil((max_bin - min_bin)/desired_bin))
-        #print(max_bin, min_bin, bin_size)
         hist = np.histogram(log_diff,
                             range = (min_bin, max_bin),
                             bins = bin_size)
@@ -610,6 +683,7 @@ class TrajectoryStatistics():
             self.hist_log_Ds.append(log_diffusion_hist)
         else:
             self.hist_log_Ds_bg.append(log_diffusion_hist)
+        return log_diffusion_hist
         
     def calc_nonlogarithmic_diffusions(self):
         """

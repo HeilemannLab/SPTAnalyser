@@ -57,6 +57,8 @@ class WidgetLoadHdf5():
         self.calc_sigma_dyn_button = self.create_calc_sigma_dyn_button()
         # Plot diffusion histogram
         self.bin_size_box = self.create_bin_size_box()
+        self.MSD_delta_t_n = self.create_MSD_delta_t_n()
+        self.MSD_y_lim = self.create_MSD_y_lim()
         # Save statistics
         self.save_dir_button = self.create_save_dir_button()
         self.save_dir_box = self.create_save_dir_box()
@@ -319,7 +321,22 @@ class WidgetLoadHdf5():
         style = {'description_width': 'initial'}  # display too long desc
         text = widgets.Text(value=str(val), placeholder='size for log10(D) histogram', description=str(desc), disabled=False, style = style)
         return text
-    
+
+    def create_MSD_delta_t_n(self, val = "None" , desc = "x range"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+        """
+        Box for inserting the bin size for log10(D) histogram.
+        """
+        style = {'description_width': 'initial'}  # display too long desc
+        text = widgets.Text(value=str(val), placeholder='number of MSD values shown', description=str(desc), disabled=False, style = style)
+        return text
+
+    def create_MSD_y_lim(self, val = "None" , desc = "y range"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+        """
+        Box for inserting the bin size for log10(D) histogram.
+        """
+        style = {'description_width': 'initial'}  # display too long desc
+        text = widgets.Text(value=str(val), placeholder='y limit of MSD plot', description=str(desc), disabled=False, style = style)
+        return text
     # Save h5 statistics
 
     def create_save_dir_button(self):
