@@ -88,6 +88,8 @@ class TrajectoryStatistics():
         self.mean_error_MSDs_free = []
         self.mean_MSDs_notype = []
         self.mean_error_MSDs_notype = []
+        self.mean_MSDs_immob_notype = []
+        self.mean_error_MSDs_immob_notype = []
         self.MSD_fig_types = []
 
     def calc_mean_statistics(self):
@@ -187,7 +189,6 @@ class TrajectoryStatistics():
       
 
     def calc_min_rossier_length(self):
-        #self.tau_threshold_min_length = float(math.inf)
         for cell in self.cells:
             print("before cell", cell.tau_threshold_min_length, type(cell.tau_threshold_min_length))
             print("before self", self.tau_threshold_min_length, type(self.tau_threshold_min_length))
@@ -219,7 +220,6 @@ class TrajectoryStatistics():
         self.total_trajectories_cell = []  # list with amount of total trajectories per cell 
         self.cell_type_count = []
         self.sigma_dyns = []
-        #######self.filtered_trc_files = []
         self.trc_files_hmm = []
         self.D_mean_types = []  
         self.dD_mean_types = []
@@ -293,7 +293,6 @@ class TrajectoryStatistics():
             print("The selection excludes all data.")
         print("Trajectories included:", self.total_trajectories_filtered)
         print("Trajectories excluded:", self.total_trajectories - self.total_trajectories_filtered)
-        #self.plot_MSD_types()
         
     def plot_trajectory(self, cell, number):
         cell = int(cell) - 1
@@ -551,7 +550,7 @@ class TrajectoryStatistics():
         plt.xlabel("D [\u03BCm\u00b2/s]")
         plt.show()
 
-    def diffusion_hist_types(self, desired_bin_size):
+    def diffusion_hist_types(self, desired_bin_size, merge):
         log_Ds_immob = [[] for i in self.cell_sizes]
         for c, cell in enumerate(self.trajectories_immob_cells_filtered):
             log_Ds_immob_cell = [np.log10(trajectory.D) for trajectory in cell]
@@ -602,8 +601,9 @@ class TrajectoryStatistics():
                                        error_log_hist_conf, mean_log_hist_free, error_log_hist_free,
                                        mean_log_hist_notype, error_log_hist_notype)
     
-    def run_diffusion_histogram(self, desired_bin_size, x_lim="None", y_lim="None", plot=True):
+    def run_diffusion_histogram(self, desired_bin_size, x_lim="None", y_lim="None", plot=True, merge=True):
         # bin size can only be something that can be converted to float (integer or float, comma separated)
+        # If merge, immobile and notype are handled as one type in a plot and separately in a second plot
         try:
             float(desired_bin_size)
         except:
@@ -625,34 +625,48 @@ class TrajectoryStatistics():
                     self.calc_bg_corrected_freq()
                 if plot:
                     self.plot_bar_log_bins()
-                    self.diffusion_hist_types(float(desired_bin_size))
+                    self.diffusion_hist_types(float(desired_bin_size), merge)
                     if self.background_trajectories:
                         self.plot_bar_log_bins_bg_corrected()
                     # plot MSD type
                     x_lim = None if x_lim == "None" else float(x_lim)
                     y_lim = None if y_lim == "None" else float(y_lim)
-                    self.MSD_types(x_lim, y_lim)
+                    self.MSD_types(x_lim, y_lim, merge)
             else:
                 print("Bin size can not be zero.")
 
     # plot MSD per type
 
-    def plot_MSD_types(self, MSD_delta_t_n, y_lim):
+    def plot_MSD_types(self, MSD_delta_t_n, y_lim, merge=False):
         """
-        Plot the mean MSD curve per diffusion type
+        Plot the mean MSD curve per diffusion type. If merge, handle immobile and notype as one class.
         """
         camera_time = self.cell_trajectories[0][0].dt  # camera integration time in s
 
-        delta_t_immob = [camera_time * i for i in range(1, len(self.mean_MSDs_immob)+1)]
-        delta_t_conf = [camera_time * i for i in range(1, len(self.mean_MSDs_conf)+1)]
+        delta_t_conf = [camera_time * i for i in range(1, len(self.mean_MSDs_conf) + 1)]
         delta_t_free = [camera_time * i for i in range(1, len(self.mean_MSDs_free)+1)]
-        delta_t_fit_fail = [camera_time * i for i in range(1, len(self.mean_MSDs_notype)+1)]
+        if merge:
+            delta_t_immob_fit_fail = [camera_time * i for i in range(1, len(self.mean_MSDs_immob_notype)+1)]
+        else:
+            delta_t_immob = [camera_time * i for i in range(1, len(self.mean_MSDs_immob) + 1)]
+            delta_t_fit_fail = [camera_time * i for i in range(1, len(self.mean_MSDs_notype) + 1)]
 
         self.MSD_fig_types = plt.figure()
-        (_, caps, _) = plt.errorbar(delta_t_immob, self.mean_MSDs_immob, yerr=self.mean_error_MSDs_immob, capsize=4,
-                                    label="MSD immobile", ecolor="#4169e1", color="#4169e1")  # capsize length of cap
-        for cap in caps:
-            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+
+        if merge:
+            (_, caps, _) = plt.errorbar(delta_t_immob_fit_fail, self.mean_MSDs_immob_notype, yerr=self.mean_error_MSDs_immob_notype,
+                                        capsize=4, label="MSD immob+notype", ecolor="#4169e1", color="#4169e1")  # capsize length of cap
+            for cap in caps:
+                cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+        else:
+            (_, caps, _) = plt.errorbar(delta_t_immob, self.mean_MSDs_immob, yerr=self.mean_error_MSDs_immob, capsize=4,
+                                        label="MSD immobile", ecolor="#4169e1", color="#4169e1")  # capsize length of cap
+            for cap in caps:
+                cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+            (_, caps, _) = plt.errorbar(delta_t_fit_fail, self.mean_MSDs_notype, yerr=self.mean_error_MSDs_notype, capsize=4,
+                                        label="MSD no type", ecolor="#8b008b", color="#8b008b")  # capsize length of cap
+            for cap in caps:
+                cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
 
         (_, caps, _) = plt.errorbar(delta_t_conf, self.mean_MSDs_conf, yerr=self.mean_error_MSDs_conf, capsize=4,
                                     label="MSD confined", ecolor="#228b22", color="#228b22")  # capsize length of cap
@@ -661,11 +675,6 @@ class TrajectoryStatistics():
 
         (_, caps, _) = plt.errorbar(delta_t_free, self.mean_MSDs_free, yerr=self.mean_error_MSDs_free, capsize=4,
                                     label="MSD free", ecolor="#ff8c00", color="#ff8c00")  # capsize length of cap
-        for cap in caps:
-            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
-
-        (_, caps, _) = plt.errorbar(delta_t_fit_fail, self.mean_MSDs_notype, yerr=self.mean_error_MSDs_notype, capsize=4,
-                                    label="MSD no type", ecolor="#8b008b", color="#8b008b")  # capsize length of cap
         for cap in caps:
             cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
 
@@ -703,8 +712,7 @@ class TrajectoryStatistics():
         mean_error = [np.std(i, ddof=1) / math.sqrt(len(i)) for i in arrays_sorted]
         return mean, mean_error
 
-    def MSD_types(self, MSD_delta_t_n, y_lim):
-
+    def MSD_types(self, MSD_delta_t_n, y_lim, merge):
         MSDs_immob = []
         for cell in self.trajectories_immob_cells_filtered:
             MSDs_cell = [trajectory.MSDs for trajectory in cell]
@@ -733,8 +741,17 @@ class TrajectoryStatistics():
         MSDs_notype = [j for i in MSDs_notype for j in i]
         self.mean_MSDs_notype, self.mean_error_MSDs_notype = self.calc_mean_error_different_lengths(MSDs_notype)
 
-        self.plot_MSD_types(MSD_delta_t_n, y_lim)
-        
+        if merge:
+            MSDs_immob_notype = []
+            MSDs_immob_notype.extend(MSDs_notype)
+            MSDs_immob_notype.extend(MSDs_immob)
+            self.mean_MSDs_immob_notype, self.mean_error_MSDs_immob_notype = self.calc_mean_error_different_lengths(MSDs_immob_notype)
+            self.plot_MSD_types(MSD_delta_t_n, y_lim, merge=merge)
+            self.plot_MSD_types(MSD_delta_t_n, y_lim, merge=False)
+        else:
+            self.plot_MSD_types(MSD_delta_t_n, y_lim)
+
+
     def clear_attributes(self):
         """
         If one restarts filtering, these attributes are empy (otherwise they would append).
@@ -758,6 +775,8 @@ class TrajectoryStatistics():
         self.mean_error_MSDs_free = []
         self.mean_MSDs_notype = []
         self.mean_error_MSDs_notype = []
+        self.mean_MSDs_immob_notype = []
+        self.mean_error_MSDs_immob_notype = []
         
     def determine_max_min_diffusion(self):
         """
