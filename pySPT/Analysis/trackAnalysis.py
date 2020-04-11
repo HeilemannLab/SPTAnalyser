@@ -325,7 +325,7 @@ class TrackAnalysis():
         for cap in caps:
             cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
 
-        x_lim_max = None if MSD_delta_t_n == None else MSD_delta_t_n*camera_time
+        x_lim_max = None if MSD_delta_t_n is None else MSD_delta_t_n*camera_time
         plt.xlim(0, x_lim_max)
         plt.ylim(0, y_lim)
         plt.legend()
@@ -486,8 +486,6 @@ class TrackAnalysis():
         :param desired_bin: bin size.
         """
         # min & max determined by diffusions_log_complete function
-        #min_bin = np.ceil(np.log10(self.min_D)/desired_bin)*desired_bin
-        #max_bin = np.ceil(np.log10(self.max_D)/desired_bin)*desired_bin
         min_bin = np.ceil(-6/desired_bin)*desired_bin
         max_bin = np.ceil(2/desired_bin)*desired_bin 
         bin_size = int(np.ceil((max_bin - min_bin)/desired_bin))
@@ -536,22 +534,7 @@ class TrackAnalysis():
         #mean_frequencies = np.zeros(np.size(self.hist_log_Ds[0]))
         mean_frequencies = np_array.mean(axis=1)
         return mean_frequencies
-        
-    # def plot_bar_log_bins(self):
-    #     self.diff_fig = plt.figure()
-    #     plt.subplot(111, xscale="log")
-    #     (_, caps, _) = plt.errorbar(self.hist_diffusion, self.mean_frequencies, yerr=self.mean_error, capsize=4, label="relative frequency")  # capsize length of cap
-    #     for cap in caps:
-    #         cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
-    #     plt.xlim(self.min_D, self.max_D)
-    #     plt.legend()
-    #     plt.title("Distribution of diffusion coefficients")
-    #     plt.ylabel("Normalized relative occurence [%]")
-    #     plt.xlabel("D [\u03BCm\u00b2/s]")
-    #     plt.show()
 
-
-            
     def create_np_array(self, length, columns=1):
         """
         :param length: number of np arrays.

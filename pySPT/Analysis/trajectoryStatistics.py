@@ -51,6 +51,10 @@ class TrajectoryStatistics():
         self.diffusion_frequencies = []  # only freq (divided by cell size) of cells
         self.diffusion_frequencies_bg = []  # only freq (divided my bg size) of bg
         self.hist_diffusion = []  # diffusions from histogram calculation, transformed back -> 10^-(log10(D))
+        self.hist_diffusion_immob = []  # mean histogram frequencies of diffusions type immobile & error
+        self.hist_diffusion_conf = []
+        self.hist_diffusion_free = []
+        self.hist_diffusion_notype = []
         self.mean_frequencies = []  # mean frequencies
         self.mean_frequencies_percent = []  # mean frequencies, size corrected, sum = 1 in percent
         self.mean_error = []  # standard error of mean value
@@ -76,6 +80,15 @@ class TrajectoryStatistics():
         self.dD_cell_types = []
         self.length_cell_types = []
         self.dlength_cell_types = []
+        self.mean_MSDs_immob = []  # mean MSD values of all immobile trajectories
+        self.mean_error_MSDs_immob = []  # # mean error of MSD values of all immobile trajectories
+        self.mean_MSDs_comf = []
+        self.mean_error_MSDs_conf = []
+        self.mean_MSDs_free = []
+        self.mean_error_MSDs_free = []
+        self.mean_MSDs_notype = []
+        self.mean_error_MSDs_notype = []
+        self.MSD_fig_types = []
 
     def calc_mean_statistics(self):
         immobile_tracks = []
@@ -580,11 +593,16 @@ class TrajectoryStatistics():
         mean_log_hist_notype = np.mean(hist_notype, axis=0) * self.normalization_factor
         error_log_hist_notype = np.std(hist_notype, axis=0, ddof=1) * self.normalization_factor
 
+        self.hist_diffusion_immob = [mean_log_hist_immob, error_log_hist_immob]
+        self.hist_diffusion_conf = [mean_log_hist_conf, error_log_hist_conf]
+        self.hist_diffusion_free = [mean_log_hist_free, error_log_hist_free]
+        self.hist_diffusion_notype = [mean_log_hist_notype, error_log_hist_notype]
+
         self.plot_diffusion_hist_types(mean_log_hist_immob, error_log_hist_immob, mean_log_hist_conf,
                                        error_log_hist_conf, mean_log_hist_free, error_log_hist_free,
                                        mean_log_hist_notype, error_log_hist_notype)
     
-    def run_diffusion_histogram(self, desired_bin_size, x_lim=None, y_lim=None, plot=True):
+    def run_diffusion_histogram(self, desired_bin_size, x_lim="None", y_lim="None", plot=True):
         # bin size can only be something that can be converted to float (integer or float, comma separated)
         try:
             float(desired_bin_size)
@@ -610,8 +628,112 @@ class TrajectoryStatistics():
                     self.diffusion_hist_types(float(desired_bin_size))
                     if self.background_trajectories:
                         self.plot_bar_log_bins_bg_corrected()
+                    # plot MSD type
+                    x_lim = None if x_lim == "None" else float(x_lim)
+                    y_lim = None if y_lim == "None" else float(y_lim)
+                    self.MSD_types(x_lim, y_lim)
             else:
                 print("Bin size can not be zero.")
+
+    # plot MSD per type
+
+    def plot_MSD_types(self, MSD_delta_t_n, y_lim):
+        """
+        Plot the mean MSD curve per diffusion type
+        """
+        camera_time = self.cell_trajectories[0][0].dt  # camera integration time in s
+
+        delta_t_immob = [camera_time * i for i in range(1, len(self.mean_MSDs_immob)+1)]
+        delta_t_conf = [camera_time * i for i in range(1, len(self.mean_MSDs_conf)+1)]
+        delta_t_free = [camera_time * i for i in range(1, len(self.mean_MSDs_free)+1)]
+        delta_t_fit_fail = [camera_time * i for i in range(1, len(self.mean_MSDs_notype)+1)]
+
+        self.MSD_fig_types = plt.figure()
+        (_, caps, _) = plt.errorbar(delta_t_immob, self.mean_MSDs_immob, yerr=self.mean_error_MSDs_immob, capsize=4,
+                                    label="MSD immobile", ecolor="#4169e1", color="#4169e1")  # capsize length of cap
+        for cap in caps:
+            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+
+        (_, caps, _) = plt.errorbar(delta_t_conf, self.mean_MSDs_conf, yerr=self.mean_error_MSDs_conf, capsize=4,
+                                    label="MSD confined", ecolor="#228b22", color="#228b22")  # capsize length of cap
+        for cap in caps:
+            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+
+        (_, caps, _) = plt.errorbar(delta_t_free, self.mean_MSDs_free, yerr=self.mean_error_MSDs_free, capsize=4,
+                                    label="MSD free", ecolor="#ff8c00", color="#ff8c00")  # capsize length of cap
+        for cap in caps:
+            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+
+        (_, caps, _) = plt.errorbar(delta_t_fit_fail, self.mean_MSDs_notype, yerr=self.mean_error_MSDs_notype, capsize=4,
+                                    label="MSD no type", ecolor="#8b008b", color="#8b008b")  # capsize length of cap
+        for cap in caps:
+            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+
+        x_lim_max = None if MSD_delta_t_n is None else MSD_delta_t_n*camera_time
+        plt.xlim(0, x_lim_max)
+        plt.ylim(0, y_lim)
+        plt.legend()
+        plt.title("Mean MSD values per type")
+        plt.ylabel("Mean MSD [\u03BCm\u00b2]")
+        plt.xlabel("Time step [s]")
+        plt.show()
+
+    def calc_mean_error_different_lengths(self, arrays):
+        """
+        Calculate the mean and mean error of a list of arrays with varying array lengths.
+        [[1,2], [1,3,4]] -> [1,2.5,4]
+        :param arrays: List of arrays
+        :return: List of mean and mean error
+        """
+        # determine the maximum array length
+        max_length = 0
+        for i in arrays:
+            max_length = len(i) if len(i) > max_length else max_length
+
+        arrays_sorted = []
+        for i in range(max_length):
+            step = []
+            for j in arrays:
+                try:
+                    step.append(j[i])
+                except IndexError:
+                    pass
+            arrays_sorted.append(step)
+        mean = [np.mean(i) for i in arrays_sorted]
+        mean_error = [np.std(i, ddof=1) / math.sqrt(len(i)) for i in arrays_sorted]
+        return mean, mean_error
+
+    def MSD_types(self, MSD_delta_t_n, y_lim):
+
+        MSDs_immob = []
+        for cell in self.trajectories_immob_cells_filtered:
+            MSDs_cell = [trajectory.MSDs for trajectory in cell]
+            MSDs_immob.append(MSDs_cell)
+        MSDs_immob = [j for i in MSDs_immob for j in i]
+        self.mean_MSDs_immob, self.mean_error_MSDs_immob = self.calc_mean_error_different_lengths(MSDs_immob)
+
+        MSDs_conf = []
+        for cell in self.trajectories_conf_cells_filtered:
+            MSDs_cell = [trajectory.MSDs for trajectory in cell]
+            MSDs_conf.append(MSDs_cell)
+        MSDs_conf = [j for i in MSDs_conf for j in i]
+        self.mean_MSDs_conf, self.mean_error_MSDs_conf = self.calc_mean_error_different_lengths(MSDs_conf)
+
+        MSDs_free = []
+        for cell in self.trajectories_free_cells_filtered:
+            MSDs_cell = [trajectory.MSDs for trajectory in cell]
+            MSDs_free.append(MSDs_cell)
+        MSDs_free = [j for i in MSDs_free for j in i]
+        self.mean_MSDs_free, self.mean_error_MSDs_free = self.calc_mean_error_different_lengths(MSDs_free)
+
+        MSDs_notype = []
+        for cell in self.trajectories_notype_cells_filtered:
+            MSDs_cell = [trajectory.MSDs for trajectory in cell]
+            MSDs_notype.append(MSDs_cell)
+        MSDs_notype = [j for i in MSDs_notype for j in i]
+        self.mean_MSDs_notype, self.mean_error_MSDs_notype = self.calc_mean_error_different_lengths(MSDs_notype)
+
+        self.plot_MSD_types(MSD_delta_t_n, y_lim)
         
     def clear_attributes(self):
         """
@@ -619,11 +741,23 @@ class TrajectoryStatistics():
         """
         self.hist_log_Ds = []  # histograms (logD vs freq) from all cells as np arrays in this list
         self.hist_diffusion = []  # diffusions from histogram calculation, transformed back -> 10^-(log10(D))
+        self.hist_diffusion_immob = []
+        self.hist_diffusion_conf = []
+        self.hist_diffusion_free = []
+        self.hist_diffusion_notype = []
         self.mean_frequencies = []  # mean frequencies, size corrected
         self.mean_error = []
         self.hist_log_Ds_bg = []
         self.mean_frequencies_bg = []
         self.mean_error_bg = []
+        self.mean_MSDs_immob = []
+        self.mean_error_MSDs_immob = []
+        self.mean_MSDs_comf = []
+        self.mean_error_MSDs_conf = []
+        self.mean_MSDs_free = []
+        self.mean_error_MSDs_free = []
+        self.mean_MSDs_notype = []
+        self.mean_error_MSDs_notype = []
         
     def determine_max_min_diffusion(self):
         """
@@ -770,146 +904,146 @@ class TrajectoryStatistics():
         plt.xlabel("D [\u03BCm\u00b2/s]")
         plt.show() 
         
-    def plot_MSD_types(self):     
-        """
-        MSD-plot is calculated with averaged MSD-curves per diffusion type.
-        """
-        immobile_tracks = []
-        confined_tracks = []
-        free_tracks = []
-        notype_tracks = []
-        for cell in self.cell_trajectories_filtered:
-            for i in cell:
-                if i.immobility and not i.analyse_successful and not i.confined:
-                    immobile_tracks.append(i)
-                elif not i.immobility and i.confined and i.analyse_successful:
-                    confined_tracks.append(i)
-                elif not i.immobility and not i.confined and i.analyse_successful:
-                    free_tracks.append(i)
-                elif not i.immobility and not i.analyse_successful:
-                    notype_tracks.append(i)
-        immob_MSD = [track.MSDs for track in immobile_tracks]
-        conf_MSD = [track.MSDs for track in confined_tracks]
-        free_MSD = [track.MSDs for track in free_tracks]
-        notype_MSD = [track.MSDs for track in notype_tracks]
-        max_length_immob = 0
-        for i in immob_MSD:
-            if len(i) > max_length_immob:
-                max_length_immob = len(i)
-        mean_MSDs_immob = []
-        error_MSDs_immob = []
-        for idx in range(max_length_immob):
-            MSD_idx = []
-            for i in immob_MSD:
-                try:
-                    MSD_idx.append(i[idx])
-                except:
-                    pass
-            mean_MSD_idx = np.mean(MSD_idx)
-            error_MSD_idx = np.std(MSD_idx, ddof=1)/len(MSD_idx) 
-            mean_MSDs_immob.append(mean_MSD_idx)
-            error_MSDs_immob.append(error_MSD_idx)
-        np.savetxt(r"C:\Users\pcoffice37\Desktop\tS_MSD_type\immob.txt", 
-           X=mean_MSDs_immob,
-           fmt = ("%.8f"),
-           header =  "immob\t")
-        np.savetxt(r"C:\Users\pcoffice37\Desktop\tS_MSD_type\dimmob.txt", 
-           X=error_MSDs_immob,
-           fmt = ("%.8f"),
-           header =  "dimmob\t")
-        
-        max_length_conf = 0
-        for i in conf_MSD:
-            if len(i) > max_length_conf:
-                max_length_conf = len(i)
-        mean_MSDs_conf = []
-        error_MSDs_conf = []
-        for idx in range(max_length_conf):
-            MSD_idx = []
-            for i in conf_MSD:
-                try:
-                    MSD_idx.append(i[idx])
-                except:
-                    pass
-            mean_MSD_idx = np.mean(MSD_idx)
-            error_MSD_idx = np.std(MSD_idx, ddof=1)/len(MSD_idx) 
-            mean_MSDs_conf.append(mean_MSD_idx)
-            error_MSDs_conf.append(error_MSD_idx)
-        np.savetxt(r"C:\Users\pcoffice37\Desktop\tS_MSD_type\conf.txt", 
-           X=mean_MSDs_conf,
-           fmt = ("%.8f"),
-           header =  "conf\t")
-        np.savetxt(r"C:\Users\pcoffice37\Desktop\tS_MSD_type\dconf.txt", 
-           X=error_MSDs_conf,
-           fmt = ("%.8f"),
-           header =  "dconf\t")
-        
-        max_length_free = 0
-        for i in free_MSD:
-            if len(i) > max_length_free:
-                max_length_free = len(i)
-        mean_MSDs_free = []
-        error_MSDs_free = []
-        for idx in range(max_length_free):
-            MSD_idx = []
-            for i in free_MSD:
-                try:
-                    MSD_idx.append(i[idx])
-                except:
-                    pass
-            mean_MSD_idx = np.mean(MSD_idx)
-            error_MSD_idx = np.std(MSD_idx, ddof=1)/len(MSD_idx) 
-            mean_MSDs_free.append(mean_MSD_idx)
-            error_MSDs_free.append(error_MSD_idx)
-        np.savetxt(r"C:\Users\pcoffice37\Desktop\tS_MSD_type\free.txt", 
-           X=mean_MSDs_free,
-           fmt = ("%.8f"),
-           header =  "free\t")
-        np.savetxt(r"C:\Users\pcoffice37\Desktop\tS_MSD_type\dfree.txt", 
-           X=error_MSDs_free,
-           fmt = ("%.8f"),
-           header =  "dfree\t")
-        
-        max_length_notype = 0
-        for i in notype_MSD:
-            if len(i) > max_length_notype:
-                max_length_notype = len(i)
-        mean_MSDs_notype = []
-        error_MSDs_notype = []
-        for idx in range(max_length_notype):
-            MSD_idx = []
-            for i in notype_MSD:
-                try:
-                    MSD_idx.append(i[idx])
-                except:
-                    pass
-            mean_MSD_idx = np.mean(MSD_idx)
-            error_MSD_idx = np.std(MSD_idx, ddof=1)/len(MSD_idx) 
-            mean_MSDs_notype.append(mean_MSD_idx)
-            error_MSDs_notype.append(error_MSD_idx)
-        np.savetxt(r"C:\Users\pcoffice37\Desktop\tS_MSD_type\notype.txt", 
-           X=mean_MSDs_notype,
-           fmt = ("%.8f"),
-           header =  "notype\t")
-        np.savetxt(r"C:\Users\pcoffice37\Desktop\tS_MSD_type\dnotype.txt", 
-           X=error_MSDs_notype,
-           fmt = ("%.8f"),
-           header =  "dnotype\t")
-        
-        max_length = []
-        max_length.append(max_length_immob)
-        max_length.append(max_length_conf)
-        max_length.append(max_length_free)
-        max_length.append(max_length_notype)
-        mult = max(max_length)
-        dts = []
-        for i in range(mult):
-            dt=0.02*i
-            dts.append(dt)
-        np.savetxt(r"C:\Users\pcoffice37\Desktop\tS_MSD_type\dts.txt", 
-           X=dts,
-           fmt = ("%.8f"),
-           header =  "dt\t")
+    # def plot_MSD_types(self):
+    #     """
+    #     MSD-plot is calculated with averaged MSD-curves per diffusion type.
+    #     """
+    #     immobile_tracks = []
+    #     confined_tracks = []
+    #     free_tracks = []
+    #     notype_tracks = []
+    #     for cell in self.cell_trajectories_filtered:
+    #         for i in cell:
+    #             if i.immobility and not i.analyse_successful and not i.confined:
+    #                 immobile_tracks.append(i)
+    #             elif not i.immobility and i.confined and i.analyse_successful:
+    #                 confined_tracks.append(i)
+    #             elif not i.immobility and not i.confined and i.analyse_successful:
+    #                 free_tracks.append(i)
+    #             elif not i.immobility and not i.analyse_successful:
+    #                 notype_tracks.append(i)
+    #     immob_MSD = [track.MSDs for track in immobile_tracks]
+    #     conf_MSD = [track.MSDs for track in confined_tracks]
+    #     free_MSD = [track.MSDs for track in free_tracks]
+    #     notype_MSD = [track.MSDs for track in notype_tracks]
+    #     max_length_immob = 0
+    #     for i in immob_MSD:
+    #         if len(i) > max_length_immob:
+    #             max_length_immob = len(i)
+    #     mean_MSDs_immob = []
+    #     error_MSDs_immob = []
+    #     for idx in range(max_length_immob):
+    #         MSD_idx = []
+    #         for i in immob_MSD:
+    #             try:
+    #                 MSD_idx.append(i[idx])
+    #             except:
+    #                 pass
+    #         mean_MSD_idx = np.mean(MSD_idx)
+    #         error_MSD_idx = np.std(MSD_idx, ddof=1)/len(MSD_idx)
+    #         mean_MSDs_immob.append(mean_MSD_idx)
+    #         error_MSDs_immob.append(error_MSD_idx)
+    #     np.savetxt(r"C:\Users\pcoffice37\Desktop\tS_MSD_type\immob.txt",
+    #        X=mean_MSDs_immob,
+    #        fmt = ("%.8f"),
+    #        header =  "immob\t")
+    #     np.savetxt(r"C:\Users\pcoffice37\Desktop\tS_MSD_type\dimmob.txt",
+    #        X=error_MSDs_immob,
+    #        fmt = ("%.8f"),
+    #        header =  "dimmob\t")
+    #
+    #     max_length_conf = 0
+    #     for i in conf_MSD:
+    #         if len(i) > max_length_conf:
+    #             max_length_conf = len(i)
+    #     mean_MSDs_conf = []
+    #     error_MSDs_conf = []
+    #     for idx in range(max_length_conf):
+    #         MSD_idx = []
+    #         for i in conf_MSD:
+    #             try:
+    #                 MSD_idx.append(i[idx])
+    #             except:
+    #                 pass
+    #         mean_MSD_idx = np.mean(MSD_idx)
+    #         error_MSD_idx = np.std(MSD_idx, ddof=1)/len(MSD_idx)
+    #         mean_MSDs_conf.append(mean_MSD_idx)
+    #         error_MSDs_conf.append(error_MSD_idx)
+    #     np.savetxt(r"C:\Users\pcoffice37\Desktop\tS_MSD_type\conf.txt",
+    #        X=mean_MSDs_conf,
+    #        fmt = ("%.8f"),
+    #        header =  "conf\t")
+    #     np.savetxt(r"C:\Users\pcoffice37\Desktop\tS_MSD_type\dconf.txt",
+    #        X=error_MSDs_conf,
+    #        fmt = ("%.8f"),
+    #        header =  "dconf\t")
+    #
+    #     max_length_free = 0
+    #     for i in free_MSD:
+    #         if len(i) > max_length_free:
+    #             max_length_free = len(i)
+    #     mean_MSDs_free = []
+    #     error_MSDs_free = []
+    #     for idx in range(max_length_free):
+    #         MSD_idx = []
+    #         for i in free_MSD:
+    #             try:
+    #                 MSD_idx.append(i[idx])
+    #             except:
+    #                 pass
+    #         mean_MSD_idx = np.mean(MSD_idx)
+    #         error_MSD_idx = np.std(MSD_idx, ddof=1)/len(MSD_idx)
+    #         mean_MSDs_free.append(mean_MSD_idx)
+    #         error_MSDs_free.append(error_MSD_idx)
+    #     np.savetxt(r"C:\Users\pcoffice37\Desktop\tS_MSD_type\free.txt",
+    #        X=mean_MSDs_free,
+    #        fmt = ("%.8f"),
+    #        header =  "free\t")
+    #     np.savetxt(r"C:\Users\pcoffice37\Desktop\tS_MSD_type\dfree.txt",
+    #        X=error_MSDs_free,
+    #        fmt = ("%.8f"),
+    #        header =  "dfree\t")
+    #
+    #     max_length_notype = 0
+    #     for i in notype_MSD:
+    #         if len(i) > max_length_notype:
+    #             max_length_notype = len(i)
+    #     mean_MSDs_notype = []
+    #     error_MSDs_notype = []
+    #     for idx in range(max_length_notype):
+    #         MSD_idx = []
+    #         for i in notype_MSD:
+    #             try:
+    #                 MSD_idx.append(i[idx])
+    #             except:
+    #                 pass
+    #         mean_MSD_idx = np.mean(MSD_idx)
+    #         error_MSD_idx = np.std(MSD_idx, ddof=1)/len(MSD_idx)
+    #         mean_MSDs_notype.append(mean_MSD_idx)
+    #         error_MSDs_notype.append(error_MSD_idx)
+    #     np.savetxt(r"C:\Users\pcoffice37\Desktop\tS_MSD_type\notype.txt",
+    #        X=mean_MSDs_notype,
+    #        fmt = ("%.8f"),
+    #        header =  "notype\t")
+    #     np.savetxt(r"C:\Users\pcoffice37\Desktop\tS_MSD_type\dnotype.txt",
+    #        X=error_MSDs_notype,
+    #        fmt = ("%.8f"),
+    #        header =  "dnotype\t")
+    #
+    #     max_length = []
+    #     max_length.append(max_length_immob)
+    #     max_length.append(max_length_conf)
+    #     max_length.append(max_length_free)
+    #     max_length.append(max_length_notype)
+    #     mult = max(max_length)
+    #     dts = []
+    #     for i in range(mult):
+    #         dt=0.02*i
+    #         dts.append(dt)
+    #     np.savetxt(r"C:\Users\pcoffice37\Desktop\tS_MSD_type\dts.txt",
+    #        X=dts,
+    #        fmt = ("%.8f"),
+    #        header =  "dt\t")
 
     def calc_mean_frequencies(self, np_array):
         """
