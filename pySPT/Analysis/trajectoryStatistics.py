@@ -25,6 +25,7 @@ class TrajectoryStatistics():
         self.trajectories_conf_cells_filtered = []
         self.trajectories_free_cells_filtered = []
         self.trajectories_notype_cells_filtered = []
+        self.trajectories_immob_notype_cells_filtered = []
         self.cell_trajectories_filtered_thresholds = []  # filtered for thresholds only
         self.cell_trajectories_filtered_index = [] 
         self.backgrounds = []  # background objects
@@ -71,6 +72,7 @@ class TrajectoryStatistics():
         self.sigma_dyns = []  # dynamic localization error, based on filtered trajectories         
         self.diff_fig = []  # log diffusion plot
         self.diff_fig_types = []  # log diffusion plot per type
+        self.diff_fig_types_merge = []
         self.fig_name = []
         self.D_mean_types = []  # containes averaged D for immobile, confined and free diffusion
         self.dD_mean_types = []
@@ -91,6 +93,7 @@ class TrajectoryStatistics():
         self.mean_MSDs_immob_notype = []
         self.mean_error_MSDs_immob_notype = []
         self.MSD_fig_types = []
+        self.MSD_fig_types_merge = []
 
     def calc_mean_statistics(self):
         immobile_tracks = []
@@ -188,15 +191,15 @@ class TrajectoryStatistics():
         self.dlength_mean_types.append(notype_dlength_mean)
       
 
-    def calc_min_rossier_length(self):
-        for cell in self.cells:
-            print("before cell", cell.tau_threshold_min_length, type(cell.tau_threshold_min_length))
-            print("before self", self.tau_threshold_min_length, type(self.tau_threshold_min_length))
-            if cell.tau_threshold_min_length < self.tau_threshold_min_length:
-                self.tau_threshold_min_length = cell.tau_threshold_min_length
-                print(type(self.tau_threshold_min_length))
-        self.tau_threshold_min_length = str(self.tau_threshold_min_length)
-        print(self.tau_threshold_min_length, type(self.tau_threshold_min_length))
+    # def calc_min_rossier_length(self):
+    #     for cell in self.cells:
+    #         print("before cell", cell.tau_threshold_min_length, type(cell.tau_threshold_min_length))
+    #         print("before self", self.tau_threshold_min_length, type(self.tau_threshold_min_length))
+    #         if cell.tau_threshold_min_length < self.tau_threshold_min_length:
+    #             self.tau_threshold_min_length = cell.tau_threshold_min_length
+    #             print(type(self.tau_threshold_min_length))
+    #     self.tau_threshold_min_length = str(self.tau_threshold_min_length)
+    #     print(self.tau_threshold_min_length, type(self.tau_threshold_min_length))
         
     def create_filtered_framework(self):
         """
@@ -211,6 +214,7 @@ class TrajectoryStatistics():
         self.trajectories_conf_cells_filtered = []
         self.trajectories_free_cells_filtered = []
         self.trajectories_notype_cells_filtered = []
+        self.trajectories_immob_notype_cells_filtered = []
         self.cell_trajectories_filtered_thresholds = []
         self.cell_trajectories_filtered_index = []
         self.background_trajectories_filtered = []
@@ -368,22 +372,36 @@ class TrajectoryStatistics():
                                    and not trajectory.confined and not trajectory.analyse_successful]
                 filtered_cell.extend(filtered_cell_immob)
                 self.trajectories_immob_cells_filtered.append(filtered_cell_immob)
+            if not filter_immob:
+                self.trajectories_immob_cells_filtered.append([])
             if filter_confined:
                 filtered_cell_confined = [trajectory for trajectory in self.cell_trajectories_filtered_thresholds[cell_index] if trajectory.confined
                                    and not trajectory.immobility and trajectory.analyse_successful]
                 filtered_cell.extend(filtered_cell_confined)
                 self.trajectories_conf_cells_filtered.append(filtered_cell_confined)
+            if not filter_confined:
+                self.trajectories_conf_cells_filtered.append([])
             if filter_free:
                 filtered_cell_free = [trajectory for trajectory in self.cell_trajectories_filtered_thresholds[cell_index] if not trajectory.confined
                                    and not trajectory.immobility and trajectory.analyse_successful]
                 filtered_cell.extend(filtered_cell_free)
                 self.trajectories_free_cells_filtered.append(filtered_cell_free)
+            if not filter_free:
+                self.trajectories_free_cells_filtered.append([])
             if filter_type_not_successful:
                 filtered_cell_type_not_successful = [trajectory for trajectory in self.cell_trajectories_filtered_thresholds[cell_index] if not trajectory.analyse_successful
                                                      and not trajectory.immobility]
                 filtered_cell.extend(filtered_cell_type_not_successful)
                 self.trajectories_notype_cells_filtered.append(filtered_cell_type_not_successful)
+            if not filter_type_not_successful:
+                self.trajectories_notype_cells_filtered.append([])
             self.cell_trajectories_filtered.append(filtered_cell)
+
+        for cell_idx in range(len(self.cells)):
+            merge_sub = []
+            merge_sub.extend(self.trajectories_immob_cells_filtered[cell_idx])
+            merge_sub.extend(self.trajectories_notype_cells_filtered[cell_idx])
+            self.trajectories_immob_notype_cells_filtered.append(merge_sub)
 
         if self.background_trajectories:
             for bg_index in range(len(self.background_trajectories)):
@@ -520,13 +538,27 @@ class TrajectoryStatistics():
 
     def plot_diffusion_hist_types(self, mean_log_hist_immob, error_log_hist_immob, mean_log_hist_conf,
                                   error_log_hist_conf, mean_log_hist_free, error_log_hist_free,
-                                  mean_log_hist_fit_fail, error_log_hist_fit_fail):
-        self.diff_fig_types = plt.figure()
+                                  mean_log_hist_fit_fail, error_log_hist_fit_fail,
+                                  mean_log_hist_immob_fil_fail, error_log_hist_immob_fit_fail, merge):
+        x = plt.figure()
         plt.subplot(111, xscale="log")
-        (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_immob, yerr=error_log_hist_immob, capsize=4,
-                                    label="relative frequency immobile", ecolor="#4169e1", color="#4169e1")  # capsize length of cap
-        for cap in caps:
-            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+        if merge:
+            (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_immob_fil_fail, yerr=error_log_hist_immob_fit_fail,
+                                        capsize=4, label="relative frequency immobile+notype", ecolor="#4169e1", color="#4169e1")  # capsize length of cap
+            for cap in caps:
+                cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+        else:
+
+            (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_immob, yerr=error_log_hist_immob, capsize=4,
+                                        label="relative frequency immobile", ecolor="#4169e1", color="#4169e1")  # capsize length of cap
+            for cap in caps:
+                cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+            (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_fit_fail, yerr=error_log_hist_fit_fail,
+                                        capsize=4,
+                                        label="relative frequency no type", ecolor="#8b008b",
+                                        color="#8b008b")  # capsize length of cap
+            for cap in caps:
+                cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
 
         (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_conf, yerr=error_log_hist_conf, capsize=4,
                                     label="relative frequency confined", ecolor="#228b22", color="#228b22")  # capsize length of cap
@@ -538,10 +570,7 @@ class TrajectoryStatistics():
         for cap in caps:
             cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
 
-        (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_fit_fail, yerr=error_log_hist_fit_fail, capsize=4,
-                                    label="relative frequency no type", ecolor="#8b008b", color="#8b008b")  # capsize length of cap
-        for cap in caps:
-            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+
 
         plt.xlim(self.min_D, self.max_D)
         plt.legend()
@@ -549,6 +578,7 @@ class TrajectoryStatistics():
         plt.ylabel("Normalized relative occurence [%]")
         plt.xlabel("D [\u03BCm\u00b2/s]")
         plt.show()
+        return x
 
     def diffusion_hist_types(self, desired_bin_size, merge):
         log_Ds_immob = [[] for i in self.cell_sizes]
@@ -572,16 +602,23 @@ class TrajectoryStatistics():
             log_Ds_notype_cell = [np.log10(trajectory.D) for trajectory in cell]
             log_Ds_notype[c] = log_Ds_notype_cell
 
-        hist_immob, hist_conf, hist_free, hist_notype = [], [], [], []
+        log_Ds_immob_notype = [[] for i in self.cell_sizes]
+        for c, cell in enumerate(self.trajectories_immob_notype_cells_filtered):
+            log_Ds_immob_notype_cell = [np.log10(trajectory.D) for trajectory in cell]
+            log_Ds_immob_notype[c] = log_Ds_immob_notype_cell
+
+        hist_immob, hist_conf, hist_free, hist_notype, hist_immob_notype = [], [], [], [], []
         for i, cell_size in enumerate(self.cell_sizes):
             hist_immob_cell = self.calc_diffusion_frequencies(log_Ds_immob[i], desired_bin_size, cell_size)
             hist_conf_cell = self.calc_diffusion_frequencies(log_Ds_conf[i], desired_bin_size, cell_size)
             hist_free_cell = self.calc_diffusion_frequencies(log_Ds_free[i], desired_bin_size, cell_size)
             hist_notype_cell = self.calc_diffusion_frequencies(log_Ds_notype[i], desired_bin_size, cell_size)
+            hist_immob_notype_cell = self.calc_diffusion_frequencies(log_Ds_immob_notype[i], desired_bin_size, cell_size)
             hist_immob.append(hist_immob_cell[:,1])  # only frequency counts
             hist_conf.append(hist_conf_cell[:, 1])
             hist_free.append(hist_free_cell[:, 1])
             hist_notype.append(hist_notype_cell[:, 1])
+            hist_immob_notype.append(hist_immob_notype_cell[:, 1])
 
         mean_log_hist_immob = np.mean(hist_immob, axis=0) * self.normalization_factor
         error_log_hist_immob = np.std(hist_immob, axis=0, ddof=1) * self.normalization_factor
@@ -591,15 +628,25 @@ class TrajectoryStatistics():
         error_log_hist_free = np.std(hist_free, axis=0, ddof=1) * self.normalization_factor
         mean_log_hist_notype = np.mean(hist_notype, axis=0) * self.normalization_factor
         error_log_hist_notype = np.std(hist_notype, axis=0, ddof=1) * self.normalization_factor
+        mean_log_hist_immob_notype = np.mean(hist_immob_notype, axis=0) * self.normalization_factor
+        error_log_hist_immob_notype = np.std(hist_immob_notype, axis=0, ddof=1) * self.normalization_factor
 
         self.hist_diffusion_immob = [mean_log_hist_immob, error_log_hist_immob]
         self.hist_diffusion_conf = [mean_log_hist_conf, error_log_hist_conf]
         self.hist_diffusion_free = [mean_log_hist_free, error_log_hist_free]
         self.hist_diffusion_notype = [mean_log_hist_notype, error_log_hist_notype]
+        self.hist_diffusion_immob_notype = [mean_log_hist_immob_notype, error_log_hist_immob_notype]
 
-        self.plot_diffusion_hist_types(mean_log_hist_immob, error_log_hist_immob, mean_log_hist_conf,
+
+        self.diff_fig_types = self.plot_diffusion_hist_types(mean_log_hist_immob, error_log_hist_immob, mean_log_hist_conf,
                                        error_log_hist_conf, mean_log_hist_free, error_log_hist_free,
-                                       mean_log_hist_notype, error_log_hist_notype)
+                                       mean_log_hist_notype, error_log_hist_notype, mean_log_hist_immob_notype,
+                                       error_log_hist_immob_notype, merge=False)
+        self.diff_fig_types_merge = self.plot_diffusion_hist_types(mean_log_hist_immob, error_log_hist_immob, mean_log_hist_conf,
+                                       error_log_hist_conf, mean_log_hist_free, error_log_hist_free,
+                                       mean_log_hist_notype, error_log_hist_notype, mean_log_hist_immob_notype,
+                                       error_log_hist_immob_notype, merge)
+
     
     def run_diffusion_histogram(self, desired_bin_size, x_lim="None", y_lim="None", plot=True, merge=True):
         # bin size can only be something that can be converted to float (integer or float, comma separated)
@@ -651,7 +698,7 @@ class TrajectoryStatistics():
             delta_t_immob = [camera_time * i for i in range(1, len(self.mean_MSDs_immob) + 1)]
             delta_t_fit_fail = [camera_time * i for i in range(1, len(self.mean_MSDs_notype) + 1)]
 
-        self.MSD_fig_types = plt.figure()
+        x = plt.figure()
 
         if merge:
             (_, caps, _) = plt.errorbar(delta_t_immob_fit_fail, self.mean_MSDs_immob_notype, yerr=self.mean_error_MSDs_immob_notype,
@@ -686,6 +733,7 @@ class TrajectoryStatistics():
         plt.ylabel("Mean MSD [\u03BCm\u00b2]")
         plt.xlabel("Time step [s]")
         plt.show()
+        return x
 
     def calc_mean_error_different_lengths(self, arrays):
         """
@@ -746,8 +794,8 @@ class TrajectoryStatistics():
             MSDs_immob_notype.extend(MSDs_notype)
             MSDs_immob_notype.extend(MSDs_immob)
             self.mean_MSDs_immob_notype, self.mean_error_MSDs_immob_notype = self.calc_mean_error_different_lengths(MSDs_immob_notype)
-            self.plot_MSD_types(MSD_delta_t_n, y_lim, merge=merge)
-            self.plot_MSD_types(MSD_delta_t_n, y_lim, merge=False)
+            self.MSD_fig_types = self.plot_MSD_types(MSD_delta_t_n, y_lim, merge=False)
+            self.MSD_fig_types_merge = self.plot_MSD_types(MSD_delta_t_n, y_lim, merge=merge)
         else:
             self.plot_MSD_types(MSD_delta_t_n, y_lim)
 
@@ -758,7 +806,7 @@ class TrajectoryStatistics():
         """
         self.hist_log_Ds = []  # histograms (logD vs freq) from all cells as np arrays in this list
         self.hist_diffusion = []  # diffusions from histogram calculation, transformed back -> 10^-(log10(D))
-        self.hist_diffusion_immob = []
+        self.hist_diffusion_immob = []  # first entry frequencies, 2nd entry errors of diffusion hist per type
         self.hist_diffusion_conf = []
         self.hist_diffusion_free = []
         self.hist_diffusion_notype = []
@@ -794,7 +842,6 @@ class TrajectoryStatistics():
         """
         For each cell initialize histogram with cell size and target array.
         """
-        #desired_bin_size = 0.05
         for bg_index in range(0, len(self.background_trajectories_filtered)):
             log_Ds = np.zeros(len(self.background_trajectories_filtered[bg_index]))
             bg_size = self.bg_sizes[bg_index]
@@ -806,7 +853,6 @@ class TrajectoryStatistics():
         """
         For each cell initialize histogram with cell size and target array.
         """
-        #desired_bin_size = 0.05
         for cell_index in range(0, len(self.cell_trajectories_filtered)):
             log_Ds = np.zeros(len(self.cell_trajectories_filtered[cell_index]))
             cell_size = self.cell_sizes[cell_index]
@@ -906,8 +952,14 @@ class TrajectoryStatistics():
         plt.show() 
     
     def save_diff_fig(self, directory, folder_name):
-        for fig, name in zip(self.diff_fig, self.fig_name):
+        for fig, name in zip(self.diff_fig, self.fig_name):  # diffusion hist / bg hist
             fig.savefig(directory + "\\"+ folder_name +  "\\" + name + ".pdf", format="pdf", transparent=True)
+        # diffusion hist type
+        self.diff_fig_types.savefig(directory + "\\" + folder_name + "\\" + "diffusion_hist_type" + ".pdf", format="pdf", transparent=True)
+        self.diff_fig_types_merge.savefig(directory + "\\" + folder_name + "\\" + "diffusion_hist_type_merge" + ".pdf", format="pdf", transparent=True)
+        # MSD type
+        self.MSD_fig_types.savefig(directory + "\\" + folder_name + "\\" + "MSD_type" + ".pdf", format="pdf", transparent=True)
+        self.MSD_fig_types_merge.savefig(directory + "\\" + folder_name + "\\" + "MSD_type_merge" + ".pdf", format="pdf", transparent=True)
 
     def plot_bar_log_bins_bg_corrected(self):
         self.diff_fig.append(plt.figure())

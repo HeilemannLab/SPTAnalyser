@@ -167,7 +167,7 @@ class SaveStatistics():
     
     def diffusion_plot_normalized(self, number, diffusion, mean_cell_percent, dmean_cell_percent):
         """
-        Normalized values if bg is inserted."
+        Diffusion plot without bg correction, normalized.
         """
         dset = self.grp05.create_dataset("histogram values normalized", (number,), dtype = np.dtype([("diffusion coefficient [\u03BCm\u00b2/s]", float),
                                                  ("mean frequency cells [%]", float),
@@ -175,10 +175,39 @@ class SaveStatistics():
         dset["diffusion coefficient [\u03BCm\u00b2/s]"] = diffusion    
         dset["mean frequency cells [%]"] = mean_cell_percent
         dset["\u0394 mean frequency cells [%]"] = dmean_cell_percent
-        
+
+    def diffusion_plot_normalized_types(self, number, diffusion, mean_cell_immob, dmean_cell_immob, mean_cell_conf,
+                                        dmean_cell_conf, mean_cell_free, dmean_cell_free, mean_cell_notype,
+                                        dmean_cell_notype, mean_cell_immob_notype, dmean_cell_immob_notype):
+        """
+        Normalized values of types, no bg.
+        """
+        dset = self.grp05.create_dataset("histogram values normalized types", (number,), dtype = np.dtype([("diffusion coefficient [\u03BCm\u00b2/s]", float),
+                                                 ("mean frequency immob [%]", float),
+                                                 ("\u0394 mean frequency immob [%]", float),
+                                                 ("mean frequency conf [%]", float),
+                                                 ("\u0394 mean frequency conf [%]", float),
+                                                 ("mean frequency free [%]", float),
+                                                 ("\u0394 mean frequency free [%]", float),
+                                                 ("mean frequency notype [%]", float),
+                                                 ("\u0394 mean frequency notype [%]", float),
+                                                 ("mean frequency immob+notype [%]", float),
+                                                 ("\u0394 mean frequency immob+notype [%]", float)]))
+        dset["diffusion coefficient [\u03BCm\u00b2/s]"] = diffusion
+        dset["mean frequency immob [%]"] = mean_cell_immob
+        dset["\u0394 mean frequency immob [%]"] = dmean_cell_immob
+        dset["mean frequency conf [%]"] = mean_cell_conf
+        dset["\u0394 mean frequency conf [%]"] = dmean_cell_conf
+        dset["mean frequency free [%]"] = mean_cell_free
+        dset["\u0394 mean frequency free [%]"] = dmean_cell_free
+        dset["mean frequency notype [%]"] = mean_cell_notype
+        dset["\u0394 mean frequency notype [%]"] = dmean_cell_notype
+        dset["mean frequency immob+notype [%]"] = mean_cell_immob_notype
+        dset["\u0394 mean frequency immob+notype [%]"] = dmean_cell_immob_notype
+
     def diffusion_plot_bg_normalized(self, number, diffusion, mean_cell_percent, dmean_cell_percent, mean_cell_corr_percent, dmean_cell_corr_percent):
         """
-        Diffusion plot without bg correction, normalized.
+        Diffusion plot with bg correction, normalized.
         """
         dset = self.grp05.create_dataset("histogram values normalized", (number,), dtype = np.dtype([("diffusion coefficient [\u03BCm\u00b2/s]", float),
                                                  ("mean frequency cells [%]", float),

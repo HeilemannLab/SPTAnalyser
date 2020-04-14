@@ -410,7 +410,7 @@ class WidgetLoadHdf5():
     
     def create_Dplot_checkbox(self):
         checkbox = widgets.Checkbox(value=True,
-                         description='Save diffusion histogram',
+                         description='Save global plots',
                          disabled=False)
         return checkbox
     

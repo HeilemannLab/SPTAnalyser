@@ -302,6 +302,30 @@ def init_save_track_stats(h5_stats, track_stats, directory, folder_name, name):
             one_bg = (track_stats.backgrounds[i].name, track_stats.bg_sizes[i])
             background_info.append(one_bg)
         h5_stats.backgrounds(background_info)
+
+        h5_stats.diffusion_plot_normalized_types(len(track_stats.hist_diffusion), track_stats.hist_diffusion,
+                                                 track_stats.hist_diffusion_immob[0],
+                                                 track_stats.hist_diffusion_immob[1], track_stats.hist_diffusion_conf[0],
+                                                 track_stats.hist_diffusion_conf[1], track_stats.hist_diffusion_free[0],
+                                                 track_stats.hist_diffusion_free[1], track_stats.hist_diffusion_notype[0],
+                                                 track_stats.hist_diffusion_notype[1], track_stats.hist_diffusion_immob_notype[0],
+                                                 track_stats.hist_diffusion_immob_notype[1])
+
+    # if no bg file was loaded only mean cell frequencies are determined
+    if not track_stats.background_trajectories:
+        h5_stats.diffusion_plot_normalized(len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.mean_frequencies_percent,
+                                           track_stats.mean_error_percent)
+        h5_stats.diffusion_plot(len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.mean_frequencies,
+                                   track_stats.mean_error)
+        h5_stats.diffusion_plot_normalized_types(len(track_stats.hist_diffusion), track_stats.hist_diffusion,
+                                                 track_stats.hist_diffusion_immob[0],
+                                                 track_stats.hist_diffusion_immob[1], track_stats.hist_diffusion_conf[0],
+                                                 track_stats.hist_diffusion_conf[1], track_stats.hist_diffusion_free[0],
+                                                 track_stats.hist_diffusion_free[1], track_stats.hist_diffusion_notype[0],
+                                                 track_stats.hist_diffusion_notype[1], track_stats.hist_diffusion_immob_notype[0],
+                                                 track_stats.hist_diffusion_immob_notype[1])
+
+
     h5_stats.filter_info(track_stats.filter_settings, track_stats.filter_thresholds_values)
     h5_stats.statistics(track_stats.type_percentage()[0], track_stats.type_percentage()[1],
                          track_stats.type_percentage()[2], track_stats.type_percentage()[3], track_stats.total_trajectories_filtered,
@@ -317,12 +341,7 @@ def init_save_track_stats(h5_stats, track_stats, directory, folder_name, name):
     for i in range(len(track_stats.cell_sizes)):
         one_cell = (track_stats.cells[i].name, track_stats.cell_sizes[i])
         cell_info.append(one_cell)
-    # if no bg file was loaded only mean cell frequencies are determined
-    if not track_stats.background_trajectories:
-        h5_stats.diffusion_plot_normalized(len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.mean_frequencies_percent,
-                                           track_stats.mean_error_percent)
-        h5_stats.diffusion_plot(len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.mean_frequencies,
-                                   track_stats.mean_error)
+
     h5_stats.cells(cell_info)
     print("The statistics file is saved.")
 
