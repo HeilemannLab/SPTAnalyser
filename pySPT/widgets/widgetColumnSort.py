@@ -11,7 +11,6 @@ Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.
 
 class WidgetColumnSort():
     def __init__(self, file_name, file_type, significant_words):
-        #self.file = []
         self.file_name = file_name
         if file_type == "rapidSTORM":
             self.software = file_type
@@ -20,7 +19,6 @@ class WidgetColumnSort():
             self.software = file_type
             self.identifier_after = ","
         self.significant_words = significant_words
-        #self.significant_words = ['"track_id"', '"mjd_n"', '"mjd"']
         self.identifier_before = "identifier"  # identifier before target word
         self.header = ""
         self.number_columns = 0
@@ -38,9 +36,10 @@ class WidgetColumnSort():
         file = open(self.file_name)
         self.header = file.readline()  # get the header as first line
         count = 0
-        for i in self.significant_words:
-            if i in self.header:
-                count += 1
+        for significant_word in self.significant_words:  # iterate through list of target columns
+            for i in significant_word:  # iterate through tuples (tuple = different possible names for same column)
+                if i in self.header:
+                    count += 1
         if count == len(self.significant_words):
             self.correct_header = True
 
@@ -54,22 +53,15 @@ class WidgetColumnSort():
     def ts_sub_headers(self):
         self.sub_headers = self.header.split(",")
         self.sub_headers[-1] = self.sub_headers[-1][:-1]  # get rid of the new line character for the last sub_header
-# =============================================================================
-#         for sub_header in self.sub_headers:  # get rid of the unit (because it can differ) 
-#             if "[" in sub_header:
-#                 sub_header_idx = self.sub_headers.index(sub_header)
-#                 slice_index = sub_header.index("[") - 1
-#                 sub_header = sub_header[:slice_index] + '"'
-#                 self.sub_headers[sub_header_idx] = sub_header
-# =============================================================================
 
     def ts_create_column_order(self):
         """
         thunderSTORM: Add sub header index and value to dictionary.
         """
         for i in self.sub_headers:
-            if i in self.significant_words:
-                self.column_order.update({self.sub_headers.index(i):i})
+            for significant_word in self.significant_words:
+                if i in significant_word:
+                    self.column_order.update({self.sub_headers.index(i):i})
         
     def rs_sub_headers(self):
         """
@@ -101,11 +93,12 @@ class WidgetColumnSort():
         rapidSTORM
         """
         for target_word in self.target_words:
-            for word in self.significant_words:
-                if word in target_word:
-                    if word not in self.column_order:
-                    #append word (value) and index of sub_head (key) to dictionary
-                        self.column_order[self.target_words.index(target_word)] = word
+            for words in self.significant_words:
+                for word in words:
+                    if word in target_word:
+                        if word not in self.column_order:
+                        #append word (value) and index of sub_head (key) to dictionary
+                            self.column_order[self.target_words.index(target_word)] = word
         
     def run_column_sort(self):
         if self.software == "ThunderSTORM":

@@ -75,11 +75,15 @@ class Precision():
         position_uncertainties col1 = y
         """
         if self.software == "ThunderSTORM":
-            uncertainty_index = list(self.column_order.keys())[list(self.column_order.values()).index('"uncertainty_xy [nm]"')]
+            uncertainty_column_names = ["uncertainty_xy [nm]", "uncertainty [nm]"]  # different column names depending on TS version
+            #uncertainty_index = list(self.column_order.keys())[list(self.column_order.values()).index('"uncertainty_xy [nm]"')]
             file = pd.read_csv(self.file_name)
-            file_uncertainty = file.iloc[:,uncertainty_index] 
+            for i in uncertainty_column_names:
+                if i in list(file.columns.values):
+                    column_name = i
+            #file_uncertainty = file.iloc[:,uncertainty_index]
             self.position_uncertainties = np.zeros([np.shape(file)[0],2])
-            self.position_uncertainties[:,0] = file_uncertainty
+            self.position_uncertainties[:,0] = file[column_name]
         elif self.software == "rapidSTORM":
             x_uncertainty_index = list(self.column_order.keys())[list(self.column_order.values()).index('"Position-0-0-uncertainty"')]
             y_uncertainty_index = list(self.column_order.keys())[list(self.column_order.values()).index('"Position-1-0-uncertainty"')]
