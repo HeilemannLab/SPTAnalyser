@@ -105,21 +105,10 @@ class TrackAnalysis():
         if self.total_trajectories == 0:
             data_selected = False
         if data_selected:
-            count_immobile = 0
-            count_confined = 0
-            count_free = 0
-            count_not_successful = 0
+            count_immobile, count_confined, count_free, count_not_successful = 0, 0, 0, 0
             for cell in self.cell_trajectories_filtered:
-                count_immobile_cell = 0
-                count_confined_cell = 0
-                count_free_cell = 0
-                count_not_successful_cell = 0
-
-                trajectories_immob = []
-                trajectories_conf = []
-                trajectories_free = []
-                trajectories_notype = []
-
+                count_immobile_cell, count_confined_cell, count_free_cell, count_not_successful_cell = 0, 0, 0, 0
+                trajectories_immob, trajectories_conf, trajectories_free, trajectories_notype = [], [], [], []
                 for trajectory in cell:
                     if trajectory.immobility and trajectory.confined and trajectory.analyse_successful:
                         count_immobile_cell += 1
@@ -132,7 +121,7 @@ class TrackAnalysis():
                     # has to be not confined AND not immobile (otherwise it will count the immobile particles as well)
                     if not trajectory.confined and not trajectory.immobility and trajectory.analyse_successful:
                         count_free_cell += 1
-                        count_free +=1
+                        count_free += 1
                         trajectories_free.append(trajectory)
                     if not trajectory.analyse_successful:
                         count_not_successful_cell += 1
@@ -143,7 +132,6 @@ class TrackAnalysis():
                 self.trajectories_conf_cells.append(trajectories_conf)
                 self.trajectories_free_cells.append(trajectories_free)
                 self.trajectories_notype_cells.append(trajectories_notype)
-
 
                 cell_index = self.cell_trajectories_filtered.index(cell)
                 ratio_immobile_cell = count_immobile_cell/self.total_trajectories_cell[cell_index]*100
@@ -157,10 +145,7 @@ class TrackAnalysis():
             ratio_free = count_free/self.total_trajectories*100
             ratio_not_successful = count_not_successful/self.total_trajectories*100
         else:
-            ratio_immobile = 0
-            ratio_confined = 0
-            ratio_free = 0
-            ratio_not_successful = 0
+            ratio_immobile, ratio_confined, ratio_free, ratio_not_successful = 0, 0, 0, 0
         self.type_ratios.append(ratio_immobile)
         self.type_ratios.append(ratio_confined)
         self.type_ratios.append(ratio_free)

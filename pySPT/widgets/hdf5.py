@@ -44,7 +44,7 @@ class Hdf5():
     def statistics(self, immobile, confined, free, notype, D_immobile, D_conf, D_free, D_notype, dD_immobile, dD_conf,
                    dD_free, dD_notype, length_immobile, length_conf, length_free, length_notype, dlength_immobile, dlength_conf,
                    dlength_free, dlength_notype, total_trajectories):
-        dset = self.grp05.create_dataset("statistics", (1,1), dtype = np.dtype([("immobile [%]", float),
+        dset = self.grp05.create_dataset("statistics_4", (1,1), dtype = np.dtype([("immobile [%]", float),
                                                          ("confined [%]", float),
                                                          ("free [%]", float),
                                                          ("no type [%]", float),
