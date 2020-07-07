@@ -94,7 +94,8 @@ class SaveStatistics():
         dset["min diffusion coefficient [\u03BCm\u00b2/s]"] = filter_thresholds_values[2]
         dset["max diffusion coefficient [\u03BCm\u00b2/s]"] = filter_thresholds_values[3]
         
-    def statistics_4(self, immobile, confined, free, notype, trajectories_included, trajectories_excluded, mean_Ds, mean_dDs, mean_lengths, mean_dlengths):
+    def statistics_4(self, type_percentages, dtype_percentages, trajectories_included, trajectories_excluded,
+                     mean_Ds, mean_dDs, mean_lengths, mean_dlengths):
         dset = self.grp06.create_dataset("statistics_4", (1,1), dtype = np.dtype([("immobile [%]", float),
                                                          ("confined [%]", float),
                                                          ("free [%]", float),
@@ -122,14 +123,14 @@ class SaveStatistics():
                                                          ("\u0394 mean length free [frames]", float),
                                                          ("\u0394 mean length no type [frames]", float)]))
 
-        dset["immobile [%]"] = immobile
-        dset["confined [%]"] = confined
-        dset["free [%]"] = free
-        dset["no type [%]"] = notype
-        dset["\u0394 immobile [%]"] = immobile
-        dset["\u0394 confined [%]"] = confined
-        dset["\u0394 free [%]"] = free
-        dset["\u0394 no type [%]"] = notype
+        dset["immobile [%]"] = type_percentages[0]
+        dset["confined [%]"] = type_percentages[1]
+        dset["free [%]"] = type_percentages[2]
+        dset["no type [%]"] = type_percentages[3]
+        dset["\u0394 immobile [%]"] = dtype_percentages[0]
+        dset["\u0394 confined [%]"] = dtype_percentages[1]
+        dset["\u0394 free [%]"] = dtype_percentages[2]
+        dset["\u0394 no type [%]"] = dtype_percentages[3]
         dset["trajectories included"] = trajectories_included
         dset["trajectories excluded"] = trajectories_excluded
         dset["mean D immobile [\u03BCm\u00b2/s]"] = mean_Ds[0]
@@ -149,7 +150,8 @@ class SaveStatistics():
         dset["\u0394 mean length free [frames]"] = mean_dlengths[2]
         dset["\u0394 mean length no type [frames]"] = mean_dlengths[3]
 
-    def statistics_3(self, immobile, confined, free, notype, trajectories_included, trajectories_excluded, mean_Ds, mean_dDs, mean_lengths, mean_dlengths):
+    def statistics_3(self, type_percentages, dtype_percentages, trajectories_included, trajectories_excluded,
+                     mean_Ds, mean_dDs, mean_lengths, mean_dlengths):
         dset = self.grp06.create_dataset("statistics_3", (1,1), dtype = np.dtype([("immobile+no type [%]", float),
                                                          ("confined [%]", float),
                                                          ("free [%]", float),
@@ -171,24 +173,24 @@ class SaveStatistics():
                                                          ("\u0394 mean length confined [frames]", float),
                                                          ("\u0394 mean length free [frames]", float)]))
 
-        dset["immobile+no type [%]"] = immobile
-        dset["confined [%]"] = confined
-        dset["free [%]"] = free
-        dset["\u0394 immobile+no type [%]"] = immobile
-        dset["\u0394 confined [%]"] = confined
-        dset["\u0394 free [%]"] = free
+        dset["immobile+no type [%]"] = type_percentages[4]
+        dset["confined [%]"] = type_percentages[1]
+        dset["free [%]"] = type_percentages[2]
+        dset["\u0394 immobile+no type [%]"] = dtype_percentages[4]
+        dset["\u0394 confined [%]"] = dtype_percentages[1]
+        dset["\u0394 free [%]"] = dtype_percentages[2]
         dset["trajectories included"] = trajectories_included
         dset["trajectories excluded"] = trajectories_excluded
-        dset["mean D immobile+no type [\u03BCm\u00b2/s]"] = mean_Ds[0]
+        dset["mean D immobile+no type [\u03BCm\u00b2/s]"] = mean_Ds[4]
         dset["mean D confined [\u03BCm\u00b2/s]"] = mean_Ds[1]
         dset["mean D free [\u03BCm\u00b2/s]"] = mean_Ds[2]
-        dset["\u0394 mean D immobile+no type [\u03BCm\u00b2/s]"] = mean_dDs[0]
+        dset["\u0394 mean D immobile+no type [\u03BCm\u00b2/s]"] = mean_dDs[4]
         dset["\u0394 mean D confined [\u03BCm\u00b2/s]"] = mean_dDs[1]
         dset["\u0394 mean D free [\u03BCm\u00b2/s]"] = mean_dDs[2]
-        dset["mean length immobile+no type [frames]"] = mean_lengths[0]
+        dset["mean length immobile+no type [frames]"] = mean_lengths[4]
         dset["mean length confined [frames]"] = mean_lengths[1]
         dset["mean length free [frames]"] = mean_lengths[2]
-        dset["\u0394 mean length immobile+no type [frames]"] = mean_dlengths[0]
+        dset["\u0394 mean length immobile+no type [frames]"] = mean_dlengths[4]
         dset["\u0394 mean length confined [frames]"] = mean_dlengths[1]
         dset["\u0394 mean length free [frames]"] = mean_dlengths[2]
         

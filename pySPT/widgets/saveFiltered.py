@@ -65,24 +65,9 @@ class SaveFiltered():
         dset["max trajectory length [frames]"] = filter_thresholds_values[1]
         dset["min diffusion coefficient [\u03BCm\u00b2/s]"] = filter_thresholds_values[2]
         dset["max diffusion coefficient [\u03BCm\u00b2/s]"] = filter_thresholds_values[3]
-
-# =============================================================================
-#     def statistics(self, immobile, confined, free, trajectories_included, trajectories_excluded):
-#         dset = self.grp06.create_dataset("statistics", (1,1), dtype = np.dtype([("immobile [%]", float),
-#                                                          ("confined [%]", float),
-#                                                          ("free [%]", float),
-#                                                          ("trajectories included", int),
-#                                                          ("trajectories excluded", int)]))
-# 
-#         dset["immobile [%]"] = immobile
-#         dset["confined [%]"] = confined
-#         dset["free [%]"] = free
-#         dset["trajectories included"] = trajectories_included
-#         dset["trajectories excluded"] = trajectories_excluded
-# =============================================================================
         
-    def statistics(self, immobile, confined, free, notype, trajectories_included, trajectories_excluded, mean_Ds, mean_dDs, mean_lengths, mean_dlengths):
-        dset = self.grp06.create_dataset("statistics", (1,1), dtype = np.dtype([("immobile [%]", float),
+    def statistics_4(self, type_percentages, trajectories_included, trajectories_excluded, mean_Ds, mean_dDs, mean_lengths, mean_dlengths):
+        dset = self.grp06.create_dataset("statistics_4", (1,1), dtype = np.dtype([("immobile [%]", float),
                                                          ("confined [%]", float),
                                                          ("free [%]", float),
                                                          ("no type [%]", float),
@@ -105,10 +90,10 @@ class SaveFiltered():
                                                          ("\u0394 mean length free [frames]", float),
                                                          ("\u0394 mean length no type [frames]", float)]))
 
-        dset["immobile [%]"] = immobile
-        dset["confined [%]"] = confined
-        dset["free [%]"] = free
-        dset["no type [%]"] = notype
+        dset["immobile [%]"] = type_percentages[0]
+        dset["confined [%]"] = type_percentages[1]
+        dset["free [%]"] = type_percentages[2]
+        dset["no type [%]"] = type_percentages[3]
         dset["trajectories included"] = trajectories_included
         dset["trajectories excluded"] = trajectories_excluded
         dset["mean D immobile [\u03BCm\u00b2/s]"] = mean_Ds[0]
@@ -128,6 +113,42 @@ class SaveFiltered():
         dset["\u0394 mean length free [frames]"] = mean_dlengths[2]
         dset["\u0394 mean length no type [frames]"] = mean_dlengths[3]
 
+    def statistics_3(self, type_percentages, trajectories_included, trajectories_excluded, mean_Ds, mean_dDs, mean_lengths, mean_dlengths):
+        dset = self.grp06.create_dataset("statistics_3", (1,1), dtype = np.dtype([("immobile+notype [%]", float),
+                                                         ("confined [%]", float),
+                                                         ("free [%]", float),
+                                                         ("trajectories included", int),
+                                                         ("trajectories excluded", int),
+                                                         ("mean D immobile+notype [\u03BCm\u00b2/s]", float),
+                                                         ("mean D confined [\u03BCm\u00b2/s]", float),
+                                                         ("mean D free [\u03BCm\u00b2/s]", float),
+                                                         ("\u0394 mean D immobile+notype [\u03BCm\u00b2/s]", float),
+                                                         ("\u0394 mean D confined [\u03BCm\u00b2/s]", float),
+                                                         ("\u0394 mean D free [\u03BCm\u00b2/s]", float),
+                                                         ("mean length immobile+notype [frames]", float),
+                                                         ("mean length confined [frames]", float),
+                                                         ("mean length free [frames]", float),
+                                                         ("\u0394 mean length immobile+notype [frames]", float),
+                                                         ("\u0394 mean length confined [frames]", float),
+                                                         ("\u0394 mean length free [frames]", float)]))
+
+        dset["immobile+notype [%]"] = type_percentages[4]
+        dset["confined [%]"] = type_percentages[1]
+        dset["free [%]"] = type_percentages[2]
+        dset["trajectories included"] = trajectories_included
+        dset["trajectories excluded"] = trajectories_excluded
+        dset["mean D immobile+notype [\u03BCm\u00b2/s]"] = mean_Ds[4]
+        dset["mean D confined [\u03BCm\u00b2/s]"] = mean_Ds[1]
+        dset["mean D free [\u03BCm\u00b2/s]"] = mean_Ds[2]
+        dset["\u0394 mean D immobile+notype [\u03BCm\u00b2/s]"] = mean_dDs[4]
+        dset["\u0394 mean D confined [\u03BCm\u00b2/s]"] = mean_dDs[1]
+        dset["\u0394 mean D free [\u03BCm\u00b2/s]"] = mean_dDs[2]
+        dset["mean length immobile+notype [frames]"] = mean_lengths[4]
+        dset["mean length confined [frames]"] = mean_lengths[1]
+        dset["mean length free [frames]"] = mean_lengths[2]
+        dset["\u0394 mean length immobile+notype [frames]"] = mean_dlengths[4]
+        dset["\u0394 mean length confined [frames]"] = mean_dlengths[1]
+        dset["\u0394 mean length free [frames]"] = mean_dlengths[2]
         
     def data_settings(self, dt, pixelsize, pixelamount, cell_size, tau_threshold, min_length_type, fit_area, dof, D_min,
                       dloc_dyn_type, seg_bool, min_length_hmm, dloc_dyn_hmm):

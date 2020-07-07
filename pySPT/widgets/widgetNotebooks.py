@@ -10,9 +10,7 @@ Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.
 Large juncs of code that would scare the user of the JNB :) 
 """
 
-#from .analysis import trajectory
-#from pySPT.analysis import trajectory
-#from pySPT.analysis import cell
+
 from . import hdf5
 from . import saveFiltered
 from . import saveTrcFiltered
@@ -232,10 +230,12 @@ def init_save_filtered_analysis(cover_slip, cell_index, track_stats, directory, 
     h5_filtered.data_settings(cell.dt, cell.pixel_size, cell.pixel_amount, cell.size, cell.tau_threshold, cell.min_track_length_type,
                               one_trajectory.fit_area, cell.dof, cell.D_min, track_stats.sigma_dyns[cell_index], cell.seg_id,
                               cell.min_track_length_hmm, cell.sigma_dyn_hmm)    
-    h5_filtered.statistics(track_stats.cell_type_count[cell_index][0], track_stats.cell_type_count[cell_index][1],
-                           track_stats.cell_type_count[cell_index][2], track_stats.cell_type_count[cell_index][3],
-                           track_stats.total_trajectories_filtered_cell[cell_index], (track_stats.total_trajectories_cell[cell_index]-track_stats.total_trajectories_filtered_cell[cell_index]),
-                           track_stats.D_cell_types[cell_index], track_stats.dD_cell_types[cell_index], track_stats.length_cell_types[cell_index], track_stats.dlength_cell_types[cell_index])   
+    h5_filtered.statistics_4(track_stats.percentages_cell_types[cell_index], track_stats.total_trajectories_filtered_cell[cell_index],
+                             (track_stats.total_trajectories_cell[cell_index]-track_stats.total_trajectories_filtered_cell[cell_index]),
+                           track_stats.D_cell_types[cell_index], track_stats.dD_cell_types[cell_index], track_stats.length_cell_types[cell_index], track_stats.dlength_cell_types[cell_index])
+    h5_filtered.statistics_3(track_stats.percentages_cell_types[cell_index], track_stats.total_trajectories_filtered_cell[cell_index],
+                             (track_stats.total_trajectories_cell[cell_index]-track_stats.total_trajectories_filtered_cell[cell_index]),
+                           track_stats.D_cell_types[cell_index], track_stats.dD_cell_types[cell_index], track_stats.length_cell_types[cell_index], track_stats.dlength_cell_types[cell_index])
     h5_filtered.trc_type(np.shape(track_stats.filtered_trc_files[cell_index]), track_stats.filtered_trc_files[cell_index][:,0],
                     track_stats.filtered_trc_files[cell_index][:,1], track_stats.filtered_trc_files[cell_index][:,2],
                     track_stats.filtered_trc_files[cell_index][:,3], track_stats.filtered_trc_files[cell_index][:,4],
@@ -325,13 +325,17 @@ def init_save_track_stats(h5_stats, track_stats, directory, folder_name, name):
                                                  track_stats.hist_diffusion_notype[1], track_stats.hist_diffusion_immob_notype[0],
                                                  track_stats.hist_diffusion_immob_notype[1])
 
-
     h5_stats.filter_info(track_stats.filter_settings, track_stats.filter_thresholds_values)
-    h5_stats.statistics_4(track_stats.type_percentage()[0], track_stats.type_percentage()[1],
-                         track_stats.type_percentage()[2], track_stats.type_percentage()[3], track_stats.total_trajectories_filtered,
-                         (track_stats.total_trajectories - track_stats.total_trajectories_filtered), track_stats.D_mean_types,
+    h5_stats.statistics_4(track_stats.type_percentages_mean, track_stats.type_percentages_error,
+                          track_stats.total_trajectories_filtered,
+                          (track_stats.total_trajectories - track_stats.total_trajectories_filtered), track_stats.D_mean_types,
                          track_stats.dD_mean_types, track_stats.length_mean_types, track_stats.dlength_mean_types)
-    #h5_stats.statistics_3()
+
+    h5_stats.statistics_3(track_stats.type_percentages_mean, track_stats.type_percentages_error,
+                          track_stats.total_trajectories_filtered,
+                          (track_stats.total_trajectories - track_stats.total_trajectories_filtered), track_stats.D_mean_types,
+                         track_stats.dD_mean_types, track_stats.length_mean_types, track_stats.dlength_mean_types)
+
     h5_stats.diffusion_bin_size(track_stats.bin_size)
     # cell files are always loaded
     for cell in track_stats.cells:
@@ -369,5 +373,4 @@ def init_save_hmm_vis_stats(hmm_vis, directory, folder_name):
     save_hmm_vis.edge_sizes(hmm_vis.mean_edge_size)
     save_hmm_vis.dmean_tps(hmm_vis.mean_tps_error)
     print("Plots are saved!")
-
         
