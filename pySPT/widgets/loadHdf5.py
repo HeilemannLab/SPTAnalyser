@@ -66,15 +66,7 @@ class LoadHdf5():
         self.locs = []  # trc snippets to initialize trajectory
         #
         self.cells = []  # list of cell objects ->cover_slip.cells -> needs entire list
-        
-# =============================================================================
-#     def test_create_file_names(self):
-#         file_name01 = "C:\\Users\\pcoffice37\\Documents\\testing_file_search\\cells\\cell_1_MMStack_Pos0.ome_MIA.h5"
-#         file_name02 = "C:\\Users\\pcoffice37\\Documents\\testing_file_search\\cells\\subdirectory\\cell_2_MMStack_Pos0.ome_MIA.h5"
-#         self.file_names.append(file_name01)
-#         self.file_names.append(file_name02)
-# =============================================================================
-        
+
     def clear(self):
         self.file_names = []  # coverslip.cell_files, list with full path file names in loading order
         self.names = []  # cell.name, raw base name of file, has to be distributed to indiv cells
@@ -123,8 +115,7 @@ class LoadHdf5():
         self.locs = []  # 
         #
         self.cells = []  # list of cell objects ->cover_slip.cells -> needs entire list
-        
-        
+
     def read_h5(self):
         for file_name in self.file_names:
             h5_file = h5py.File(file_name, "r")
@@ -136,10 +127,8 @@ class LoadHdf5():
         """
         for h5 in self.hdf5:
             diffusion_group = h5["diffusion"]
-            #diffusion_infos_data = diffusion_group[("diffusionInfos")]  # new way to get keys but is slower than .value
             diffusion_infos_data = diffusion_group["diffusionInfos"].value
             self.trajectory_numbers.append(np.shape(diffusion_infos_data)[0])
-        #print(self.trajectory_numbers)
 
     def count_cells(self):
         """
@@ -177,7 +166,6 @@ class LoadHdf5():
         """
         for h5 in self.hdf5:
             settings_group = h5["settings"]
-            #settings_data = settings_group[("settings")]  # [[(0.02, 158, 65536, 0.12, 0.6, 4, 0.0065)]]
             settings_data = settings_group["settings"].value
             self.dts.append(settings_data[0][0][0])
             self.pixel_sizes.append(settings_data[0][0][1])
@@ -454,8 +442,7 @@ class LoadHdf5():
                 if not (localizations.size == 0):
                     one_cell.append(localizations)
             self.locs.append(one_cell)
-           
-            
+
                 
     def run_load_hdf5(self):
         self.read_h5()

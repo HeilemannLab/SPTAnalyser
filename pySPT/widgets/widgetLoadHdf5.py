@@ -287,7 +287,7 @@ class WidgetLoadHdf5():
         return checkbox
 
     def create_analyse_not_successful_check_box(self):
-        checkbox = widgets.Checkbox(value=False,
+        checkbox = widgets.Checkbox(value=True,
                          description='Type determination not successful',
                          disabled=False)
         return checkbox
