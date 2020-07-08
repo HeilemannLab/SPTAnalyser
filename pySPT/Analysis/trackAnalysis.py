@@ -264,13 +264,13 @@ class TrackAnalysis():
             hist_notype.append(hist_notype_cell[:, 1])
 
         mean_log_hist_immob = np.mean(hist_immob, axis=0) * self.normalization_factor
-        error_log_hist_immob = np.std(hist_immob, axis=0, ddof=1) * self.normalization_factor
+        error_log_hist_immob = np.std(hist_immob, axis=0, ddof=1) / math.sqrt(len(hist_immob)) * self.normalization_factor
         mean_log_hist_conf = np.mean(hist_conf, axis=0) * self.normalization_factor
-        error_log_hist_conf = np.std(hist_conf, axis=0, ddof=1) * self.normalization_factor
+        error_log_hist_conf = np.std(hist_conf, axis=0, ddof=1) / math.sqrt(len(hist_conf)) * self.normalization_factor
         mean_log_hist_free = np.mean(hist_free, axis=0) * self.normalization_factor
-        error_log_hist_free = np.std(hist_free, axis=0, ddof=1) * self.normalization_factor
+        error_log_hist_free = np.std(hist_free, axis=0, ddof=1) / math.sqrt(len(hist_free)) * self.normalization_factor
         mean_log_hist_notype = np.mean(hist_notype, axis=0) * self.normalization_factor
-        error_log_hist_notype = np.std(hist_notype, axis=0, ddof=1) * self.normalization_factor
+        error_log_hist_notype = np.std(hist_notype, axis=0, ddof=1) / math.sqrt(len(hist_notype)) * self.normalization_factor
 
         self.plot_diffusion_hist_types(mean_log_hist_immob, error_log_hist_immob, mean_log_hist_conf,
                                        error_log_hist_conf, mean_log_hist_free, error_log_hist_free,

@@ -347,6 +347,17 @@ def init_save_track_stats(h5_stats, track_stats, directory, folder_name, name):
         one_cell = (track_stats.cells[i].name, track_stats.cell_sizes[i])
         cell_info.append(one_cell)
 
+    h5_stats.average_MSD("MSD_immobile", len(track_stats.delta_t_types[0]), track_stats.delta_t_types[0],
+                         track_stats.mean_MSDs_immob, track_stats.mean_error_MSDs_immob)
+    h5_stats.average_MSD("MSD_confined", len(track_stats.delta_t_types[1]), track_stats.delta_t_types[1],
+                         track_stats.mean_MSDs_conf, track_stats.mean_error_MSDs_conf)
+    h5_stats.average_MSD("MSD_free", len(track_stats.delta_t_types[2]), track_stats.delta_t_types[2],
+                         track_stats.mean_MSDs_free, track_stats.mean_error_MSDs_free)
+    h5_stats.average_MSD("MSD_notype", len(track_stats.delta_t_types[3]), track_stats.delta_t_types[3],
+                         track_stats.mean_MSDs_notype, track_stats.mean_error_MSDs_notype)
+    h5_stats.average_MSD("MSD_immobile+notype", len(track_stats.delta_t_types[4]), track_stats.delta_t_types[4],
+                         track_stats.mean_MSDs_immob_notype, track_stats.mean_error_MSDs_immob_notype)
+
     h5_stats.cells(cell_info)
     print("The statistics file is saved.")
 

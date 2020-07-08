@@ -84,9 +84,10 @@ class TrajectoryStatistics():
         self.dlength_cell_types = []
         self.length_mean_types = []
         self.dlength_mean_types = []
+        self.delta_t_types = []  # MSD plot x axis per type
         self.mean_MSDs_immob = []  # mean MSD values of all immobile trajectories
         self.mean_error_MSDs_immob = []  # # mean error of MSD values of all immobile trajectories
-        self.mean_MSDs_comf = []
+        self.mean_MSDs_conf = []
         self.mean_error_MSDs_conf = []
         self.mean_MSDs_free = []
         self.mean_error_MSDs_free = []
@@ -582,15 +583,15 @@ class TrajectoryStatistics():
             hist_immob_notype.append(hist_immob_notype_cell[:, 1])
 
         mean_log_hist_immob = np.mean(hist_immob, axis=0) * self.normalization_factor
-        error_log_hist_immob = np.std(hist_immob, axis=0, ddof=1) * self.normalization_factor
+        error_log_hist_immob = np.std(hist_immob, axis=0, ddof=1) / math.sqrt(len(hist_immob)) * self.normalization_factor
         mean_log_hist_conf = np.mean(hist_conf, axis=0) * self.normalization_factor
-        error_log_hist_conf = np.std(hist_conf, axis=0, ddof=1) * self.normalization_factor
+        error_log_hist_conf = np.std(hist_conf, axis=0, ddof=1) / math.sqrt(len(hist_conf)) * self.normalization_factor
         mean_log_hist_free = np.mean(hist_free, axis=0) * self.normalization_factor
-        error_log_hist_free = np.std(hist_free, axis=0, ddof=1) * self.normalization_factor
+        error_log_hist_free = np.std(hist_free, axis=0, ddof=1) / math.sqrt(len(hist_free)) * self.normalization_factor
         mean_log_hist_notype = np.mean(hist_notype, axis=0) * self.normalization_factor
-        error_log_hist_notype = np.std(hist_notype, axis=0, ddof=1) * self.normalization_factor
+        error_log_hist_notype = np.std(hist_notype, axis=0, ddof=1) / math.sqrt(len(hist_notype)) * self.normalization_factor
         mean_log_hist_immob_notype = np.mean(hist_immob_notype, axis=0) * self.normalization_factor
-        error_log_hist_immob_notype = np.std(hist_immob_notype, axis=0, ddof=1) * self.normalization_factor
+        error_log_hist_immob_notype = np.std(hist_immob_notype, axis=0, ddof=1) / math.sqrt(len(hist_immob_notype)) * self.normalization_factor
 
         self.hist_diffusion_immob = [mean_log_hist_immob, error_log_hist_immob]
         self.hist_diffusion_conf = [mean_log_hist_conf, error_log_hist_conf]
@@ -637,6 +638,7 @@ class TrajectoryStatistics():
                     x_lim = None if x_lim == "None" else float(x_lim)
                     y_lim = None if y_lim == "None" else float(y_lim)
                     self.MSD_types(x_lim, y_lim, merge)
+                    self.MSD_types_old(x_lim, y_lim, merge)
             else:
                 print("Bin size can not be zero.")
 
@@ -646,14 +648,14 @@ class TrajectoryStatistics():
         Plot the mean MSD curve per diffusion type. If merge, handle immobile and notype as one class.
         """
         camera_time = self.cell_trajectories[0][0].dt  # camera integration time in s
-
+        delta_t_immob = [camera_time * i for i in range(1, len(self.mean_MSDs_immob) + 1)]
         delta_t_conf = [camera_time * i for i in range(1, len(self.mean_MSDs_conf) + 1)]
         delta_t_free = [camera_time * i for i in range(1, len(self.mean_MSDs_free)+1)]
-        if merge:
-            delta_t_immob_fit_fail = [camera_time * i for i in range(1, len(self.mean_MSDs_immob_notype)+1)]
-        else:
-            delta_t_immob = [camera_time * i for i in range(1, len(self.mean_MSDs_immob) + 1)]
-            delta_t_fit_fail = [camera_time * i for i in range(1, len(self.mean_MSDs_notype) + 1)]
+        delta_t_fit_fail = [camera_time * i for i in range(1, len(self.mean_MSDs_notype) + 1)]
+        delta_t_immob_fit_fail = [camera_time * i for i in range(1, len(self.mean_MSDs_immob_notype)+1)]
+        self.delta_t_types.append(delta_t_immob); self.delta_t_types.append(delta_t_conf)
+        self.delta_t_types.append(delta_t_free); self.delta_t_types.append(delta_t_fit_fail)
+        self.delta_t_types.append(delta_t_immob_fit_fail)
 
         x = plt.figure()
 
@@ -718,6 +720,65 @@ class TrajectoryStatistics():
         return mean, mean_error
 
     def MSD_types(self, MSD_delta_t_n, y_lim, merge):
+        average_MSDs_immob = []
+        average_MSDs_immob_error = []
+        for cell in self.trajectories_immob_cells_filtered:
+            MSDs_cell = [trajectory.MSDs for trajectory in cell]
+            mean_MSDs_cell, error_MSDs_cell = self.calc_mean_error_different_lengths(MSDs_cell)
+            average_MSDs_immob.append(mean_MSDs_cell)
+            average_MSDs_immob_error.append(error_MSDs_cell)
+        self.mean_MSDs_immob, _ = self.calc_mean_error_different_lengths(average_MSDs_immob)
+        self.mean_error_MSDs_immob, _ = self.calc_mean_error_different_lengths(average_MSDs_immob_error)
+
+        average_MSDs_conf = []
+        average_MSDs_conf_error = []
+        for cell in self.trajectories_conf_cells_filtered:
+            MSDs_cell = [trajectory.MSDs for trajectory in cell]
+            mean_MSDs_cell, error_MSDs_cell = self.calc_mean_error_different_lengths(MSDs_cell)
+            average_MSDs_conf.append(mean_MSDs_cell)
+            average_MSDs_conf_error.append(error_MSDs_cell)
+        self.mean_MSDs_conf, _ = self.calc_mean_error_different_lengths(average_MSDs_conf)
+        self.mean_error_MSDs_conf, _ = self.calc_mean_error_different_lengths(average_MSDs_conf_error)
+
+        average_MSDs_free = []
+        average_MSDs_free_error = []
+        for cell in self.trajectories_free_cells_filtered:
+            MSDs_cell = [trajectory.MSDs for trajectory in cell]
+            mean_MSDs_cell, error_MSDs_cell = self.calc_mean_error_different_lengths(MSDs_cell)
+            average_MSDs_free.append(mean_MSDs_cell)
+            average_MSDs_free_error.append(error_MSDs_cell)
+        self.mean_MSDs_free, _ = self.calc_mean_error_different_lengths(average_MSDs_free)
+        self.mean_error_MSDs_free, _ = self.calc_mean_error_different_lengths(average_MSDs_free_error)
+
+        average_MSDs_notype = []
+        average_MSDs_notype_error = []
+        for cell in self.trajectories_notype_cells_filtered:
+            MSDs_cell = [trajectory.MSDs for trajectory in cell]
+            mean_MSDs_cell, error_MSDs_cell = self.calc_mean_error_different_lengths(MSDs_cell)
+            average_MSDs_notype.append(mean_MSDs_cell)
+            average_MSDs_notype_error.append(error_MSDs_cell)
+        self.mean_MSDs_notype, _ = self.calc_mean_error_different_lengths(average_MSDs_notype)
+        self.mean_error_MSDs_notype, _ = self.calc_mean_error_different_lengths(average_MSDs_notype_error)
+
+        average_MSDs_immob_notype = []
+        average_MSDs_immob_notype_error = []
+        for cell_immob, cell_notype in zip(self.trajectories_immob_cells_filtered, self.trajectories_notype_cells_filtered):
+            MSDs_cell_immob = [trajectory.MSDs for trajectory in cell_immob]
+            MSDs_cell_notype = [trajectory.MSDs for trajectory in cell_notype]
+            MSDs_cell = MSDs_cell_immob + MSDs_cell_notype
+            mean_MSDs_cell, error_MSDs_cell = self.calc_mean_error_different_lengths(MSDs_cell)
+            average_MSDs_immob_notype.append(mean_MSDs_cell)
+            average_MSDs_immob_notype_error.append(error_MSDs_cell)
+        self.mean_MSDs_immob_notype, _ = self.calc_mean_error_different_lengths(average_MSDs_immob_notype)
+        self.mean_error_MSDs_immob_notype, _ = self.calc_mean_error_different_lengths(average_MSDs_immob_notype_error)
+
+        if merge:
+            self.MSD_fig_types = self.plot_MSD_types(MSD_delta_t_n, y_lim, merge=False)
+            self.MSD_fig_types_merge = self.plot_MSD_types(MSD_delta_t_n, y_lim, merge=merge)
+        else:
+            self.plot_MSD_types(MSD_delta_t_n, y_lim)
+
+    def MSD_types_old(self, MSD_delta_t_n, y_lim, merge):
         MSDs_immob = []
         for cell in self.trajectories_immob_cells_filtered:
             MSDs_cell = [trajectory.MSDs for trajectory in cell]
@@ -773,7 +834,7 @@ class TrajectoryStatistics():
         self.mean_error_bg = []
         self.mean_MSDs_immob = []
         self.mean_error_MSDs_immob = []
-        self.mean_MSDs_comf = []
+        self.mean_MSDs_conf = []
         self.mean_error_MSDs_conf = []
         self.mean_MSDs_free = []
         self.mean_error_MSDs_free = []
@@ -781,6 +842,8 @@ class TrajectoryStatistics():
         self.mean_error_MSDs_notype = []
         self.mean_MSDs_immob_notype = []
         self.mean_error_MSDs_immob_notype = []
+        self.delta_t_types = []
+
         
     def determine_max_min_diffusion(self):
         """
@@ -863,8 +926,6 @@ class TrajectoryStatistics():
             for i in range(0, len(self.background_trajectories_filtered)):
                 self.diffusion_frequencies_bg[:,i] = self.hist_log_Ds_bg[i][:,1]
             self.mean_frequencies_bg = self.calc_mean_frequencies(self.diffusion_frequencies_bg)
-            #self.normalization_factor_bg = 100/np.sum(self.mean_frequencies_bg)
-            #self.mean_frequencies_bg *= self.normalization_factor_bg
         
     def calc_mean_error(self, is_cell=True):
         """

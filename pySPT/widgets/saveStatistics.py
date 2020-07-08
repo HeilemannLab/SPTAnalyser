@@ -43,6 +43,7 @@ class SaveStatistics():
         self.grp04 = self.h5_file.create_group("filterInfo")
         self.grp05 = self.h5_file.create_group("diffusionHistogram")
         self.grp06 = self.h5_file.create_group("statistics")
+        self.grp07 = self.h5_file.create_group("MSDPlots")
 
     def groups_bg(self):
         self.grp02 = self.h5_file.create_group("backgroundInfo")
@@ -62,8 +63,7 @@ class SaveStatistics():
         dset = self.grp02.create_dataset("backgrounds", (np.shape(data)[0],), dtype = my_datatype)
         data_array = np.array(data, dtype=my_datatype)
         dset[...] = data_array
-        
-        
+
     def cell_counts(self, cell_name, number, diffusion_coeff, counts):
         dset = self.grp01.create_dataset(cell_name, (number, ), dtype = np.dtype([("diffusion coefficient [\u03BCm\u00b2/s]", float),
                                          ("counts / area [1/\u03BCm\u00b2]", float)]))
@@ -76,7 +76,7 @@ class SaveStatistics():
         dset["diffusion coefficient [\u03BCm\u00b2/s]"] = diffusion_coeff
         dset["counts / area [1/\u03BCm\u00b2]"] = counts
         
-    def filter_info(self, filter_settings,filter_thresholds_values):
+    def filter_info(self, filter_settings, filter_thresholds_values):
         dset = self.grp04.create_dataset("filters", (1,1), dtype = np.dtype([("filter immobile", int),
                                                          ("filter confined", int),
                                                          ("filter free", int),
@@ -276,7 +276,11 @@ class SaveStatistics():
     def diffusion_bin_size(self, bin_size):
         dset = self.grp05.create_dataset("bin size", (1,1), dtype = np.dtype([("bin size", float)]))
         dset["bin size"] = bin_size
-        
-        
 
-
+    def average_MSD(self, dataset_name, number, delta_t, MSD_values, MSD_errors):
+        dset = self.grp07.create_dataset(dataset_name, (number,), dtype = np.dtype([("delta_t [s]", float),
+                                                                                   ("MSD [\u03BCm\u00b2]", float),
+                                                                                   ("\u0394 MSD [\u03BCm\u00b2]", float)]))
+        dset["delta_t [s]"] = delta_t
+        dset["MSD [\u03BCm\u00b2]"] = MSD_values
+        dset["\u0394 MSD [\u03BCm\u00b2]"] = MSD_errors
