@@ -471,8 +471,7 @@ class TrajectoryStatistics():
         if self.total_trajectories_filtered == 0:
             data_selected = False
         if data_selected:
-
-            for cell in self.cell_trajectories_filtered:
+            for cell_index, cell in enumerate(self.cell_trajectories_filtered):
                 # overview for one cell
                 count_immobile_cell, count_confined_cell, count_free_cell, count_not_successful_cell = 0, 0, 0, 0
                 for trajectory in cell:
@@ -496,8 +495,8 @@ class TrajectoryStatistics():
                 else:
                     type_percentages_cell = (0.0,0.0,0.0,0.0,0.0)  # if all trajectories from a cell are filtered, the type % are 0
                 self.percentages_cell_types.append(type_percentages_cell)
-            self.type_percentages_mean = np.mean(self.percentages_cell_types, axis=0)
-            self.type_percentages_error = np.std(self.percentages_cell_types, axis=0, ddof=1)/math.sqrt(len(self.percentages_cell_types))
+            self.type_percentages_mean = np.nanmean(self.percentages_cell_types, axis=0)
+            self.type_percentages_error = np.nanstd(self.percentages_cell_types, axis=0, ddof=1)/math.sqrt(len(self.percentages_cell_types))
 
     # plot diffusion vs frequencies.
     def plot_diffusion_hist_types(self, mean_log_hist_immob, error_log_hist_immob, mean_log_hist_conf,
