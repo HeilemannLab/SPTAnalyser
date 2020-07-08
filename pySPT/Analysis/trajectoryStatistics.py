@@ -189,16 +189,17 @@ class TrajectoryStatistics():
             print("Filter for type determination successful only.")
         elif filter_analyse_not_successful:
             print("Include type determination not successful.")
-        print("%.2f %% are immobile, mean diffusion coefficient = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(self.type_percentages_mean[0], self.D_mean_types[0], self.length_mean_types[0]))
-        print("%.2f %% are confined, mean diffusion coefficient = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(self.type_percentages_mean[1], self.D_mean_types[1], self.length_mean_types[1]))
-        print("%.2f %% are free, mean diffusion coefficient = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(self.type_percentages_mean[2], self.D_mean_types[2], self.length_mean_types[2]))
-        print("%.2f %% could not be analysed, mean diffusion coefficient = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(self.type_percentages_mean[3], self.D_mean_types[3], self.length_mean_types[3]))
-        print("%.2f %% are immobile+notype, mean diffusion coefficient = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(self.type_percentages_mean[4], self.D_mean_types[4], self.length_mean_types[4]))
         if self.total_trajectories_filtered == 0:
             print("The selection excludes all data.")
-        print("Trajectories included:", self.total_trajectories_filtered)
-        print("Trajectories excluded:", self.total_trajectories - self.total_trajectories_filtered)
-        
+        else:
+            print("Trajectories included:", self.total_trajectories_filtered)
+            print("Trajectories excluded:", self.total_trajectories - self.total_trajectories_filtered)
+            print("%.2f %% are immobile, mean diffusion coefficient = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(self.type_percentages_mean[0], self.D_mean_types[0], self.length_mean_types[0]))
+            print("%.2f %% are confined, mean diffusion coefficient = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(self.type_percentages_mean[1], self.D_mean_types[1], self.length_mean_types[1]))
+            print("%.2f %% are free, mean diffusion coefficient = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(self.type_percentages_mean[2], self.D_mean_types[2], self.length_mean_types[2]))
+            print("%.2f %% could not be analysed, mean diffusion coefficient = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(self.type_percentages_mean[3], self.D_mean_types[3], self.length_mean_types[3]))
+            print("%.2f %% are immobile+notype, mean diffusion coefficient = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(self.type_percentages_mean[4], self.D_mean_types[4], self.length_mean_types[4]))
+
     def plot_trajectory(self, cell, number):
         cell = int(cell) - 1
         number = int(number) -1
@@ -637,7 +638,6 @@ class TrajectoryStatistics():
                     x_lim = None if x_lim == "None" else float(x_lim)
                     y_lim = None if y_lim == "None" else float(y_lim)
                     self.MSD_types(x_lim, y_lim, merge)
-                    self.MSD_types_old(x_lim, y_lim, merge)
             else:
                 print("Bin size can not be zero.")
 
@@ -714,8 +714,8 @@ class TrajectoryStatistics():
                 except IndexError:
                     pass
             arrays_sorted.append(step)
-        mean = [np.mean(i) for i in arrays_sorted]
-        mean_error = [np.std(i, ddof=1) / math.sqrt(len(i)) for i in arrays_sorted]
+        mean = [np.nanmean(i) for i in arrays_sorted]
+        mean_error = [np.nanstd(i, ddof=1) / math.sqrt(len(i)) for i in arrays_sorted]
         return mean, mean_error
 
     def MSD_types(self, MSD_delta_t_n, y_lim, merge):
@@ -772,45 +772,6 @@ class TrajectoryStatistics():
         self.mean_error_MSDs_immob_notype, _ = self.calc_mean_error_different_lengths(average_MSDs_immob_notype_error)
 
         if merge:
-            self.MSD_fig_types = self.plot_MSD_types(MSD_delta_t_n, y_lim, merge=False)
-            self.MSD_fig_types_merge = self.plot_MSD_types(MSD_delta_t_n, y_lim, merge=merge)
-        else:
-            self.plot_MSD_types(MSD_delta_t_n, y_lim)
-
-    def MSD_types_old(self, MSD_delta_t_n, y_lim, merge):
-        MSDs_immob = []
-        for cell in self.trajectories_immob_cells_filtered:
-            MSDs_cell = [trajectory.MSDs for trajectory in cell]
-            MSDs_immob.append(MSDs_cell)
-        MSDs_immob = [j for i in MSDs_immob for j in i]
-        self.mean_MSDs_immob, self.mean_error_MSDs_immob = self.calc_mean_error_different_lengths(MSDs_immob)
-
-        MSDs_conf = []
-        for cell in self.trajectories_conf_cells_filtered:
-            MSDs_cell = [trajectory.MSDs for trajectory in cell]
-            MSDs_conf.append(MSDs_cell)
-        MSDs_conf = [j for i in MSDs_conf for j in i]
-        self.mean_MSDs_conf, self.mean_error_MSDs_conf = self.calc_mean_error_different_lengths(MSDs_conf)
-
-        MSDs_free = []
-        for cell in self.trajectories_free_cells_filtered:
-            MSDs_cell = [trajectory.MSDs for trajectory in cell]
-            MSDs_free.append(MSDs_cell)
-        MSDs_free = [j for i in MSDs_free for j in i]
-        self.mean_MSDs_free, self.mean_error_MSDs_free = self.calc_mean_error_different_lengths(MSDs_free)
-
-        MSDs_notype = []
-        for cell in self.trajectories_notype_cells_filtered:
-            MSDs_cell = [trajectory.MSDs for trajectory in cell]
-            MSDs_notype.append(MSDs_cell)
-        MSDs_notype = [j for i in MSDs_notype for j in i]
-        self.mean_MSDs_notype, self.mean_error_MSDs_notype = self.calc_mean_error_different_lengths(MSDs_notype)
-
-        if merge:
-            MSDs_immob_notype = []
-            MSDs_immob_notype.extend(MSDs_notype)
-            MSDs_immob_notype.extend(MSDs_immob)
-            self.mean_MSDs_immob_notype, self.mean_error_MSDs_immob_notype = self.calc_mean_error_different_lengths(MSDs_immob_notype)
             self.MSD_fig_types = self.plot_MSD_types(MSD_delta_t_n, y_lim, merge=False)
             self.MSD_fig_types_merge = self.plot_MSD_types(MSD_delta_t_n, y_lim, merge=merge)
         else:
