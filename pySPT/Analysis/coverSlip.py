@@ -15,11 +15,6 @@ import os
 from tqdm import tqdm_notebook as tqdm
 from . import trcFormat
 
-# =============================================================================
-# from pySPT.analysis import cell
-# from pySPT.analysis import trajectoryStatistics
-# from pySPT.analysis import coverSlip
-# =============================================================================
 
 class CoverSlip():
     def __init__(self):
@@ -83,14 +78,9 @@ class CoverSlip():
         self.check_PT_trajectory()
         self.calc_min_track_lengths()
         self.calc_tau_threshold()
-        #print("min track hmm, min track type, tau threshold", self.min_track_length_hmm, self.min_track_length_type, self.tau_threshold)
         if self.roi_file:  # if no roi file path was inserted, no file can be loaded  
-            roi_file = np.genfromtxt(self.roi_file, dtype=None, delimiter=",", skip_header=3, encoding=None)
-
-        # for file_name in tqdm(self.cell_files):
-
+            roi_file = np.atleast_1d(np.genfromtxt(self.roi_file, dtype=None, delimiter=",", skip_header=3, encoding=None))
         with tqdm(total=len(self.cell_files), desc="Cell") as pbar:
-
             for file_name in self.cell_files:
                 cell_idx = self.cell_files.index(file_name)
                 one_cell = cell.Cell()  # create cell object for each file
@@ -121,23 +111,6 @@ class CoverSlip():
                     trc_format = trcFormat.TrcFormat(self.software, file_name, self.pixel_size, self.min_track_length_type,
                                      self.min_track_length_hmm, self.seg_id, column_order=self.column_orders[cell_idx])
                 trc_format.run()
-
-        
-# =============================================================================
-#             # testing purpose
-#             print("cs pixel size", self.pixel_size)   # [nm], hand down to cell
-#             print("px amount", self.pixel_amount)  # amount of pixels of detector (eg. 256*256), hand down to cell 
-#             print("dt", self.dt)   # hand down to cell -> trajectory
-#             print("tau threshold", self.tau_threshold)  # hand down to cell -> trajectory
-#             print("dof", self.dof )  # hand down to cell -> trajectory
-#             print("dmin", self.D_min)  # hand down to cell -> trajectory
-#             print("points to fit", self.points_fit_D)  # hand down to cell -> trajectory
-#             print("seg id", self.seg_id)  # hand down to cell
-#             print("software", self.software) 
-#             print("min track length type", self.min_track_length_type)
-#             print("min track length hmm", self.min_track_length_hmm)
-#             print("column orders", self.column_orders)
-# =============================================================================
 
                 trc_file_type = trc_format.trc_file_type_filtered
                 trc_file_hmm = trc_format.trc_file_hmm_filtered
@@ -179,7 +152,6 @@ class CoverSlip():
                         target_trajectory = cell.analysed_trajectories.index(trajectory)
         self.cell_trajectories[cell_index][target_trajectory].plot_particle()
 
-        
 
 def main():
     pass
