@@ -248,7 +248,15 @@ class TrackAnalysis():
         for cap in caps:
             cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
 
-        plt.xlim(self.min_D, self.max_D)
+        for c, i in enumerate(self.mean_frequencies):
+            if i != 0:
+                xlim_min = self.hist_diffusion[c-1]
+                break
+        for c, i in enumerate(np.flip(self.mean_frequencies)):
+            if i != 0:
+                xlim_max = self.hist_diffusion[len(self.hist_diffusion)-c+1]
+                break
+        plt.xlim(xlim_min, xlim_max)
         plt.legend()
         plt.title("Distribution of diffusion coefficients per type")
         plt.ylabel("Normalized relative occurence [%]")
@@ -257,37 +265,27 @@ class TrackAnalysis():
 
     def diffusion_hist_types(self, desired_bin_size):
         log_Ds_immob = []
-        Ds_immob = []
+        #Ds_immob = []
         for cell in self.trajectories_immob_cells:
-            log_Ds_immob_cell = [np.log10(trajectory.D) for trajectory in cell]
-            log_Ds_immob_cell = [i for i in log_Ds_immob_cell if not np.isnan(i)]
+            log_Ds_immob_cell = [np.log10(trajectory.D) for trajectory in cell if trajectory.D > 0]
             log_Ds_immob.append(log_Ds_immob_cell)
-            Ds_cell = [trajectory.D for trajectory in cell]
-            Ds_immob.append(Ds_cell)
+            # Ds_cell = [trajectory.D for trajectory in cell]
+            # Ds_immob.append(Ds_cell)
 
         log_Ds_conf = []
-        Ds_conf = []
         for cell in self.trajectories_conf_cells:
-            log_Ds_conf_cell = [np.log10(trajectory.D) for trajectory in cell]
+            log_Ds_conf_cell = [np.log10(trajectory.D) for trajectory in cell if trajectory.D > 0]
             log_Ds_conf.append(log_Ds_conf_cell)
-            Ds_cell = [trajectory.D for trajectory in cell]
-            Ds_conf.append(Ds_cell)
 
         log_Ds_free = []
-        Ds_free = []
         for cell in self.trajectories_free_cells:
-            log_Ds_free_cell = [np.log10(trajectory.D) for trajectory in cell]
+            log_Ds_free_cell = [np.log10(trajectory.D) for trajectory in cell if trajectory.D > 0]
             log_Ds_free.append(log_Ds_free_cell)
-            Ds_cell = [trajectory.D for trajectory in cell]
-            Ds_free.append(Ds_cell)
 
         log_Ds_notype = []
-        Ds_notype = []
         for cell in self.trajectories_notype_cells:
-            log_Ds_notype_cell = [np.log10(trajectory.D) for trajectory in cell]
+            log_Ds_notype_cell = [np.log10(trajectory.D) for trajectory in cell if trajectory.D > 0]
             log_Ds_notype.append(log_Ds_notype_cell)
-            Ds_cell = [trajectory.D for trajectory in cell]
-            Ds_notype.append(Ds_cell)
 
         hist_immob, hist_conf, hist_free, hist_notype = [], [], [], []
         for i, cell_size in enumerate(self.cell_sizes):
@@ -435,9 +433,15 @@ class TrackAnalysis():
         (_, caps, _) = plt.errorbar(self.hist_diffusion, self.mean_frequencies, yerr=self.mean_error, capsize=4, label="relative frequency")  # capsize length of cap
         for cap in caps:
             cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
-        #plt.xlim(0.00001, 2)
-        plt.xlim(self.min_D, self.max_D)
-        print(self.min_D, self.max_D)
+        for c, i in enumerate(self.mean_frequencies):
+            if i != 0:
+                xlim_min = self.hist_diffusion[c-1]
+                break
+        for c, i in enumerate(np.flip(self.mean_frequencies)):
+            if i != 0:
+                xlim_max = self.hist_diffusion[len(self.hist_diffusion)-c+1]
+                break
+        plt.xlim(xlim_min, xlim_max)
         plt.legend()
         plt.title("Distribution of diffusion coefficients")
         plt.ylabel("Normalized relative occurence [%]")
@@ -476,13 +480,12 @@ class TrackAnalysis():
             cell_size = self.cell_sizes[cell_index]
             for trajectory_index in range(len(self.cell_trajectories_filtered[cell_index])):
                 if self.cell_trajectories_filtered[cell_index][trajectory_index].D > 0:
-                    print("cell id, tr id, D", cell_index, trajectory_index, self.cell_trajectories_filtered[cell_index][trajectory_index].D)
                     log_Ds[trajectory_index] = np.log10(self.cell_trajectories_filtered[cell_index][trajectory_index].D)
                     trajectory_types.append((self.cell_trajectories_filtered[cell_index][trajectory_index].immobility,
                                              self.cell_trajectories_filtered[cell_index][trajectory_index].confined,
                                              self.cell_trajectories_filtered[cell_index][trajectory_index].analyse_successful))
-            # log diffusion for all trajectories
-            print("log_Ds", log_Ds, len(log_Ds))
+            # log diffusion for all trajectories without D < 0
+            log_Ds = np.delete(log_Ds, np.where(log_Ds == 0))
             log_diffusion_hist = self.calc_diffusion_frequencies(log_Ds, desired_bin_size, cell_size)
             self.hist_log_Ds.append(log_diffusion_hist)
             # log diffusion for trajectory types
@@ -536,8 +539,6 @@ class TrackAnalysis():
         log_diffusion_hist[:,0] = hist[1][:-1]  # log(D)
         log_diffusion_hist[:,1] = hist[0][:]  # freq
         log_diffusion_hist[:,1] = log_diffusion_hist[:,1] / size
-        print("min_bin, max_bin, bin_size, size", min_bin, max_bin, bin_size, size)
-        print("logD, freq", log_diffusion_hist[:,0], log_diffusion_hist[:,1])
         return log_diffusion_hist
 
     def calc_nonlogarithmic_diffusions(self):

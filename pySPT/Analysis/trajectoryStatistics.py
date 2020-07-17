@@ -534,7 +534,15 @@ class TrajectoryStatistics():
         for cap in caps:
             cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
 
-        plt.xlim(self.min_D, self.max_D)
+        for c, i in enumerate(self.mean_frequencies_percent):
+            if i != 0:
+                xlim_min = self.hist_diffusion[c - 1]
+                break
+        for c, i in enumerate(np.flip(self.mean_frequencies_percent)):
+            if i != 0:
+                xlim_max = self.hist_diffusion[len(self.hist_diffusion) - c + 1]
+                break
+        plt.xlim(xlim_min, xlim_max)
         plt.legend()
         plt.title("Distribution of diffusion coefficients per type")
         plt.ylabel("Normalized relative occurence [%]")
@@ -545,28 +553,27 @@ class TrajectoryStatistics():
     def diffusion_hist_types(self, desired_bin_size, merge):
         log_Ds_immob = [[] for i in self.cell_sizes]
         for c, cell in enumerate(self.trajectories_immob_cells_filtered):
-            log_Ds_immob_cell = [np.log10(trajectory.D) for trajectory in cell]
-            log_Ds_immob_cell = [i for i in log_Ds_immob_cell if not np.isnan(i)]
+            log_Ds_immob_cell = [np.log10(trajectory.D) for trajectory in cell if trajectory.D > 0]
             log_Ds_immob[c] = log_Ds_immob_cell
 
         log_Ds_conf = [[] for i in self.cell_sizes]
         for c, cell in enumerate(self.trajectories_conf_cells_filtered):
-            log_Ds_conf_cell = [np.log10(trajectory.D) for trajectory in cell]
+            log_Ds_conf_cell = [np.log10(trajectory.D) for trajectory in cell if trajectory.D > 0]
             log_Ds_conf[c] = log_Ds_conf_cell
 
         log_Ds_free = [[] for i in self.cell_sizes]
         for c, cell in enumerate(self.trajectories_free_cells_filtered):
-            log_Ds_free_cell = [np.log10(trajectory.D) for trajectory in cell]
+            log_Ds_free_cell = [np.log10(trajectory.D) for trajectory in cell if trajectory.D > 0]
             log_Ds_free[c] = log_Ds_free_cell
 
         log_Ds_notype = [[] for i in self.cell_sizes]
         for c, cell in enumerate(self.trajectories_notype_cells_filtered):
-            log_Ds_notype_cell = [np.log10(trajectory.D) for trajectory in cell]
+            log_Ds_notype_cell = [np.log10(trajectory.D) for trajectory in cell if trajectory.D > 0]
             log_Ds_notype[c] = log_Ds_notype_cell
 
         log_Ds_immob_notype = [[] for i in self.cell_sizes]
         for c, cell in enumerate(self.trajectories_immob_notype_cells_filtered):
-            log_Ds_immob_notype_cell = [np.log10(trajectory.D) for trajectory in cell]
+            log_Ds_immob_notype_cell = [np.log10(trajectory.D) for trajectory in cell if trajectory.D > 0]
             log_Ds_immob_notype[c] = log_Ds_immob_notype_cell
 
         hist_immob, hist_conf, hist_free, hist_notype, hist_immob_notype = [], [], [], [], []
@@ -837,7 +844,8 @@ class TrajectoryStatistics():
             cell_size = self.cell_sizes[cell_index]
             for trajectory_index in range(0, len(self.cell_trajectories_filtered[cell_index])):
                 if self.cell_trajectories_filtered[cell_index][trajectory_index].D > 0:
-                    log_Ds[trajectory_index] =  np.log10(self.cell_trajectories_filtered[cell_index][trajectory_index].D)
+                    log_Ds[trajectory_index] = np.log10(self.cell_trajectories_filtered[cell_index][trajectory_index].D)
+            log_Ds = np.delete(log_Ds, np.where(log_Ds == 0))
             self.calc_diffusion_frequencies(log_Ds, desired_bin_size, cell_size) 
         
     def calc_diffusion_frequencies(self, log_diff, desired_bin, size, is_cell=True):
@@ -921,7 +929,15 @@ class TrajectoryStatistics():
         (_, caps, _) = plt.errorbar(self.hist_diffusion, self.mean_frequencies_percent, yerr=self.mean_error_percent, capsize=4, label="relative frequency")  # capsize length of cap
         for cap in caps:
             cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
-        plt.xlim(self.min_D, self.max_D)
+        for c, i in enumerate(self.mean_frequencies_percent):
+            if i != 0:
+                xlim_min = self.hist_diffusion[c-1]
+                break
+        for c, i in enumerate(np.flip(self.mean_frequencies_percent)):
+            if i != 0:
+                xlim_max = self.hist_diffusion[len(self.hist_diffusion)-c+1]
+                break
+        plt.xlim(xlim_min, xlim_max)
         plt.legend()
         plt.title("Distribution of diffusion coefficients")
         plt.ylabel("normalized relative occurence [%]")
