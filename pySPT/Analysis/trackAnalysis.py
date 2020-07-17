@@ -233,6 +233,11 @@ class TrackAnalysis():
         for cap in caps:
             cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
 
+        (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_fit_fail, yerr=error_log_hist_fit_fail, capsize=4,
+                                    label="relative frequency no type", ecolor="#8b008b", color="#8b008b")  # capsize length of cap
+        for cap in caps:
+            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+
         (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_conf, yerr=error_log_hist_conf, capsize=4,
                                     label="relative frequency confined", ecolor="#228b22", color="#228b22")  # capsize length of cap
         for cap in caps:
@@ -240,11 +245,6 @@ class TrackAnalysis():
 
         (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_free, yerr=error_log_hist_free, capsize=4,
                                     label="relative frequency free", ecolor="#ff8c00", color="#ff8c00")  # capsize length of cap
-        for cap in caps:
-            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
-
-        (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_fit_fail, yerr=error_log_hist_fit_fail, capsize=4,
-                                    label="relative frequency no type", ecolor="#8b008b", color="#8b008b")  # capsize length of cap
         for cap in caps:
             cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
 
@@ -300,14 +300,14 @@ class TrackAnalysis():
             hist_free.append(hist_free_cell[:, 1])
             hist_notype.append(hist_notype_cell[:, 1])
 
-        mean_log_hist_immob = np.mean(hist_immob, axis=0) * self.normalization_factor
-        error_log_hist_immob = np.std(hist_immob, axis=0, ddof=1) / math.sqrt(len(hist_immob)) * self.normalization_factor
-        mean_log_hist_conf = np.mean(hist_conf, axis=0) * self.normalization_factor
-        error_log_hist_conf = np.std(hist_conf, axis=0, ddof=1) / math.sqrt(len(hist_conf)) * self.normalization_factor
-        mean_log_hist_free = np.mean(hist_free, axis=0) * self.normalization_factor
-        error_log_hist_free = np.std(hist_free, axis=0, ddof=1) / math.sqrt(len(hist_free)) * self.normalization_factor
-        mean_log_hist_notype = np.mean(hist_notype, axis=0) * self.normalization_factor
-        error_log_hist_notype = np.std(hist_notype, axis=0, ddof=1) / math.sqrt(len(hist_notype)) * self.normalization_factor
+        mean_log_hist_immob = np.nanmean(hist_immob, axis=0) * self.normalization_factor
+        error_log_hist_immob = np.nanstd(hist_immob, axis=0, ddof=1) / math.sqrt(len(hist_immob)) * self.normalization_factor
+        mean_log_hist_conf = np.nanmean(hist_conf, axis=0) * self.normalization_factor
+        error_log_hist_conf = np.nanstd(hist_conf, axis=0, ddof=1) / math.sqrt(len(hist_conf)) * self.normalization_factor
+        mean_log_hist_free = np.nanmean(hist_free, axis=0) * self.normalization_factor
+        error_log_hist_free = np.nanstd(hist_free, axis=0, ddof=1) / math.sqrt(len(hist_free)) * self.normalization_factor
+        mean_log_hist_notype = np.nanmean(hist_notype, axis=0) * self.normalization_factor
+        error_log_hist_notype = np.nanstd(hist_notype, axis=0, ddof=1) / math.sqrt(len(hist_notype)) * self.normalization_factor
 
         self.plot_diffusion_hist_types(mean_log_hist_immob, error_log_hist_immob, mean_log_hist_conf,
                                        error_log_hist_conf, mean_log_hist_free, error_log_hist_free,
@@ -332,6 +332,11 @@ class TrackAnalysis():
         for cap in caps:
             cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
 
+        (_, caps, _) = plt.errorbar(delta_t_fit_fail, mean_MSD_fit_fail, yerr=mean_error_MSD_fit_fail, capsize=4,
+                                    label="MSD no type", ecolor="#8b008b", color="#8b008b")  # capsize length of cap
+        for cap in caps:
+            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+
         (_, caps, _) = plt.errorbar(delta_t_conf, mean_MSD_conf, yerr=mean_error_MSD_conf, capsize=4,
                                     label="MSD confined", ecolor="#228b22", color="#228b22")  # capsize length of cap
         for cap in caps:
@@ -342,10 +347,7 @@ class TrackAnalysis():
         for cap in caps:
             cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
 
-        (_, caps, _) = plt.errorbar(delta_t_fit_fail, mean_MSD_fit_fail, yerr=mean_error_MSD_fit_fail, capsize=4,
-                                    label="MSD no type", ecolor="#8b008b", color="#8b008b")  # capsize length of cap
-        for cap in caps:
-            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+
 
         x_lim_max = None if MSD_delta_t_n is None else MSD_delta_t_n*camera_time
         plt.xlim(0, x_lim_max)
@@ -377,38 +379,50 @@ class TrackAnalysis():
                 except IndexError:
                     pass
             arrays_sorted.append(step)
-        mean = [np.mean(i) for i in arrays_sorted]
-        mean_error = [np.std(i, ddof=1) / math.sqrt(len(i)) for i in arrays_sorted]
+        mean = [np.nanmean(i) for i in arrays_sorted]
+        mean_error = [np.nanstd(i, ddof=1) / math.sqrt(len(i)) for i in arrays_sorted]
         return mean, mean_error
 
     def MSD_types(self, MSD_delta_t_n, y_lim):
-        MSDs_immob = []
+        average_MSDs_immob = []
+        average_MSDs_immob_error = []
         for cell in self.trajectories_immob_cells:
             MSDs_cell = [trajectory.MSDs for trajectory in cell]
-            MSDs_immob.append(MSDs_cell)
-        MSDs_immob = [j for i in MSDs_immob for j in i]
-        mean_MSDs_immob, mean_error_MSDs_immob = self.calc_mean_error_different_lengths(MSDs_immob)
+            mean_MSDs_cell, error_MSDs_cell = self.calc_mean_error_different_lengths(MSDs_cell)
+            average_MSDs_immob.append(mean_MSDs_cell)
+            average_MSDs_immob_error.append(error_MSDs_cell)
+        mean_MSDs_immob, _ = self.calc_mean_error_different_lengths(average_MSDs_immob)
+        mean_error_MSDs_immob, _ = self.calc_mean_error_different_lengths(average_MSDs_immob_error)
 
-        MSDs_conf = []
+        average_MSDs_conf = []
+        average_MSDs_conf_error = []
         for cell in self.trajectories_conf_cells:
             MSDs_cell = [trajectory.MSDs for trajectory in cell]
-            MSDs_conf.append(MSDs_cell)
-        MSDs_conf = [j for i in MSDs_conf for j in i]
-        mean_MSDs_conf, mean_error_MSDs_conf = self.calc_mean_error_different_lengths(MSDs_conf)
+            mean_MSDs_cell, error_MSDs_cell = self.calc_mean_error_different_lengths(MSDs_cell)
+            average_MSDs_conf.append(mean_MSDs_cell)
+            average_MSDs_conf_error.append(error_MSDs_cell)
+        mean_MSDs_conf, _ = self.calc_mean_error_different_lengths(average_MSDs_conf)
+        mean_error_MSDs_conf, _ = self.calc_mean_error_different_lengths(average_MSDs_conf_error)
 
-        MSDs_free = []
+        average_MSDs_free = []
+        average_MSDs_free_error = []
         for cell in self.trajectories_free_cells:
             MSDs_cell = [trajectory.MSDs for trajectory in cell]
-            MSDs_free.append(MSDs_cell)
-        MSDs_free = [j for i in MSDs_free for j in i]
-        mean_MSDs_free, mean_error_MSDs_free = self.calc_mean_error_different_lengths(MSDs_free)
+            mean_MSDs_cell, error_MSDs_cell = self.calc_mean_error_different_lengths(MSDs_cell)
+            average_MSDs_free.append(mean_MSDs_cell)
+            average_MSDs_free_error.append(error_MSDs_cell)
+        mean_MSDs_free, _ = self.calc_mean_error_different_lengths(average_MSDs_free)
+        mean_error_MSDs_free, _ = self.calc_mean_error_different_lengths(average_MSDs_free_error)
 
-        MSDs_notype = []
+        average_MSDs_notype = []
+        average_MSDs_notype_error = []
         for cell in self.trajectories_notype_cells:
             MSDs_cell = [trajectory.MSDs for trajectory in cell]
-            MSDs_notype.append(MSDs_cell)
-        MSDs_notype = [j for i in MSDs_notype for j in i]
-        mean_MSDs_notype, mean_error_MSDs_notype = self.calc_mean_error_different_lengths(MSDs_notype)
+            mean_MSDs_cell, error_MSDs_cell = self.calc_mean_error_different_lengths(MSDs_cell)
+            average_MSDs_notype.append(mean_MSDs_cell)
+            average_MSDs_notype_error.append(error_MSDs_cell)
+        mean_MSDs_notype, _ = self.calc_mean_error_different_lengths(average_MSDs_notype)
+        mean_error_MSDs_notype, _ = self.calc_mean_error_different_lengths(average_MSDs_notype_error)
 
         self.plot_MSD_types(mean_MSDs_immob, mean_error_MSDs_immob, mean_MSDs_conf, mean_error_MSDs_conf,
                        mean_MSDs_free, mean_error_MSDs_free, mean_MSDs_notype, mean_error_MSDs_notype,
@@ -421,7 +435,9 @@ class TrackAnalysis():
         (_, caps, _) = plt.errorbar(self.hist_diffusion, self.mean_frequencies, yerr=self.mean_error, capsize=4, label="relative frequency")  # capsize length of cap
         for cap in caps:
             cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+        #plt.xlim(0.00001, 2)
         plt.xlim(self.min_D, self.max_D)
+        print(self.min_D, self.max_D)
         plt.legend()
         plt.title("Distribution of diffusion coefficients")
         plt.ylabel("Normalized relative occurence [%]")
@@ -460,11 +476,13 @@ class TrackAnalysis():
             cell_size = self.cell_sizes[cell_index]
             for trajectory_index in range(len(self.cell_trajectories_filtered[cell_index])):
                 if self.cell_trajectories_filtered[cell_index][trajectory_index].D > 0:
+                    print("cell id, tr id, D", cell_index, trajectory_index, self.cell_trajectories_filtered[cell_index][trajectory_index].D)
                     log_Ds[trajectory_index] = np.log10(self.cell_trajectories_filtered[cell_index][trajectory_index].D)
                     trajectory_types.append((self.cell_trajectories_filtered[cell_index][trajectory_index].immobility,
                                              self.cell_trajectories_filtered[cell_index][trajectory_index].confined,
                                              self.cell_trajectories_filtered[cell_index][trajectory_index].analyse_successful))
             # log diffusion for all trajectories
+            print("log_Ds", log_Ds, len(log_Ds))
             log_diffusion_hist = self.calc_diffusion_frequencies(log_Ds, desired_bin_size, cell_size)
             self.hist_log_Ds.append(log_diffusion_hist)
             # log diffusion for trajectory types
@@ -518,6 +536,8 @@ class TrackAnalysis():
         log_diffusion_hist[:,0] = hist[1][:-1]  # log(D)
         log_diffusion_hist[:,1] = hist[0][:]  # freq
         log_diffusion_hist[:,1] = log_diffusion_hist[:,1] / size
+        print("min_bin, max_bin, bin_size, size", min_bin, max_bin, bin_size, size)
+        print("logD, freq", log_diffusion_hist[:,0], log_diffusion_hist[:,1])
         return log_diffusion_hist
 
     def calc_nonlogarithmic_diffusions(self):
@@ -553,7 +573,6 @@ class TrackAnalysis():
         -> [2,2][6,4] = [4,3].
         :param np_array: Np array to build mean over.
         """
-        #mean_frequencies = np.zeros(np.size(self.hist_log_Ds[0]))
         mean_frequencies = np_array.mean(axis=1)
         return mean_frequencies
 

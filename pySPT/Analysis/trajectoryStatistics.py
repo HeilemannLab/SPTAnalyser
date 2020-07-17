@@ -582,16 +582,16 @@ class TrajectoryStatistics():
             hist_notype.append(hist_notype_cell[:, 1])
             hist_immob_notype.append(hist_immob_notype_cell[:, 1])
 
-        mean_log_hist_immob = np.mean(hist_immob, axis=0) * self.normalization_factor
-        error_log_hist_immob = np.std(hist_immob, axis=0, ddof=1) / math.sqrt(len(hist_immob)) * self.normalization_factor
-        mean_log_hist_conf = np.mean(hist_conf, axis=0) * self.normalization_factor
-        error_log_hist_conf = np.std(hist_conf, axis=0, ddof=1) / math.sqrt(len(hist_conf)) * self.normalization_factor
-        mean_log_hist_free = np.mean(hist_free, axis=0) * self.normalization_factor
-        error_log_hist_free = np.std(hist_free, axis=0, ddof=1) / math.sqrt(len(hist_free)) * self.normalization_factor
-        mean_log_hist_notype = np.mean(hist_notype, axis=0) * self.normalization_factor
-        error_log_hist_notype = np.std(hist_notype, axis=0, ddof=1) / math.sqrt(len(hist_notype)) * self.normalization_factor
-        mean_log_hist_immob_notype = np.mean(hist_immob_notype, axis=0) * self.normalization_factor
-        error_log_hist_immob_notype = np.std(hist_immob_notype, axis=0, ddof=1) / math.sqrt(len(hist_immob_notype)) * self.normalization_factor
+        mean_log_hist_immob = np.nanmean(hist_immob, axis=0) * self.normalization_factor
+        error_log_hist_immob = np.nanstd(hist_immob, axis=0, ddof=1) / math.sqrt(len(hist_immob)) * self.normalization_factor
+        mean_log_hist_conf = np.nanmean(hist_conf, axis=0) * self.normalization_factor
+        error_log_hist_conf = np.nanstd(hist_conf, axis=0, ddof=1) / math.sqrt(len(hist_conf)) * self.normalization_factor
+        mean_log_hist_free = np.nanmean(hist_free, axis=0) * self.normalization_factor
+        error_log_hist_free = np.nanstd(hist_free, axis=0, ddof=1) / math.sqrt(len(hist_free)) * self.normalization_factor
+        mean_log_hist_notype = np.nanmean(hist_notype, axis=0) * self.normalization_factor
+        error_log_hist_notype = np.nanstd(hist_notype, axis=0, ddof=1) / math.sqrt(len(hist_notype)) * self.normalization_factor
+        mean_log_hist_immob_notype = np.nanmean(hist_immob_notype, axis=0) * self.normalization_factor
+        error_log_hist_immob_notype = np.nanstd(hist_immob_notype, axis=0, ddof=1) / math.sqrt(len(hist_immob_notype)) * self.normalization_factor
 
         self.hist_diffusion_immob = [mean_log_hist_immob, error_log_hist_immob]
         self.hist_diffusion_conf = [mean_log_hist_conf, error_log_hist_conf]
