@@ -23,6 +23,7 @@ class ExpDisplacement():
         self.software = ""  # either rapidSTORM or thunderSTORM
         self.file_name = ""
         self.column_order = {}  # {0: '"track_id"', 4: '"mjd"', 6: '"mjd_n"'}
+        self.filter_immob = True
         self.mjd = []  # mjd/mjd_n
         self.mjd_histogram = []
         self.average_mjd = 0
@@ -38,6 +39,8 @@ class ExpDisplacement():
         mjd_n_index = list(self.column_order.keys())[list(self.column_order.values()).index('"seg.mjd_n"')]
         if self.software == "ThunderSTORM":
             df = pd.read_csv(self.file_name)
+            if self.filter_immob:
+                df = df[df["seg.motion"] == "diffusion"]
             df_mjd = df.iloc[:,mjd_index]  # get csv columns by index
             df_mjd_n = df.iloc[:,mjd_n_index]
             self.mjd = np.zeros([np.shape(df)[0], 2])

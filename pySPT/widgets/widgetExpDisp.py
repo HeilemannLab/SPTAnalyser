@@ -30,6 +30,7 @@ class WidgetExpDisp():
         self.run_button = self.create_run_button()
         self.save_button = self.create_save_button()
         self.save_fig_checkbox = self.create_save_fig_checkbox()
+        self.filter_immobile_checkbox = self.create_immobile_filter_checkbox()
     
     def create_software_button(self):
         """
@@ -123,6 +124,13 @@ class WidgetExpDisp():
         check_box = widgets.Checkbox(
                 value=True,
                 description='Save plot',
+                disabled=False)
+        return check_box
+
+    def create_immobile_filter_checkbox(self):
+        check_box = widgets.Checkbox(
+                value=True,
+                description='Filter immobile out',
                 disabled=False)
         return check_box
 
