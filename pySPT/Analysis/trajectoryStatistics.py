@@ -535,13 +535,20 @@ class TrajectoryStatistics():
             cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
 
         for c, i in enumerate(self.mean_frequencies_percent):
-            if i != 0:
-                xlim_min = self.hist_diffusion[c - 1]
+            if i != 0 and c == 0:
+                xlim_min = self.hist_diffusion[c]
+                break
+            elif i != 0:
+                xlim_min = self.hist_diffusion[c-1]
                 break
         for c, i in enumerate(np.flip(self.mean_frequencies_percent)):
-            if i != 0:
+            if i != 0 and c == 0:
+                xlim_max = self.hist_diffusion[len(self.hist_diffusion) - c]
+                break
+            elif i != 0:
                 xlim_max = self.hist_diffusion[len(self.hist_diffusion) - c + 1]
                 break
+
         plt.xlim(xlim_min, xlim_max)
         plt.legend()
         plt.title("Distribution of diffusion coefficients per type")
@@ -929,14 +936,22 @@ class TrajectoryStatistics():
         (_, caps, _) = plt.errorbar(self.hist_diffusion, self.mean_frequencies_percent, yerr=self.mean_error_percent, capsize=4, label="relative frequency")  # capsize length of cap
         for cap in caps:
             cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+
         for c, i in enumerate(self.mean_frequencies_percent):
-            if i != 0:
+            if i != 0 and c == 0:
+                xlim_min = self.hist_diffusion[c]
+                break
+            elif i != 0:
                 xlim_min = self.hist_diffusion[c-1]
                 break
         for c, i in enumerate(np.flip(self.mean_frequencies_percent)):
-            if i != 0:
-                xlim_max = self.hist_diffusion[len(self.hist_diffusion)-c+1]
+            if i != 0 and c == 0:
+                xlim_max = self.hist_diffusion[len(self.hist_diffusion) - c]
                 break
+            elif i != 0:
+                xlim_max = self.hist_diffusion[len(self.hist_diffusion) - c + 1]
+                break
+
         plt.xlim(xlim_min, xlim_max)
         plt.legend()
         plt.title("Distribution of diffusion coefficients")
