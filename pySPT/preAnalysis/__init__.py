@@ -9,4 +9,4 @@ Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt am
 """
 
 
-__all__ = ["expDisplacement", "pBleach", "precision"]
+__all__ = ["expDisplacement", "expNoiseRate", "pBleach", "precision"]

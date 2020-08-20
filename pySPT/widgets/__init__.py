@@ -12,4 +12,4 @@ __all__ = ["widgetExpDisp", "widgetDirectoryStructure", "widgetPBleach", "widget
            "widgetPrecision", "widgetTrcFormat", "widgetTrackAnalysis", "hdf5", "loadHdf5",
            "widgetLoadHdf5", "widgetNotebooks", "widgetBackgroundAnalysis", "saveStatistics",
            "widgetMergeHdf5", "saveTrcFiltered", "saveTrcHmm", "widgetHmmVis", "loadMergedHmm",
-           "saveHmmVis"]
+           "saveHmmVis", "widgetExpNoiseRate"]
