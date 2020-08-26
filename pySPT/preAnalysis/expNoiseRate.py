@@ -43,7 +43,7 @@ class ExpNoiseRate():
         cell_locs = []
         for i, cell_name in enumerate(self.cell_names):
             for j, cell_size in self.roi_pd.iterrows():
-                if cell_name == cell_size[0]:
+                if cell_size[0] in [cell_name, cell_name + ".csv"]:
                     cell_locs.append(max(self.cell_pd[i]["id"]) / cell_size[1])
         return cell_locs
 
