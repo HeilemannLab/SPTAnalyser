@@ -14,7 +14,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
     
 setuptools.setup(name = "SPTAnalyser",
-                 version = "20.08.20",
+                 version = "04.09.20",
                  author = "Johanna Rahm and Sebastian Malkusch",
                  author_email = "johanna-rahm@gmx.de",
                  description = "a package for analysing SPT data",

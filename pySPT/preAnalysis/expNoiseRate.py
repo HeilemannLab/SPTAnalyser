@@ -56,7 +56,8 @@ class ExpNoiseRate():
     def plot_box(self, data_points, title, ylabel):
         df = pd.DataFrame(data_points)
         fig = plt.figure(figsize=(3, 5))
-        ax = sns.boxplot(data=df, color="cornflowerblue")
+        ax = sns.boxplot(data=df, color="cornflowerblue", showmeans=True,
+                         meanprops={"marker":"s","markerfacecolor":"white", "markeredgecolor":"0.25"})
         ax = sns.swarmplot(data=df, color="0.25")
         ax.set_title(title)
         ax.set_ylabel(ylabel)
@@ -86,6 +87,20 @@ class ExpNoiseRate():
                    X=data,
                    fmt=("%10s", "%.4e", "%.4e"),
                    header=header)
+        # save mean exp noise rate
+        out_file_name = directory + "\\" + folder_name + "\\" + year + month + day + "_cells_exp_noise_rate_mean.txt"
+        file = open(out_file_name, 'w+')
+        if not (file.closed):
+            file.write("mean exp_noise_rate [%]\n")
+            file.write("%.4f" %(np.mean(self.exp_noise_rates)))
+            file.close()
+        # save exp noise rates as list format [value1, value2 ...]
+        # save mean exp noise rate
+        out_file_name = directory + "\\" + folder_name + "\\" + year + month + day + "_cells_exp_noise_rate_list.txt"
+        file = open(out_file_name, 'w+')
+        if not (file.closed):
+            file.write(str(self.exp_noise_rates))
+            file.close()
         # save background info
         out_file_name = directory + "\\" + folder_name + "\\" + year + month + day + "_background.txt"
         header = "background name\tbackground density [localizations/px²]\t"
