@@ -125,10 +125,15 @@ class ExpNoiseRate():
         self.cell_locs = self.determine_number_locs()
         self.bg_locs = self.determine_number_locs_bg(bg_size)
         self.exp_noise_rates = self.calc_exp_noise_rates(np.mean(self.bg_locs))
-        self.plot_box(self.cell_locs, "cells", "number of localizations per px²")
-        self.plot_box(self.bg_locs, "background", "number of localizations per px²")
-        self.plot_box(self.exp_noise_rates, "exp noise rate", "exp noise rate / %")
-        print("name: locs/px², exp noise rate:")
-        for name, loc, rate in zip(self.cell_names, self.cell_locs, self.exp_noise_rates):
-            print(name + ":", str(loc) + ",", rate)
-        print(self.exp_noise_rates)
+        # check if rois for all cells are loaded
+        if len(self.cell_names) != len(self.cell_locs):
+            print("The number of localized cell files and provided areas in the log file has to be the same. "
+                  "{} localized cell files and {} areas were loaded, please check your data!".format((len(self.cell_names)), len(self.cell_locs)))
+        else:
+            self.plot_box(self.cell_locs, "cells", "number of localizations per px²")
+            self.plot_box(self.bg_locs, "background", "number of localizations per px²")
+            self.plot_box(self.exp_noise_rates, "exp noise rate", "exp noise rate / %")
+            print("name: locs/px², exp noise rate:")
+            for name, loc, rate in zip(self.cell_names, self.cell_locs, self.exp_noise_rates):
+                print(name + ":", str(loc) + ",", rate)
+            print(self.exp_noise_rates)
