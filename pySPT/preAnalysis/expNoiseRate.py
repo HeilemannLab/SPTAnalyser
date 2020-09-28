@@ -44,11 +44,11 @@ class ExpNoiseRate():
         for i, cell_name in enumerate(self.cell_names):
             for j, cell_size in self.roi_pd.iterrows():
                 if cell_size[0] in [cell_name, cell_name + ".csv"]:
-                    cell_locs.append(max(self.cell_pd[i]["id"]) / cell_size[1])
+                    cell_locs.append(max(self.cell_pd[i]["id"]) / (cell_size[1]*max(self.cell_pd[i]["frame"])))
         return cell_locs
 
     def determine_number_locs_bg(self, bg_size):
-        return [max(file["id"])/bg_size for file in self.bg_pd]
+        return [max(file["id"])/(bg_size*max(file["frame"])) for file in self.bg_pd]
 
     def calc_exp_noise_rates(self, mean_bg_loc):
         return [mean_bg_loc / cell_loc * 100 for cell_loc in self.cell_locs]
@@ -77,7 +77,7 @@ class ExpNoiseRate():
             day = str(0) + day
         # save cell info & exp noise rate
         out_file_name = directory + "\\" + folder_name + "\\" + year + month + day + "_cells_exp_noise_rate.txt"
-        header = "cell name\tcell density [localizations/px²]\texp_noise_rate [%]\t"
+        header = "cell name\tcell density [localizations per px² frame]\texp_noise_rate [%]\t"
         max_name_length = max([len(i) for i in self.cell_names])
         data = np.zeros(np.array(self.cell_names).size, dtype=[("col1", "U"+str(max_name_length)), ("col2", float), ("col3", float)])
         data["col1"] = np.array(self.cell_names)
@@ -103,7 +103,7 @@ class ExpNoiseRate():
             file.close()
         # save background info
         out_file_name = directory + "\\" + folder_name + "\\" + year + month + day + "_background.txt"
-        header = "background name\tbackground density [localizations/px²]\t"
+        header = "background name\tbackground density [localizations per px² frame]\t"
         max_name_length = max([len(i) for i in self.bg_names])
         data = np.zeros(np.array(self.bg_names).size, dtype=[("col1", "U"+str(max_name_length)), ("col2", float)])
         data["col1"] = np.array(self.bg_names)
@@ -130,10 +130,10 @@ class ExpNoiseRate():
             print("The number of localized cell files and provided areas in the log file has to be the same. "
                   "{} localized cell files and {} areas were loaded, please check your data!".format((len(self.cell_names)), len(self.cell_locs)))
         else:
-            self.plot_box(self.cell_locs, "cells", "number of localizations per px²")
-            self.plot_box(self.bg_locs, "background", "number of localizations per px²")
+            self.plot_box(self.cell_locs, "cells", "number of localizations per px² frame")
+            self.plot_box(self.bg_locs, "background", "number of localizations per px² frame")
             self.plot_box(self.exp_noise_rates, "exp noise rate", "exp noise rate / %")
-            print("name: locs/px², exp noise rate:")
+            print("name: locs per px² frame, exp noise rate %:")
             for name, loc, rate in zip(self.cell_names, self.cell_locs, self.exp_noise_rates):
                 print(name + ":", str(loc) + ",", rate)
             print(self.exp_noise_rates)
