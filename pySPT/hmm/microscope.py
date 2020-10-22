@@ -13,14 +13,13 @@ pySPT\hmm folder.
 """
 
 class Microscope():
-    def __init__(self, dt, pixel_size, sigma_dyn, save_dir):
+    def __init__(self, dt, pixel_size, error, save_dir, ym_to_nm=True):
         self.dt = dt
         self.pixel_size = pixel_size
-        self.sigma_dyn = sigma_dyn * 1000  # sigma_dyn from cell analysis is in ym -> convert it to nm
+        self.error = error * 1000 if ym_to_nm else error  # sigma_dyn from cell analysis is in ym -> convert it to nm
         self.save_dir = save_dir
 
-    def write_microscope_file(self, file_path, error=True):
-        error = self.sigma_dyn if error else 0
+    def write_microscope_file(self, file_path):
         file = open(file_path, 'w')
         if not (file.closed):
             file.write("# SMLMS Microscope File \n")
@@ -29,21 +28,12 @@ class Microscope():
             file.write("# localization precision [nm] \n")
             file.write("%.6e \n" %(float(self.pixel_size)))
             file.write("%.6e \n" %(float(self.dt)))
-            file.write("%.6e \n" %(float(error)))
+            file.write("%.6e \n" %(float(self.error)))
 
-    def save_hmm_microscope(self, no_error=True):
+    def save_hmm_microscope(self):
         """
         For the HMM-analysis a microscope file for each cell is needed which contains the localization uncertainty,
         camera pixel size and integration time. This file will be saved in the pySPT preAnalysis folder per cell optionally.
-        :param no_error: If true, two files are saved microscope with 0 localization precision and microscope_dyn_error
-        with dynamic localization precision, if false microscope contains dynamic loc precision.
         """
-        if no_error:
-            out_file_name = self.save_dir + "\\" + "microscope.txt"
-            self.write_microscope_file(out_file_name, error=False)
-            out_file_name = self.save_dir + "\\" + "microscope_dyn_error.txt"
-            self.write_microscope_file(out_file_name, error=True)
-
-        else:
-            out_file_name = self.save_dir + "\\" + "microscope.txt"
-            self.write_microscope_file(out_file_name, error=True)
+        out_file_name = self.save_dir + "\\" + "microscope.txt"
+        self.write_microscope_file(out_file_name)

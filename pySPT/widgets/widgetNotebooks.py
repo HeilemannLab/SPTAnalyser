@@ -209,7 +209,7 @@ def init_save_track_analysis(cover_slip, cell_index, track_analysis, widget_trac
         widget_dir_structure.create_folder()
         microscope_file = microscope.Microscope(cell.dt, cell.pixel_size, cell.sigma_dyn_hmm,
                                                 widget_dir_structure.sub_folder_dir)
-        microscope_file.save_hmm_microscope(no_error=True)
+        microscope_file.save_hmm_microscope()
     if widget_track_analysis.hmm_check_box.value:
         widget_dir_structure.sub_folder = "\\hmm"
         widget_dir_structure.create_folder()

@@ -68,10 +68,6 @@ class ExpDisplacement():
         """
         Exp_displacement = average displacement.
         """
-        #self.mjd_frequency_max = self.mjd_histogram[:,1].max()
-        #self.mjd_max_index = self.mjd_histogram[:,1].argmax()
-        #self.mjd_max =  self.mjd_histogram[self.mjd_max_index, 0]
-        #print("The expected displacement is %i [nm].\nThe corresponding frequency is %.4e." %(self.mjd_max, self.mjd_frequency_max))
         mjd_no_zeros = np.ma.masked_array(self.mjd[:,0], self.mjd[:,0] == 0)
         mjd_n_no_zeros = np.ma.masked_array(self.mjd[:,1], self.mjd[:,1] == 0)
         self.average_mjd = np.sum(np.multiply(mjd_no_zeros, mjd_n_no_zeros))/np.sum(mjd_n_no_zeros)
@@ -92,9 +88,7 @@ class ExpDisplacement():
         sp.set_xlabel("Mean Jump Distance [nm]")
         sp.set_ylabel("Fraction")
         sp.legend()
-        #plt.savefig(out_file_name)
         plt.show()  # print the graph
-        #return fig
 
     def save_mjd_frequencies(self, directory, base_name):
         """
@@ -109,9 +103,7 @@ class ExpDisplacement():
             month = str(0) + month
         if len(day) == 1:
             day = str(0) + day
-        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_exp_displacement" + "_histogram.txt"  # Betriebssystemunabhängig?!?!?!
-        #header = "The expected displacement is %i [nm].\nThe corresponding frequency is %.4e.\n" %(self.mjd_max, self.mjd_frequency_max)
-        #header = "The expected displacement is %.3f [nm].\n" %(self.average_mjd)
+        out_file_name = directory + "\\" + year + month + day + "_" + base_name + "_exp_displacement" + "_histogram.txt"  # Betriebssystemunabhängig?!?!?!
         header = "mjd [nm]\tfraction\t"
         np.savetxt(out_file_name, 
                    X=self.mjd_histogram,
@@ -131,13 +123,11 @@ class ExpDisplacement():
             month = str(0) + month
         if len(day) == 1:
             day = str(0) + day
-        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_exp_displacement.txt"  # Betriebssystemunabhängig?!?!?!
-        file = open(out_file_name, 'w')
+        out_file_name = directory + "\\" + year + month + day + "_" + base_name + "_exp_displacement.txt"
+        file = open(out_file_name, 'w+')
         if not (file.closed):
             file.write("exp_displacement [nm]\tmax_mjd [nm]\n")
             file.write("%.3f\t%.3f\n" %(self.average_mjd, self.max_mjd))
-            #file.write("max_displacement [nm]\n")
-            #file.write("%.3f" %self.max_displacement)
             file.close()
         else:
             print("error: could not open file %s. Make sure the folder does exist" %(out_file_name))
@@ -165,12 +155,11 @@ class ExpDisplacement():
             month = str(0) + month
         if len(day) == 1:
             day = str(0) + day
-        self.fig.savefig(directory + "\ " + year + month + day + "_" + base_name + "_exp_displacement_histogram.pdf", format="pdf", transparent=True)
+        self.fig.savefig(directory + "\\" + year + month + day + "_" + base_name + "_exp_displacement_histogram.pdf", format="pdf", transparent=True)
 
 
 def main():
     exp_displacement = ExpDisplacement()
-    #exp_displacement.file_name = "F:\\Marburg\\single_colour_tracking\\resting\\160404_CS5_Cell1\\cell_1_MMStack_Pos0.ome.tif.tracked.seg.txt"
     exp_displacement.load_seg_file()
     exp_displacement.count_mjd_frequencies()
     exp_displacement.calc_exp_displacement()
@@ -180,4 +169,3 @@ def main():
     
 if __name__ == "__main__":
     main()
-     

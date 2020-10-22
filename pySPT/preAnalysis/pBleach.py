@@ -74,7 +74,6 @@ class PBleach():
         self.mjd_n_histogram = np.zeros([np.size(hist[0]),5])
         self.mjd_n_histogram [:,0] = hist[1][:-1] # col0 = time lag
         np.multiply(self.mjd_n_histogram[:,0], float(self.dt), self.mjd_n_histogram [:,1])
-        #self.mjd_n_histogram [:,1] = self.mjd_n_histogram[:,0]*self.dt  # col1 = s
         self.mjd_n_histogram [:,2] = hist[0][:]  # col2 = frequencies
         # The first frequency is the sum of all mjd_ns, then the mjd_n = 1 is substracted, new sum is build and mjd_n = 2 is substracted ... 
         decay_frequency = np.zeros(np.size(self.mjd_n_histogram[:,2]))
@@ -84,8 +83,7 @@ class PBleach():
             frequency_sum -= self.mjd_n_histogram[i,2]
             decay_frequency[i+1] = frequency_sum
         self.mjd_n_histogram[:,2] = decay_frequency/np.sum(self.mjd_n_histogram[self.ignore_points:,2])
-        #self.normalized_mjd_ns()  # normalize the histogram by the sum
-        
+
     def normalized_mjd_ns(self):
         """
         Create normalized frequencies for histogram -> the sum equals 1.
@@ -112,10 +110,8 @@ class PBleach():
         (1) The initial k value is needed to determine a k with its covarianz matrix.
         (2) Calculate the cumulative distribution function -> equals p_bleach.
         """
-        #init_a = self.mjd_n_histogram[0,1] #old version
         init_a = self.mjd_n_histogram[self.ignore_points:,2].max()  # always 1
         #  if one would like to neglect trajectories > valid_length for fitting a and k because most of them are 0 for one data set
-        #[self.a, self.k], self.kcov = curve_fit(self.exp_decay_func, self.mjd_n_histogram[:self.valid_length,0], self.mjd_n_histogram[:self.valid_length,1], p0 = (init_a, init_k), method = "lm") #func, x, y, 
         [self.a, self.k], self.kcov = curve_fit(self.exp_decay_func, self.mjd_n_histogram[self.ignore_points:,1], self.mjd_n_histogram[self.ignore_points:,2], p0 = (init_a, self.init_k), method = "lm") #func, x, y, "lm"
         self.p_bleach = self.cum_exp_decay_func(self.dt, self.k)
         print("Results: p_bleach = %.3f, k = %.4e s\u207B\u00B9, kv = %.4e s\u207B\u00B2" %(self.p_bleach, self.k, self.kcov[1,1]))  # Output for Jupyter Notebook File
@@ -140,8 +136,7 @@ class PBleach():
                         bottom=False,  # ticks along the bottom edge are off
                         top=False,  # ticks along the top edge are off
                         labelbottom=False) # labels along the bottom edge are off
-        #sp_1 = fig.add_subplot(2, 1, 1)  # (row, column, index)
-        sp_1.bar(self.mjd_n_histogram [self.ignore_points:,1], self.mjd_n_histogram [self.ignore_points:,2], 
+        sp_1.bar(self.mjd_n_histogram [self.ignore_points:,1], self.mjd_n_histogram [self.ignore_points:,2],
                align = "center",
                width = self.dt,
                color = "gray",
@@ -149,11 +144,9 @@ class PBleach():
         sp_1.plot(self.mjd_n_histogram [self.ignore_points:,1], self.mjd_n_histogram [self.ignore_points:,3], "--c", label = "exp fit")  # "b--" change colour, line style "m-" ...
         sp_1.legend()
         sp_1.set_title("Amount of tracks existing after time lag")
-        #sp_1.set_xlabel("Number of data points used in MJD calculation")
         sp_1.set_ylabel("Fraction")
         sp_1.axis((x1, x2, sp1_y1, sp1_y2))
         sp_2 = plt.subplot2grid((4,4), (3,0), colspan=4, rowspan=1)
-        #sp_2 = fig.add_subplot(2, 1, 2) 
         residue_line = np.zeros(len(self.mjd_n_histogram [self.ignore_points:,1]))
         sp_2.plot(self.mjd_n_histogram[self.ignore_points:,1], residue_line, ":", color = "0.75")        
         sp_2.plot(self.mjd_n_histogram [self.ignore_points:,1], self.mjd_n_histogram [self.ignore_points:,4], "*", color = "0.5", label= "residues")
@@ -182,7 +175,7 @@ class PBleach():
             month = str(0) + month
         if len(day) == 1:
             day = str(0) + day
-        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_p_bleach" + "_histogram.txt" # System independent?
+        out_file_name = directory + "\\" + year + month + day + "_" + base_name + "_p_bleach" + "_histogram.txt" # System independent?
         header = "frames [count]\ttime [s]\tfraction\texponential fit\tresidues\t"
         np.savetxt(out_file_name, 
                    X=self.mjd_n_histogram,
@@ -203,8 +196,8 @@ class PBleach():
             month = str(0) + month
         if len(day) == 1:
             day = str(0) + day
-        out_file_name = directory + "\ " + year + month + day + "_" + base_name + "_p_bleach.txt"
-        file = open(out_file_name, 'w')
+        out_file_name = directory + "\\" + year + month + day + "_" + base_name + "_p_bleach.txt"
+        file = open(out_file_name, 'w+')
         if not (file.closed):
             file.write("# p_bleach\tk [1/s]\tvariance of k [1/s\u00b2]\tnumber of points masked\n")
             file.write("%.4e\t%.4e\t%.4e\t%d\n" %(self.p_bleach, self.k, self.kcov[1,1], self.ignore_points))
@@ -222,7 +215,7 @@ class PBleach():
             month = str(0) + month
         if len(day) == 1:
             day = str(0) + day
-        self.figure.savefig(directory + "\ " + year + month + day + "_" + base_name + "_p_bleach_histogram.pdf", format="pdf", transparent=True)
+        self.figure.savefig(directory + "\\" + year + month + day + "_" + base_name + "_p_bleach_histogram.pdf", format="pdf", transparent=True)
 
         
 def main():
@@ -241,4 +234,3 @@ def main():
     
 if __name__ == "__main__":
     main()
-    

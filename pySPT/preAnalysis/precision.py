@@ -14,11 +14,13 @@ and build a mean value (log-transform).
 
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 from scipy.optimize import curve_fit
 import datetime
 import pandas as pd
 import math
-#import seaborn as sns
+import os
+from ..hmm import microscope
 
 
 class Precision():
@@ -37,8 +39,10 @@ class Precision():
         self.init_a = 0.
         self.init_mu = 0.
         self.init_sigma = 0.
+        self.mean_values = []  # precisions of all files in folder
         self.figures = []
         self.figure_names = []
+        self.figure_box = []
         
     def run_precision(self):
         """
@@ -416,7 +420,77 @@ class Precision():
             day = str(0) + day
         for figure, name in zip(self.figures, self.figure_names):
             figure.savefig(directory + "\ " + year + month + day + "_" + base_name + "_" + name + ".pdf", format="pdf", transparent=True)
-    
+
+    # precision per folder
+
+    def get_loc_files(self, target_dir):
+        """Get all localization csv files and return pandas frames."""
+        files, file_names = [], []
+        for file in os.listdir(target_dir):
+            if file.endswith("csv") and "tracked" not in file:
+                files.append(target_dir + "\\" + file)
+                file_names.append(file)
+        files = [pd.read_csv(i) for i in files]
+        return files, file_names
+
+    def get_precisions(self, files, file_names):
+        """Return mean uncertainty per localization file."""
+        self.mean_values = []
+        for file in files:
+            log_uncertainties = [np.log10(i) for i in file["uncertainty_xy [nm]"]]
+            mean_log = np.mean(log_uncertainties)
+            self.mean_values.append(10**mean_log)
+        for name, precision in zip(file_names, self.mean_values):
+            print(os.path.splitext(name)[0] + ":", str(precision))
+        print(self.mean_values)
+
+    def plot_box(self):
+        df = pd.DataFrame(self.mean_values)
+        fig = plt.figure(figsize=(3, 5))
+        ax = sns.boxplot(data=df, color="cornflowerblue", showmeans=True,
+                         meanprops={"marker": "s", "markerfacecolor": "white", "markeredgecolor": "0.25"})
+        ax = sns.swarmplot(data=df, color="0.25")
+        ax.set_ylabel("precision / nm")
+        plt.show()
+        self.figure_box = fig
+
+    def save_precision_list(self, path, precision_lst, save_fig):
+        try:
+            os.mkdir(path)
+        except FileExistsError:
+            pass
+        file = open(path + "\\precisions_list.txt", "w+")
+        file.write(str(precision_lst))
+        file.close()
+        now = datetime.datetime.now()
+        year = str(now.year)
+        year = year[2:]
+        month = str(now.month)
+        day = str(now.day)
+        if len(month) == 1:
+            month = str(0) + month
+        if len(day) == 1:
+            day = str(0) + day
+        if save_fig:
+            self.figure_box.savefig(path + "\\" + year + month + day + "_precision.pdf",
+                           format="pdf", transparent=True, bbox_inches = "tight")
+        print("Results successfully saved.")
+
+    def save_microscope(self, file_dir, pixel_size, dt):
+        _, file_names = self.get_loc_files(file_dir)
+        for i, error in zip(file_names, self.mean_values):
+            folder_name = "SPTAnalyser_" + os.path.splitext(i)[0]
+            try:
+                os.mkdir(file_dir + "\\" + folder_name)
+            except FileExistsError:
+                pass
+            try:
+                os.mkdir(file_dir + "\\" + folder_name + "\\preAnalysis")
+            except FileExistsError:
+                pass
+            mic = microscope.Microscope(dt, pixel_size, error, file_dir + "\\" + folder_name + "\\preAnalysis", ym_to_nm=False)
+            mic.save_hmm_microscope()
+
 
 def main():
     file_name = "C:\\Users\\pcoffice37\\Documents\\rapidStorm_loc\\cell_17_MMStack_Pos0.ome.txt"  # testing file name

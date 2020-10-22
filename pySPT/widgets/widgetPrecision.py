@@ -13,6 +13,7 @@ Handle widgets for the localization uncertainty JNB.
 import tkinter as tk 
 import os
 from tkinter.filedialog import askopenfilename
+import tkinter.filedialog as fd
 from ipywidgets import widgets
 from IPython.display import display
 from IPython.display import clear_output
@@ -22,6 +23,21 @@ from IPython.display import clear_output
 class WidgetPrecision():
     def __init__(self):
         self.software_button = self.create_software_button()
+        # precision per folder
+        self.got_dir = False
+        self.dir_name = ""
+        self.dir_button = self.create_dir_button()
+        self.dir_box = self.create_dir_box()
+        self.run_button_folder = self.create_run_button_folder()
+        self.save_button_folder = self.create_save_button_folder()
+        self.save_fig_checkbox = self.create_save_fig_checkbox()
+        self.got_dir_save = False
+        self.box_foldername = self.create_box_foldername()
+        self.dir_button_save = self.create_dir_button()
+        self.dir_box_save = self.create_dir_box(placeholder="Directory to save")
+        self.save_figures_checkbox_folder = self.create_save_figures_checkbox_folder()
+        self.check_microscope_folder = self.create_check_microscope_folder()
+        # precision per file
         self.file_name = ""
         self.got_file_name = False
         self.file_text_box = self.create_file_box()
@@ -33,6 +49,8 @@ class WidgetPrecision():
         self.save_button = self.create_save_button()
         self.save_figures_checkbox = self.create_save_figures_checkbox()
 
+    # precison per folder
+
     def create_software_button(self):
         """
         Radiobutton to choose between rapidSTORM and thunderSTORM.
@@ -41,7 +59,44 @@ class WidgetPrecision():
                 options = ["ThunderSTORM", "rapidSTORM"],
                 disabled = False)
         return button
-    
+
+    def create_dir_button(self):
+        """
+        Button to load a directory as search platform.
+        """
+        button = widgets.Button(
+            description='browse',
+            disabled=False,
+            button_style='',  # 'success', 'info', 'warning', 'danger' or ''
+            tooltip='browse for directory')
+        # icon='check')
+        return button
+
+    def create_dir_box(self, val="",
+                       desc="Directory", placeholder='directory to be searched in'):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+        """
+        Box for inserting the directory with description, alternative for dir loading button.
+        """
+        style = {'description_width': 'initial'}  # display too long desc
+        text = widgets.Text(value=str(val), placeholder=placeholder, description=str(desc),
+                            disabled=False, style=style)
+        return text
+
+    def open_dir(self, b):
+        root = tk.Tk()
+        root.withdraw()
+        root.update()
+        root.name = fd.askdirectory(initialdir=os.getcwd(), title='Please select a directory')
+        root.update()
+        root.destroy()
+        self.dir_name = root.name
+        self.dir_box.value = self.dir_name
+        self.got_dir = True
+
+    def change_dir_box(self, change):
+        self.dir_name = self.dir_box.value
+        self.got_dir = True
+
     def create_file_button(self):
         """
         Button to load the file.
@@ -53,6 +108,91 @@ class WidgetPrecision():
                 tooltip='browse for file')
                 #icon='check')
         return button
+
+    def create_run_button_folder(self):
+        """
+        Button for running the analysis, has an on click event.
+        """
+        button = widgets.Button(
+                description='run',
+                disabled=False,
+                button_style='', # 'success', 'info', 'warning', 'danger' or ''
+                tooltip='run the analysis')
+                #icon='check')
+        return button
+
+    def create_save_button_folder(self):
+        """
+        Button to save the results, has an on click event.
+        """
+        button = widgets.Button(
+            description='save',
+            disabled=False,
+            button_style='',  # 'success', 'info', 'warning', 'danger' or ''
+            tooltip='save the results')
+        # icon='check')
+        return button
+
+    def create_save_fig_checkbox(self):
+        check_box = widgets.Checkbox(
+                value=True,
+                description='Save plot',
+                disabled=False)
+        return check_box
+
+    def open_dir_save(self, b):
+        root = tk.Tk()
+        root.withdraw()
+        root.update()
+        root.name = fd.askdirectory(initialdir=os.getcwd(), title='Please select a directory')
+        root.update()
+        root.destroy()
+        self.dir_name_save = root.name
+        self.dir_box_save.value = self.dir_name_save
+        self.got_dir_save = True
+
+    def change_dir_box_save(self, change):
+        self.dir_name_save = self.dir_box_save.value
+        self.got_dir_save = True
+
+    def create_save_box(self, val="", desc="Complete path"):  # val = in box, desc = infront of box
+        """
+        Box for inserting the path with description, alternative for file loading button.
+        """
+        style = {'description_width': 'initial'}  # display too long desc
+        text = widgets.Text(value=str(val), placeholder='insert path', description=str(desc), disabled=False,
+                            style=style)
+        return text
+
+    def create_box_foldername(self, val="precision",
+                       desc="Foldername"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+        """
+        Box for inserting the directory with description, alternative for dir loading button.
+        """
+        style = {'description_width': 'initial'}  # display too long desc
+        text = widgets.Text(value=str(val), placeholder='name of folder', description=str(desc),
+                            disabled=False, style=style)
+        return text
+
+    def create_save_figures_checkbox_folder(self):
+        check_box = widgets.Checkbox(
+                value=True,
+                description='Save plots',
+                disabled=False)
+        return check_box
+
+    def create_check_microscope_folder(self):
+        """
+        For HMM-analysis a microscope file with camera px size, integration time and localization
+        precision [nm] is needed. If True, file will be saved.
+        """
+        check_box = widgets.Checkbox(
+                value=True,
+                description='Save microscope file for HMM analysis?',
+                disabled=False)
+        return check_box
+
+    # precision per file
         
     def open_file(self, b):  # b = ???
         """
@@ -123,7 +263,7 @@ class WidgetPrecision():
         precision [nm] is needed. If True, file will be saved.
         """
         check_box = widgets.Checkbox(
-                value=False,
+                value=True,
                 description='Save microscope file for HMM analysis?',
                 disabled=False)
         return check_box
