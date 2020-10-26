@@ -21,7 +21,7 @@ from IPython.display import clear_output
 
 
 class WidgetPrecision():
-    def __init__(self):
+    def __init__(self, pixel_size, camera_dt):
         self.software_button = self.create_software_button()
         # precision per folder
         self.got_dir = False
@@ -43,8 +43,8 @@ class WidgetPrecision():
         self.file_text_box = self.create_file_box()
         self.file_button = self.create_file_button()
         self.run_button = self.create_run_button()
-        self.camera_pixel_size_box = self.create_camera_pixel_size_box()
-        self.camera_integration_time_box = self.create_camera_integration_time_box()
+        self.camera_pixel_size_box = self.create_camera_pixel_size_box(val=pixel_size)
+        self.camera_integration_time_box = self.create_camera_integration_time_box(val=camera_dt)
         self.check_microscope = self.create_check_microscope()
         self.save_button = self.create_save_button()
         self.save_figures_checkbox = self.create_save_figures_checkbox()

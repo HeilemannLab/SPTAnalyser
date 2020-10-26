@@ -13,11 +13,15 @@ import os
 import os.path
 import tkinter.filedialog as fd
 from ipywidgets import widgets
-from IPython.display import display
 from IPython.display import clear_output
 
 class WidgetTrackAnalysis():
-    def __init__(self):
+    def __init__(self, pixel_size, area_camera, camera_dt, n_points_D, fit_area_MSD, dof_D, min_D, min_length,
+                 hmm_min_length, hmm_float, bin_size, x_range, y_range):
+        if int(n_points_D) >= int(min_length):
+            min_length = str(int(n_points_D)+1)
+        if int(n_points_D) >= int(hmm_min_length):
+            hmm_min_length = str(int(n_points_D)+1)
         self.data_set_dir = ""
         self.ignore_words_box = self.create_ignore_words_box()
         self.masked_words = []
@@ -32,18 +36,18 @@ class WidgetTrackAnalysis():
         self.roi_button = self.create_roi_button()
         self.got_dir = False
         self.got_roi = False
-        self.camera_pixel_size_box = self.create_camera_pixel_size_box()
-        self.camera_pixel_amount_box = self.create_camera_pixel_amount_box()
-        self.camera_integration_time_box = self.create_camera_integration_time_box()
-        self.min_track_length_box = self.create_min_track_length_box()
-        self.rossier_fit_area_box = self.create_rossier_fit_area_box()
-        self.dof_box = self.create_dof_box()
-        self.D_min_box = self.create_D_min_box()
-        self.points_D_fit_box = self.create_points_D_fit_box()
+        self.camera_pixel_size_box = self.create_camera_pixel_size_box(val=pixel_size)
+        self.camera_pixel_amount_box = self.create_camera_pixel_amount_box(val=area_camera)
+        self.camera_integration_time_box = self.create_camera_integration_time_box(val=camera_dt)
+        self.min_track_length_box = self.create_min_track_length_box(val=min_length)
+        self.rossier_fit_area_box = self.create_rossier_fit_area_box(val=fit_area_MSD)
+        self.dof_box = self.create_dof_box(val=dof_D)
+        self.D_min_box = self.create_D_min_box(val=min_D)
+        self.points_D_fit_box = self.create_points_D_fit_box(val=n_points_D)
         self.hmm_check_box = self.create_hmm_check_box()
-        self.hmm_trc_float_precision_box = self.create_hmm_trc_float_precision_box()
+        self.hmm_trc_float_precision_box = self.create_hmm_trc_float_precision_box(val=hmm_float)
         self.microscope_check_box = self.create_microscope_check_box()
-        self.min_track_length_hmm_box = self.create_min_track_length_hmm_box()
+        self.min_track_length_hmm_box = self.create_min_track_length_hmm_box(val=hmm_min_length)
         self.run_button = self.create_run_button()
         self.chosen_cell = ""
         self.cell_options = []
@@ -54,13 +58,13 @@ class WidgetTrackAnalysis():
         self.save_button = self.create_save_button()
         self.trajectory_id_button = self.create_trajectory_id_button()
         # Plot diffusion histogram
-        self.bin_size_box = self.create_bin_size_box()
-        self.MSD_delta_t_n = self.create_MSD_delta_t_n()
-        self.MSD_y_lim = self.create_MSD_y_lim()
+        self.bin_size_box = self.create_bin_size_box(val=bin_size)
+        self.MSD_delta_t_n = self.create_MSD_delta_t_n(val=x_range)
+        self.MSD_y_lim = self.create_MSD_y_lim(val=y_range)
         self.plot_diff_button = self.create_plot_diff_button()
         
         
-    def create_rossier_fit_area_box(self, val = "0.6", desc = "Fit area Rossier"):  
+    def create_rossier_fit_area_box(self, val = "0.6", desc = "Fit area MSD"):
         """
         Box for inserting amount of MSD values to be fitted by rossier [0..1].
         """        
@@ -93,12 +97,6 @@ class WidgetTrackAnalysis():
                          description='Save .microscope file',
                          disabled=False)
         return checkbox
-    
-# =============================================================================
-#     def calc_min_track_length_hmm(self):
-#         min_track_length = int(self.points_D_fit_box.value)+1
-#         return str(min_track_length)
-# =============================================================================
     
     def create_min_track_length_hmm_box(self, val = "20", desc = "Min track length"):  # val = "F:\\Marburg\\single_colour_tracking\\resting\\roi.log"
         """
@@ -404,14 +402,12 @@ class WidgetTrackAnalysis():
                 tooltip = "plot diffusion histogram")
         return button
 
-
-        
             
 def main():
     communicator = Mol2Judi()
     communicator.searchSubFolders("E:/Receptor-signaling/met/rtk/resting")
     communicator.printFileNames()
-    
+
+
 if __name__ == '__main__':
     main()
-    

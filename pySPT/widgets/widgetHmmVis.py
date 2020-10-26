@@ -19,10 +19,10 @@ import datetime
 
 
 class WidgetHmmVis():
-    def __init__(self):
+    def __init__(self, bin_path, tmp_path):
         # loading
-        self.add_graphviz_bin_box = self.create_add_graphviz_bin_box()
-        self.add_graphviz_tmp_box = self.create_add_graphviz_tmp_box()
+        self.add_graphviz_bin_box = self.create_add_graphviz_bin_box(val=bin_path)
+        self.add_graphviz_tmp_box = self.create_add_graphviz_tmp_box(val=tmp_path)
         self.load_dir_box = self.create_load_dir_box()
         self.load_dir_button = self.create_load_dir_button()
         self.load_dir_name = ""
@@ -43,8 +43,7 @@ class WidgetHmmVis():
         self.save_dir_name = ""
         self.save_folder_name_box = self.create_save_folder_name_box() 
         self.save_button = self.create_save_button()
-        
-        
+
     def create_state_radiobutton(self):
         """
         Radiobutton to choose if the state population is based on the equilibrium matrix or
@@ -57,28 +56,28 @@ class WidgetHmmVis():
         
         #physical model, equilibrium matrix
         
-    def create_add_graphviz_bin_box(self, val = "C:\\Program Files (x86)\\Graphviz2.38\\bin", desc = "Graphviz bin path"):  # val = in box, desc = infront of box 
+    def create_add_graphviz_bin_box(self, val="C:\\Program Files (x86)\\Graphviz2.38\\bin", desc="Graphviz bin path"):
         """
         Box for inserting the path to the bin folder of the graphviz installation (in programs).
         """
         style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style=style)
         return text
     
-    def create_add_graphviz_tmp_box(self, val = "C:\\Users\\pcoffice37\\Documents\\graphviz_tmp", desc = "Graphviz tmp path"):  # val = in box, desc = infront of box 
+    def create_add_graphviz_tmp_box(self, val="C:\\Users\\pcoffice37\\Documents\\graphviz_tmp", desc = "Graphviz tmp path"):
         """
         Box for inserting the path to the bin folder of the graphviz installation (in programs).
         """
         style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style=style)
         return text
         
-    def create_load_dir_box(self, val = "directory", desc = "Directory"):  # val = in box, desc = infront of box
+    def create_load_dir_box(self, val="", desc="Directory"):  # val = in box, desc = infront of box
         """
         Box for inserting the directory from which all .h5 files will be loaded.
         """
         style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder='directory to be searched in', description=str(desc), disabled=False, style = style)
         return text
     
     def create_load_dir_button(self):
@@ -180,7 +179,7 @@ class WidgetHmmVis():
         Box for inserting the path with description, alternative for file loading button.
         """
         style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder='Directory to save', description=str(desc), disabled=False, style = style)
         return text
     
     def create_save_dir_button(self):

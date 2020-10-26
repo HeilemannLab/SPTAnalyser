@@ -17,7 +17,7 @@ from IPython.display import display
 from IPython.display import clear_output
 
 class WidgetExpNoiseRate():
-    def __init__(self):
+    def __init__(self, area_camera):
         self.software_button = self.create_software_button()
         self.got_dir = False
         self.dir_name = ""
@@ -34,7 +34,7 @@ class WidgetExpNoiseRate():
         self.roi_text_box = self.create_roi_box()
         self.roi_button = self.create_roi_button()
 
-        self.background_size_box = self.create_background_size_box()
+        self.background_size_box = self.create_background_size_box(val=area_camera)
 
         self.run_button = self.create_run_button()
         self.save_button = self.create_save_button()

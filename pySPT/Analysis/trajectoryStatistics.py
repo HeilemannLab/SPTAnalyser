@@ -697,7 +697,7 @@ class TrajectoryStatistics():
         for cap in caps:
             cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
 
-        x_lim_max = None if MSD_delta_t_n is None else MSD_delta_t_n*camera_time
+        x_lim_max = None if MSD_delta_t_n is None else MSD_delta_t_n
         plt.xlim(0, x_lim_max)
         plt.ylim(0, y_lim)
         plt.legend()

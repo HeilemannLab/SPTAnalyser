@@ -17,15 +17,15 @@ from IPython.display import clear_output
 
 
 class WidgetMergeHdf5():
-    def __init__(self):
+    def __init__(self, load_path, archive_path, save_path):
         self.load_hdf5_button = self.create_load_hdf5_button()
-        self.load_hdf5_box = self.create_load_hdf5_box()
+        self.load_hdf5_box = self.create_load_hdf5_box(val=load_path)
         self.hdf5_file_name = ""
         self.load_archive_button = self.create_load_archive_button()
-        self.load_archive_box = self.create_load_archive_box()
+        self.load_archive_box = self.create_load_archive_box(val=archive_path)
         self.archive_file_name = ""
         self.save_path_button = self.create_save_path_button()
-        self.save_path_box = self.create_save_path_box()
+        self.save_path_box = self.create_save_path_box(val=save_path)
         self.save_file_name = ""
         self.merge_button = self.create_merge_button()
         

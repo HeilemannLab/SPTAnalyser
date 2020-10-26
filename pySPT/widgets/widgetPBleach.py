@@ -20,7 +20,7 @@ from IPython.display import clear_output
 
 
 class WidgetPBleach():
-    def __init__(self):
+    def __init__(self, k, camera_dt, n_points):
         self.software_button = self.create_software_button()
         self.file_name = ""
         self.got_file_name = False
@@ -28,9 +28,9 @@ class WidgetPBleach():
         self.file_button = self.create_file_button()
         self.run_button = self.create_run_button()
         self.save_button = self.create_save_button()
-        self.init_k = self.create_init_k_box()
-        self.integration_time = self.create_init_integration_time_box()
-        self.ignore_points = self.create_ignore_points_box()
+        self.init_k = self.create_init_k_box(val=k)
+        self.integration_time = self.create_init_integration_time_box(val=camera_dt)
+        self.ignore_points = self.create_ignore_points_box(val=n_points)
         self.save_plot_checkbox = self.create_save_plot_checkbox()
         
     def create_software_button(self):

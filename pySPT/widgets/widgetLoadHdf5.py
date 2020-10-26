@@ -20,7 +20,7 @@ from IPython.display import clear_output
 import datetime
 
 class WidgetLoadHdf5():
-    def __init__(self):
+    def __init__(self, bin_size, x_range, y_range):
         # Load cell.h5 files
         #self.data_set_dir = ""  # directory of cell file search
         self.file_names = []  # list of file names for cell files
@@ -56,9 +56,9 @@ class WidgetLoadHdf5():
         # Calculate the dynamic localization error
         self.calc_sigma_dyn_button = self.create_calc_sigma_dyn_button()
         # Plot diffusion histogram
-        self.bin_size_box = self.create_bin_size_box()
-        self.MSD_delta_t_n = self.create_MSD_delta_t_n()
-        self.MSD_y_lim = self.create_MSD_y_lim()
+        self.bin_size_box = self.create_bin_size_box(val=bin_size)
+        self.MSD_delta_t_n = self.create_MSD_delta_t_n(val=x_range)
+        self.MSD_y_lim = self.create_MSD_y_lim(val=y_range)
         # Save statistics
         self.save_dir_button = self.create_save_dir_button()
         self.save_dir_box = self.create_save_dir_box()
@@ -108,12 +108,12 @@ class WidgetLoadHdf5():
         self.dir_box.value=self.dir_name
         #self.got_dir = True
         
-    def create_dir_box(self, val = "directory to be searched in", desc = "directory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+    def create_dir_box(self, val = "", desc = "Directory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
         """
         Box for inserting the directory with description, alternative for dir loading button.
         """
         style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder='directory to be searched in', description=str(desc), disabled=False, style = style)
         return text
     
     def change_dir_box(self, change):
@@ -157,12 +157,12 @@ class WidgetLoadHdf5():
         self.dir_box_bg.value = self.dir_name_bg
         #self.got_dir_bg = True
         
-    def create_dir_box_bg(self, val = "directory to be searched in", desc = "directory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+    def create_dir_box_bg(self, val = "", desc = "Directory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
         """
         Box for inserting the directory with description, alternative for dir loading button.
         """
         style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder='directory to be searched in', description=str(desc), disabled=False, style = style)
         return text
     
     def change_dir_box_bg(self, change):
@@ -327,7 +327,7 @@ class WidgetLoadHdf5():
         Box for inserting the bin size for log10(D) histogram.
         """
         style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='number of MSD values shown', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder='x range in seconds', description=str(desc), disabled=False, style = style)
         return text
 
     def create_MSD_y_lim(self, val = "None" , desc = "y range"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
