@@ -54,6 +54,7 @@ def init_merge_hdf5_path_handler(h5_paths, archive_paths, save_paths):
         merge_hdf5 = mergeHdf5.MergeHdf5(line_h5_strip, line_archive_strip, line_save_strip)
         merge_hdf5.run()
         print("{} saved".format(line_save))
+        print("Duration: %.2f s" % (time.time() - start))
     print("Merging successful!")
     print("Duration: %.2f s"%(time.time()-start))
 

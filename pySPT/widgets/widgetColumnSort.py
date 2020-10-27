@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
 """
-Created on Wed Jan 23 15:52:19 2019
-
 @author: Johanna Rahm
-
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
+
+Find column ids from rapidSTORM / ThunderSTORM files and create id-word-dictionary.
 """
 
 
@@ -29,9 +27,8 @@ class WidgetColumnSort():
         
     def check_header(self):
         """
-        Open header & check if significant words are in header, if they
-        appear count will go up 1, if word appears multible times it does not
-        matter, count will still go up only once.
+        Open header & check if significant words are in header, if they appear count will go up 1
+        if word appears multiple times it does not matter, count will still go up only once.
         """
         file = open(self.file_name)
         self.header = file.readline()  # get the header as first line
@@ -78,10 +75,6 @@ class WidgetColumnSort():
         self.number_columns = len(self.sub_headers)
         
     def rs_get_words(self):
-        """
-        rapidSTORM
-        """
-        #cut_header = self.sub_headers
         for i in range(0, len(self.sub_headers)):
             sub_header = self.sub_headers[i]
             word_end_index = sub_header.find(self.identifier_after) - 1
@@ -89,15 +82,11 @@ class WidgetColumnSort():
             self.target_words.append(target_word)
     
     def rs_column_index(self):
-        """
-        rapidSTORM
-        """
         for target_word in self.target_words:
             for words in self.significant_words:
                 for word in words:
                     if word in target_word:
                         if word not in self.column_order:
-                        #append word (value) and index of sub_head (key) to dictionary
                             self.column_order[self.target_words.index(target_word)] = word
         
     def run_column_sort(self):
@@ -108,14 +97,3 @@ class WidgetColumnSort():
             self.rs_sub_headers()
             self.rs_get_words()
             self.rs_column_index()
-        
-        
-def main():
-    file_name = "F:/Marburg/single_colour_tracking/resting/160404_CS5_Cell1/cell_1_MMStack_Pos0.ome.tif.txt"
-    widget_column_sort = WidgetColumnSort(file_name, "rapidSTORM", ['"Position-0-0-uncertainty"', '"Position-1-0-uncertainty"'])
-    widget_column_sort.run_column_sort()
-    print(widget_column_sort.column_order)
-    
-    
-if __name__ == "__main__":
-    main()

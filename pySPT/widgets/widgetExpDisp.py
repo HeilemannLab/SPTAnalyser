@@ -1,23 +1,16 @@
-# -*- coding: utf-8 -*-
 """
-Created on Mon Jan 14 15:40:08 2019
-
 @author: Johanna Rahm
+Research group Heilemann
+Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
-Research Group Heilemann
-Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt am Main.
-
-Handling widgets for the expDisplacement.ipynb
+Widget handling for expDisplacement.ipynb.
 """
-
 
 import tkinter as tk 
 import os
 from tkinter.filedialog import askopenfilename
 from ipywidgets import widgets
-from IPython.display import display
 from IPython.display import clear_output
-#from ..preAnalysis import expDisplacement
 
 
 class WidgetExpDisp():
@@ -33,37 +26,27 @@ class WidgetExpDisp():
         self.filter_immobile_checkbox = self.create_immobile_filter_checkbox()
     
     def create_software_button(self):
-        """
-        Radiobutton to choose between rapidSTORM and thunderSTORM.
-        """
         button = widgets.RadioButtons(
-                options = ["ThunderSTORM", "rapidSTORM"],
-                disabled = False)
+                options=["ThunderSTORM", "rapidSTORM"],
+                disabled=False)
         return button
     
     def create_file_button(self):
-        """
-        Button to load the file.
-        """
         button = widgets.Button(
-                description='browse',
+                description="browse",
                 disabled=False,
-                button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='browse for file')
-                #icon='check')
+                button_style="",
+                tooltip="browse for file")
         return button
         
-    def open_file(self, b):  # b = ???
-        """
-        Give the file button opening powers.
-        """
-        root = tk.Tk()  # window class
-        root.withdraw()  # close the window 
-        root.update()  # close the window
+    def open_file(self, b):
+        root = tk.Tk()
+        root.withdraw()
+        root.update()
         if self.software_button.value == "ThunderSTORM":
-            root.name = askopenfilename(title="Import .tracked.csv file", filetypes=(("csv files", "*.csv"),("all files", "*.*")))
+            root.name = askopenfilename(title="Import .tracked.csv file", filetypes=(("csv files", "*.csv"), ("all files", "*.*")))
         else:
-            root.name = askopenfilename(title="Import .tracked.txt file", filetypes=(("text files", "*.txt"),("all files", "*.*")))
+            root.name = askopenfilename(title="Import .tracked.txt file", filetypes=(("text files", "*.txt"), ("all files", "*.*")))
         self.file_name = root.name
         root.update()
         root.destroy()
@@ -71,12 +54,9 @@ class WidgetExpDisp():
         if os.path.isfile(self.file_name):
             self.got_file_name = True
 
-    def create_file_box(self, val = "", desc = "Complete path"):  # val = in box, desc = infront of box
-        """
-        Box for inserting the path with description, alternative for file loading button.
-        """
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='insert path', description=str(desc), disabled=False, style = style)
+    def create_file_box(self, val="", desc="Complete path"):
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder="insert path", description=str(desc), disabled=False, style=style)
         return text
     
     def change_file_box(self, change):
@@ -85,27 +65,19 @@ class WidgetExpDisp():
             self.got_file_name = True
     
     def create_run_button(self):
-        """
-        Button for running the analysis, has an on click event.
-        """
         button = widgets.Button(
-                description='run',
+                description="run",
                 disabled=False,
-                button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='run the analysis')
-                #icon='check')
+                button_style="",
+                tooltip="run the analysis")
         return button
     
     def create_save_button(self):
-        """
-        Button to save the results, has an on click event.
-        """
         button = widgets.Button(
-                description='save',
+                description="save",
                 disabled=False,
-                button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='save the results')
-                #icon='check')
+                button_style="",
+                tooltip="save the results")
         return button
 
     def create_clear_output(self):
@@ -123,24 +95,13 @@ class WidgetExpDisp():
     def create_save_fig_checkbox(self):
         check_box = widgets.Checkbox(
                 value=True,
-                description='Save plot',
+                description="Save plot",
                 disabled=False)
         return check_box
 
     def create_immobile_filter_checkbox(self):
         check_box = widgets.Checkbox(
                 value=True,
-                description='Filter immobile out',
+                description="Filter immobile out",
                 disabled=False)
         return check_box
-
-        
-def main():
-    widget_exp_disp = WidgetExpDisp()
-    widget_exp_disp.open_file()
-    print(widget_exp_disp.file_name, widget_exp_disp.folder_name, widget_exp_disp.base_name, sep="\n")
-    
-    
-if __name__ == "__main__":
-    main()
-    

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Fri Jan 25 14:23:51 2019
 
@@ -13,7 +12,6 @@ import tkinter as tk
 from tkinter.filedialog import askopenfilename
 from ipywidgets import widgets
 from IPython.display import clear_output
-#from ..preAnalysis import expDisplacement
 
 
 class WidgetTrcFormat():

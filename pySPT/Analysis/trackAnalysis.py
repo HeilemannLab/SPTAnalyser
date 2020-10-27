@@ -1,26 +1,20 @@
-# -*- coding: utf-8 -*-
 """
-Created on Fri Feb  8 09:17:05 2019
-
 @author: Johanna Rahm
-
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
-For JNB "trackAnalysis": ...
+Load tracked files, calculate diffusion coefficients, type analysis, save as *.h5.
 """
-
 
 import numpy as np
 import copy
 import math
 import matplotlib.pyplot as plt
-import time
 
 
 class TrackAnalysis():
     def __init__(self):
-        self.cell_trajectories = [] # [[],[]] contains list of cells, cells contain trajectories
+        self.cell_trajectories = []  # [[],[]] contains list of cells, cells contain trajectories
         self.cell_trajectories_filtered = []  # deep copy of original cell trajectories
         self.cell_trajectories_index = []
         self.cell_trajectories_filtered_index = []  # deep copy of original cell trajectories index
@@ -189,19 +183,17 @@ class TrackAnalysis():
         self.mean_length = np.nanmean(self.mean_length_cells, axis=0)
 
     def print_stats(self):
-        print("%.2f %% are immobile, mean D = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(self.type_ratios[0],self.mean_D[0],self.mean_length[0]))
-        print("%.2f %% are confined, mean D = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(self.type_ratios[1],self.mean_D[1],self.mean_length[1]))
-        print("%.2f %% are free, mean D = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(self.type_ratios[2],self.mean_D[2],self.mean_length[2])) 
-        print("%.2f %% could not be analysed, mean D = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(self.type_ratios[3],self.mean_D[3],self.mean_length[3])) 
+        print("%.2f %% are immobile, mean D = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(self.type_ratios[0], self.mean_D[0], self.mean_length[0]))
+        print("%.2f %% are confined, mean D = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(self.type_ratios[1], self.mean_D[1], self.mean_length[1]))
+        print("%.2f %% are free, mean D = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(self.type_ratios[2], self.mean_D[2], self.mean_length[2]))
+        print("%.2f %% could not be analysed, mean D = %.5f \u03BCm\u00b2/s, mean length = %.0f frames" %(self.type_ratios[3], self.mean_D[3], self.mean_length[3]))
         print("Total trajectories:", self.total_trajectories)
 
     def run_plot_diffusion_histogram(self, desired_bin_size, MSD_delta_t_n, y_lim):
-        # bin size can only be something that can be converted to float (integer or float, comma separated)
         try:
             float(desired_bin_size)
         except:
             print("Insert a dot separated float or integer as bin size (e.g. 0.1).")
-        # bin size can not be 0
         else:
             if float(desired_bin_size) != 0.0:
                 # Histogram of log D
@@ -219,7 +211,6 @@ class TrackAnalysis():
                 MSD_delta_t_n = None if MSD_delta_t_n == "None" else float(MSD_delta_t_n)
                 y_lim = None if y_lim == "None" else float(y_lim)
                 self.MSD_types(MSD_delta_t_n, y_lim)
-
             else:
                 print("Bin size can not be zero.")
 
@@ -229,24 +220,24 @@ class TrackAnalysis():
         self.diff_fig_types = plt.figure()
         plt.subplot(111, xscale="log")
         (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_immob, yerr=error_log_hist_immob, capsize=4,
-                                    label="relative frequency immobile", ecolor="#4169e1", color="#4169e1")  # capsize length of cap
+                                    label="relative frequency immobile", ecolor="#4169e1", color="#4169e1")
         for cap in caps:
-            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+            cap.set_markeredgewidth(1)
 
         (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_fit_fail, yerr=error_log_hist_fit_fail, capsize=4,
-                                    label="relative frequency no type", ecolor="#8b008b", color="#8b008b")  # capsize length of cap
+                                    label="relative frequency no type", ecolor="#8b008b", color="#8b008b")
         for cap in caps:
-            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+            cap.set_markeredgewidth(1)
 
         (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_conf, yerr=error_log_hist_conf, capsize=4,
-                                    label="relative frequency confined", ecolor="#228b22", color="#228b22")  # capsize length of cap
+                                    label="relative frequency confined", ecolor="#228b22", color="#228b22")
         for cap in caps:
-            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+            cap.set_markeredgewidth(1)
 
         (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_free, yerr=error_log_hist_free, capsize=4,
-                                    label="relative frequency free", ecolor="#ff8c00", color="#ff8c00")  # capsize length of cap
+                                    label="relative frequency free", ecolor="#ff8c00", color="#ff8c00")
         for cap in caps:
-            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+            cap.set_markeredgewidth(1)
 
         for c, i in enumerate(self.mean_frequencies):
             if i != 0 and c == 0:
@@ -262,7 +253,6 @@ class TrackAnalysis():
             elif i != 0:
                 xlim_max = self.hist_diffusion[len(self.hist_diffusion)-c+1]
                 break
-
         plt.xlim(xlim_min, xlim_max)
         plt.legend()
         plt.title("Distribution of diffusion coefficients per type")
@@ -272,12 +262,9 @@ class TrackAnalysis():
 
     def diffusion_hist_types(self, desired_bin_size):
         log_Ds_immob = []
-        #Ds_immob = []
         for cell in self.trajectories_immob_cells:
             log_Ds_immob_cell = [np.log10(trajectory.D) for trajectory in cell if trajectory.D > 0]
             log_Ds_immob.append(log_Ds_immob_cell)
-            # Ds_cell = [trajectory.D for trajectory in cell]
-            # Ds_immob.append(Ds_cell)
 
         log_Ds_conf = []
         for cell in self.trajectories_conf_cells:
@@ -300,7 +287,7 @@ class TrackAnalysis():
             hist_conf_cell = self.calc_diffusion_frequencies(log_Ds_conf[i], desired_bin_size, cell_size)
             hist_free_cell = self.calc_diffusion_frequencies(log_Ds_free[i], desired_bin_size, cell_size)
             hist_notype_cell = self.calc_diffusion_frequencies(log_Ds_notype[i], desired_bin_size, cell_size)
-            hist_immob.append(hist_immob_cell[:,1])  # only frequency counts
+            hist_immob.append(hist_immob_cell[:, 1])  # only frequency counts
             hist_conf.append(hist_conf_cell[:, 1])
             hist_free.append(hist_free_cell[:, 1])
             hist_notype.append(hist_notype_cell[:, 1])
@@ -333,24 +320,24 @@ class TrackAnalysis():
 
         self.MSD_fig_types = plt.figure()
         (_, caps, _) = plt.errorbar(delta_t_immob, mean_MSD_immob, yerr=mean_error_MSD_immob, capsize=4,
-                                    label="MSD immobile", ecolor="#4169e1", color="#4169e1")  # capsize length of cap
+                                    label="MSD immobile", ecolor="#4169e1", color="#4169e1")
         for cap in caps:
-            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+            cap.set_markeredgewidth(1)
 
         (_, caps, _) = plt.errorbar(delta_t_fit_fail, mean_MSD_fit_fail, yerr=mean_error_MSD_fit_fail, capsize=4,
-                                    label="MSD no type", ecolor="#8b008b", color="#8b008b")  # capsize length of cap
+                                    label="MSD no type", ecolor="#8b008b", color="#8b008b")
         for cap in caps:
-            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+            cap.set_markeredgewidth(1)
 
         (_, caps, _) = plt.errorbar(delta_t_conf, mean_MSD_conf, yerr=mean_error_MSD_conf, capsize=4,
-                                    label="MSD confined", ecolor="#228b22", color="#228b22")  # capsize length of cap
+                                    label="MSD confined", ecolor="#228b22", color="#228b22")
         for cap in caps:
-            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+            cap.set_markeredgewidth(1)
 
         (_, caps, _) = plt.errorbar(delta_t_free, mean_MSD_free, yerr=mean_error_MSD_free, capsize=4,
-                                    label="MSD free", ecolor="#ff8c00", color="#ff8c00")  # capsize length of cap
+                                    label="MSD free", ecolor="#ff8c00", color="#ff8c00")
         for cap in caps:
-            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+            cap.set_markeredgewidth(1)
 
         x_lim_max = None if MSD_delta_t_n is None else MSD_delta_t_n
         plt.xlim(0, x_lim_max)
@@ -435,9 +422,10 @@ class TrackAnalysis():
     def plot_bar_log_bins(self):
         self.diff_fig = plt.figure()
         plt.subplot(111, xscale="log")
-        (_, caps, _) = plt.errorbar(self.hist_diffusion, self.mean_frequencies, yerr=self.mean_error, capsize=4, label="relative frequency")  # capsize length of cap
+        (_, caps, _) = plt.errorbar(self.hist_diffusion, self.mean_frequencies, yerr=self.mean_error, capsize=4,
+                                    label="relative frequency")
         for cap in caps:
-            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+            cap.set_markeredgewidth(1)
         for c, i in enumerate(self.mean_frequencies):
             if i != 0 and c == 0:
                 xlim_min = self.hist_diffusion[c]
@@ -505,10 +493,10 @@ class TrackAnalysis():
             log_hist_conf_cell = self.calc_diffusion_frequencies(log_Ds_conf, desired_bin_size, cell_size)
             log_hist_free_cell = self.calc_diffusion_frequencies(log_Ds_free, desired_bin_size, cell_size)
             log_hist_fit_fail_cell = self.calc_diffusion_frequencies(log_Ds_fit_fail, desired_bin_size, cell_size)
-            log_hist_immob.append(log_hist_immob_cell[:,1])
-            log_hist_conf.append(log_hist_conf_cell[:,1])
-            log_hist_free.append(log_hist_free_cell[:,1])
-            log_hist_fit_fail.append(log_hist_fit_fail_cell[:,1])
+            log_hist_immob.append(log_hist_immob_cell[:, 1])
+            log_hist_conf.append(log_hist_conf_cell[:, 1])
+            log_hist_free.append(log_hist_free_cell[:, 1])
+            log_hist_fit_fail.append(log_hist_fit_fail_cell[:, 1])
         return log_hist_immob, log_hist_conf, log_hist_free, log_hist_fit_fail
 
     def filter_types(self, trajectory_info, trajectory_type):
@@ -543,18 +531,16 @@ class TrackAnalysis():
         min_bin = np.ceil(-6/desired_bin)*desired_bin
         max_bin = np.ceil(2/desired_bin)*desired_bin 
         bin_size = int(np.ceil((max_bin - min_bin)/desired_bin))
-        hist = np.histogram(log_diff,
-                            range=(min_bin, max_bin),
-                            bins=bin_size)
-        log_diffusion_hist = np.zeros([np.size(hist[0]),2])
-        log_diffusion_hist[:,0] = hist[1][:-1]  # log(D)
-        log_diffusion_hist[:,1] = hist[0][:]  # freq
-        log_diffusion_hist[:,1] = log_diffusion_hist[:,1] / size
+        hist = np.histogram(log_diff, range=(min_bin, max_bin), bins=bin_size)
+        log_diffusion_hist = np.zeros([np.size(hist[0]), 2])
+        log_diffusion_hist[:, 0] = hist[1][:-1]  # log(D)
+        log_diffusion_hist[:, 1] = hist[0][:]  # freq
+        log_diffusion_hist[:, 1] = log_diffusion_hist[:, 1] / size
         return log_diffusion_hist
 
     def calc_nonlogarithmic_diffusions(self):
         """
-        Calculate the nonlogarithmic diffusion coefficients from log10(D) from histogram.
+        Calculate the non logarithmic diffusion coefficients from log10(D) from histogram.
         """
         self.hist_diffusion = 10**self.hist_log_Ds[0][:,0]
         
@@ -565,7 +551,7 @@ class TrackAnalysis():
         """
         self.diffusion_frequencies = self.create_np_array(np.shape(self.hist_log_Ds)[1], len(self.cell_trajectories_filtered))
         for i in range (0, len(self.cell_trajectories_filtered)):
-            self.diffusion_frequencies[:,i] = self.hist_log_Ds[i][:,1]
+            self.diffusion_frequencies[:, i] = self.hist_log_Ds[i][:, 1]
         self.mean_frequencies = self.calc_mean_frequencies(self.diffusion_frequencies)
         
         self.normalization_factor = 100/np.sum(self.mean_frequencies)
@@ -581,7 +567,7 @@ class TrackAnalysis():
 
     def calc_mean_frequencies(self, np_array):
         """
-        Determine mean value over the horizonal entries of an np.array.
+        Determine mean value over the horizontal entries of an np.array.
         -> [2,2][6,4] = [4,3].
         :param np_array: Np array to build mean over.
         """
@@ -598,32 +584,33 @@ class TrackAnalysis():
         return np_array
         
     # Save
+
     def save_diff(self, trajectories):
         """
         diffusion info: col0 = id, col1= D, col2 = dD, col3 = MSD(0), col4 = chi2, col5 = length
         """
-        self.diffusion_info =  np.zeros([np.size(trajectories), 6])
+        self.diffusion_info = np.zeros([np.size(trajectories), 6])
         self.number_of_trajectories = np.shape(self.diffusion_info)[0]
         i = 0
         for trajectory in trajectories:
-            self.diffusion_info[i,0] = trajectory.trajectory_number 
-            self.diffusion_info[i,1] = trajectory.D
-            self.diffusion_info[i,2] = trajectory.dD
-            self.diffusion_info[i,3] = trajectory.MSD_0
-            self.diffusion_info[i,4] = trajectory.chi_D
-            self.diffusion_info[i,5] = trajectory.length_trajectory
+            self.diffusion_info[i, 0] = trajectory.trajectory_number
+            self.diffusion_info[i, 1] = trajectory.D
+            self.diffusion_info[i, 2] = trajectory.dD
+            self.diffusion_info[i, 3] = trajectory.MSD_0
+            self.diffusion_info[i, 4] = trajectory.chi_D
+            self.diffusion_info[i, 5] = trajectory.length_trajectory
             i += 1
     
     def save_plots(self, trajectory):
         trajectory_number = trajectory.trajectory_number
-        dt_D = trajectory.MSD_D[:,0]
-        MSD_D = trajectory.MSD_D[:,1]
-        fit_D = trajectory.MSD_D[:,2]
-        residues_D = trajectory.MSD_D[:,3]
-        dt_r = trajectory.MSD_fit[:,0]
-        MSD_r = trajectory.MSD_fit[:,1]
-        fit_r = trajectory.MSD_fit[:,2]
-        residues_r = trajectory.MSD_fit[:,3]
+        dt_D = trajectory.MSD_D[:, 0]
+        MSD_D = trajectory.MSD_D[:, 1]
+        fit_D = trajectory.MSD_D[:, 2]
+        residues_D = trajectory.MSD_D[:, 3]
+        dt_r = trajectory.MSD_fit[:, 0]
+        MSD_r = trajectory.MSD_fit[:, 1]
+        fit_r = trajectory.MSD_fit[:, 2]
+        residues_r = trajectory.MSD_fit[:, 3]
         return trajectory_number, dt_D, MSD_D, fit_D, residues_D, dt_r, MSD_r, fit_r, residues_r     
 
     def save_rossier(self, trajectories):
@@ -635,60 +622,51 @@ class TrackAnalysis():
         self.rossier_info = np.zeros([np.size(trajectories), 12])
         i = 0
         for trajectory in trajectories:
-            self.rossier_info[i,0] = trajectory.trajectory_number 
+            self.rossier_info[i, 0] = trajectory.trajectory_number
             # if trajectory is immobile the analysis was never made, all analysis output is 0 by default
             if trajectory.immobility:
-                self.rossier_info[i,1] = trajectory.immobility
-                self.rossier_info[i,2] = False
-                self.rossier_info[i,3] = False
-                self.rossier_info[i,4] = False  # no analyse was made -> False
-                self.rossier_info[i,5] = 0
-                self.rossier_info[i,6] = 0
-                self.rossier_info[i,7] = 0
-                self.rossier_info[i,8] = 0
-                self.rossier_info[i,9] = 0
-                self.rossier_info[i,10] = 0
-                self.rossier_info[i,11] = 0
+                self.rossier_info[i, 1] = trajectory.immobility
+                self.rossier_info[i, 2] = False
+                self.rossier_info[i, 3] = False
+                self.rossier_info[i, 4] = False  # no analyse was made -> False
+                self.rossier_info[i, 5] = 0
+                self.rossier_info[i, 6] = 0
+                self.rossier_info[i, 7] = 0
+                self.rossier_info[i, 8] = 0
+                self.rossier_info[i, 9] = 0
+                self.rossier_info[i, 10] = 0
+                self.rossier_info[i, 11] = 0
             # if trajectory is confined it is not immobile and not free
             elif trajectory.confined:
-                self.rossier_info[i,1] = trajectory.immobility
-                self.rossier_info[i,2] = trajectory.confined
-                self.rossier_info[i,3] = not trajectory.confined
+                self.rossier_info[i, 1] = trajectory.immobility
+                self.rossier_info[i, 2] = trajectory.confined
+                self.rossier_info[i, 3] = not trajectory.confined
             # if trajectory is free it is not confined and not immobile
             elif not trajectory.confined:
-                self.rossier_info[i,1] = trajectory.immobility
-                self.rossier_info[i,2] = trajectory.confined
-                self.rossier_info[i,3] = not trajectory.confined
+                self.rossier_info[i, 1] = trajectory.immobility
+                self.rossier_info[i, 2] = trajectory.confined
+                self.rossier_info[i, 3] = not trajectory.confined
             # analysis is made for trajectories not immobile -> if analysis was successful, output gets values
             if trajectory.analyse_successful and not trajectory.immobility:
-                self.rossier_info[i,4] = trajectory.analyse_successful
-                self.rossier_info[i,5] = trajectory.tau
-                self.rossier_info[i,6] = trajectory.dtau
-                self.rossier_info[i,7] = trajectory.r
-                self.rossier_info[i,8] = trajectory.dr
-                self.rossier_info[i,9] = trajectory.D_conf 
-                self.rossier_info[i,10] = trajectory.dD_conf
-                self.rossier_info[i,11] = trajectory.chi_MSD_fit
+                self.rossier_info[i, 4] = trajectory.analyse_successful
+                self.rossier_info[i, 5] = trajectory.tau
+                self.rossier_info[i, 6] = trajectory.dtau
+                self.rossier_info[i, 7] = trajectory.r
+                self.rossier_info[i, 8] = trajectory.dr
+                self.rossier_info[i, 9] = trajectory.D_conf
+                self.rossier_info[i, 10] = trajectory.dD_conf
+                self.rossier_info[i, 11] = trajectory.chi_MSD_fit
             # if analysis was not successful -> output is 0 by default
             elif not trajectory.analyse_successful and not trajectory.immobility:
-                self.rossier_info[i,1] = trajectory.immobility
-                self.rossier_info[i,2] = False
-                self.rossier_info[i,3] = False
-                self.rossier_info[i,4] = trajectory.analyse_successful
-                self.rossier_info[i,5] = 0
-                self.rossier_info[i,6] = 0
-                self.rossier_info[i,7] = 0
-                self.rossier_info[i,8] = 0
-                self.rossier_info[i,9] = 0
-                self.rossier_info[i,10] = 0
-                self.rossier_info[i,11] = 0
+                self.rossier_info[i, 1] = trajectory.immobility
+                self.rossier_info[i, 2] = False
+                self.rossier_info[i, 3] = False
+                self.rossier_info[i, 4] = trajectory.analyse_successful
+                self.rossier_info[i, 5] = 0
+                self.rossier_info[i, 6] = 0
+                self.rossier_info[i, 7] = 0
+                self.rossier_info[i, 8] = 0
+                self.rossier_info[i, 9] = 0
+                self.rossier_info[i, 10] = 0
+                self.rossier_info[i, 11] = 0
             i += 1
- 
-    
-def main():
-    pass
-    
-
-if __name__ == "__main__":
-    main()
-    

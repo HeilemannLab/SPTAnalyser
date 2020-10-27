@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
 """
-Created on Thu Feb  7 16:21:52 2019
-
 @author: Johanna Rahm
-
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
+
+Widget handling for TrackAnalysis.ipynb.
 """
 
 import tkinter as tk 
@@ -14,6 +12,7 @@ import os.path
 import tkinter.filedialog as fd
 from ipywidgets import widgets
 from IPython.display import clear_output
+
 
 class WidgetTrackAnalysis():
     def __init__(self, pixel_size, area_camera, camera_dt, n_points_D, fit_area_MSD, dof_D, min_D, min_length,
@@ -62,49 +61,48 @@ class WidgetTrackAnalysis():
         self.MSD_delta_t_n = self.create_MSD_delta_t_n(val=x_range)
         self.MSD_y_lim = self.create_MSD_y_lim(val=y_range)
         self.plot_diff_button = self.create_plot_diff_button()
-        
-        
-    def create_rossier_fit_area_box(self, val = "0.6", desc = "Fit area MSD"):
+
+    def create_rossier_fit_area_box(self, val="0.6", desc="Fit area MSD"):
         """
-        Box for inserting amount of MSD values to be fitted by rossier [0..1].
+        Box for inserting amount of MSD values to be fitted by rossier analysis [0..1].
         """        
         style = {"description_width": "initial"}
-        text = widgets.Text(value = str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder="Type something", description=str(desc), disabled=False, style=style)
         return text
     
-    def create_hmm_trc_float_precision_box(self, val = "10", desc = "Trc float precision"):  
+    def create_hmm_trc_float_precision_box(self, val="10", desc="Trc float precision"):
         """
-        Box for inserting the min track length for hmm.
+        Box for determining the floating point precision in saved trc file (SPTAnalyser/analysis->*.trc).
         """        
         style = {"description_width": "initial"}
-        text = widgets.Text(value = str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder="Type something", description=str(desc), disabled=False, style=style)
         return text
     
     def create_hmm_check_box(self):
         """
-        True -> Save hmm.trc file in pySPT/hmm folder.
+        True -> Save hmm.trc file in SPTAnalyser/hmm folder.
         """
         checkbox = widgets.Checkbox(value=True,
-                         description='Save .trc file',
+                         description="Save .trc file",
                          disabled=False)
         return checkbox
     
     def create_microscope_check_box(self):
         """
-        True -> Save microscope file (containing dt, pixel size, sigma dyn) in pySPT/hmm folder.
+        True -> Save microscope.txt file (containing dt, pixel size, sigma dyn) in SPTAnalyser/hmm folder.
         """
         checkbox = widgets.Checkbox(value=True,
-                         description='Save .microscope file',
+                         description="Save .microscope file",
                          disabled=False)
         return checkbox
     
-    def create_min_track_length_hmm_box(self, val = "20", desc = "Min track length"):  # val = "F:\\Marburg\\single_colour_tracking\\resting\\roi.log"
+    def create_min_track_length_hmm_box(self, val="20", desc="Min track length"):
         """
         Box for inserting the min track length for hmm.
         """        
         style = {"description_width": "initial"}
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
-        return text #value=str(self.calc_min_track_length_hmm()
+        text = widgets.Text(value=str(val), placeholder="Type something", description=str(desc), disabled=False, style=style)
+        return text
         
     def create_software_button(self):
         """
@@ -112,32 +110,30 @@ class WidgetTrackAnalysis():
         PALMTracer has .trc files, rapidSTORM .txt and ThunderSTORM .csv files that will be loaded.
         """
         button = widgets.RadioButtons(
-                options = ["ThunderSTORM", "rapidSTORM", "PALMTracer"],
-                disabled = False)
+                options=["ThunderSTORM", "rapidSTORM", "PALMTracer"],
+                disabled=False)
         return button
         
-    def create_ignore_words_box(self, val = "", desc = "Mask words"):
+    def create_ignore_words_box(self, val="", desc="Mask words"):
         """
-        The string in the box contains words that lead to not loading a file if one of the words is contained.
-        Commaseparate mask words.
+        The string in the box contains comma-separated words that lead to not loading a file if one of the words is in.
         """
         style = {"description_width": "initial"}
-        text = widgets.Text(value=str(val), placeholder='type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder='type something', description=str(desc), disabled=False, style=style)
         return text       
         
     def create_trajectory_id_button(self):
         """
-        Radiobutton to choose between seg id or track id,
-        id is used for diffusion type analysis.
+        Radiobutton to choose between seg id or track id.
         """
         button = widgets.RadioButtons(
-                options = ["seg id", "track id"],
-                disabled = False)
+                options=["seg id", "track id"],
+                disabled=False)
         return button
    
-    def searchSubFolders(self, dirName):
-        if (dirName):
-            self.data_set_dir = dirName
+    def searchSubFolders(self, dir_name):
+        if dir_name:
+            self.data_set_dir = dir_name
             for root, dirs, files in os.walk(self.data_set_dir):
                 self.determine_suffix()
                 self.extendList(root, files)
@@ -160,55 +156,44 @@ class WidgetTrackAnalysis():
         if self.masked_words == [""]:
             self.masked_words = [] 
         for name in files:
-            #if name.endswith(self.suffix) and "background" not in name:
             if name.endswith(self.suffix):
                 if self.masked_words:
-                    if not any(x in name for x in self.masked_words):  #does not work with empty string
+                    if not any(x in name for x in self.masked_words):  # does not work with empty string
                         self.file_names.append(os.path.join(root, name))
                 else:
                     self.file_names.append(os.path.join(root, name))
                 
     def create_dir_button(self):
-        """
-        Button to load a directory as search platform.
-        """
         button = widgets.Button(
-                description='browse',
+                description="browse",
                 disabled=False,
-                button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='browse for directory')
-                #icon='check')
+                button_style="",
+                tooltip="browse for directory")
         return button                
 
     def open_dir(self, b):
         root = tk.Tk()
         root.withdraw()
         root.update()
-        root.name = fd.askdirectory(initialdir=os.getcwd(),title='Please select a directory') 
+        root.name = fd.askdirectory(initialdir=os.getcwd(),title="Please select a directory")
         root.update()
         root.destroy()
         self.dir_name = root.name
         self.dir_box.value=self.dir_name
         self.got_dir = True
         
-    def create_dir_box(self, val = "", desc = "Directory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
-        """
-        Box for inserting the directory with description, alternative for dir loading button.
-        """
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='directory to be searched in', description=str(desc), disabled=False, style = style)
+    def create_dir_box(self, val="", desc="Directory"):
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder="directory to be searched in", description=str(desc), disabled=False, style=style)
         return text
     
     def change_dir_box(self, change):
         self.dir_name = self.dir_box.value  
         self.got_dir = True
 
-    def create_roi_box(self, val = "", desc = "roi"):  # val = "F:\\Marburg\\single_colour_tracking\\resting\\roi.log"
-        """
-        Box for inserting the roi file, alternative for roi loading button.
-        """
+    def create_roi_box(self, val="", desc="roi"):
         style = {"description_width": "initial"}
-        text = widgets.Text(value=str(val), placeholder='path of roi', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder="path of roi", description=str(desc), disabled=False, style=style)
         return text
 
     def change_roi_box(self, change):
@@ -216,15 +201,11 @@ class WidgetTrackAnalysis():
         self.got_roi = True
     
     def create_roi_button(self):
-        """
-        Button to load a roi file for cell size.
-        """
         button = widgets.Button(
-                description='browse',
+                description="browse",
                 disabled=False,
-                button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='browse for roi')
-                #icon='check')
+                button_style="",
+                tooltip="browse for roi")
         return button      
 
     def open_roi(self, b):
@@ -235,72 +216,71 @@ class WidgetTrackAnalysis():
         root.update()
         root.destroy()
         self.roi_name = root.name
-        self.roi_box.value=self.roi_name
+        self.roi_box.value = self.roi_name
         self.got_roi = True     
         
-    def create_camera_pixel_size_box(self, val = "158", desc = "Pixel size [nm]"):
+    def create_camera_pixel_size_box(self, val="158", desc="Pixel size [nm]"):
         """
         Box for inserting the pixel size in nm of the camera.
         """
         style = {"description_width": "initial"}
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder="Type something", description=str(desc), disabled=False, style=style)
         return text
         
-    def create_camera_pixel_amount_box(self, val = "65536", desc = "Amount of pixel on the camera"):
+    def create_camera_pixel_amount_box(self, val="65536", desc="Amount of pixel on the camera"):
         """
-        Box for inserting the amount of pixel on the camera
+        Box for inserting the amount of pixel on the camera.
         """
         style = {"description_width": "initial"}
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder="Type something", description=str(desc), disabled=False, style=style)
         return text
     
-    def create_min_track_length_box(self, val = "20", desc = "Min track length"):
+    def create_min_track_length_box(self, val="20", desc="Min track length"):
         """
-        Box for inserting the minimal track length for tau threshold calculation.
+        Box for inserting the minimal track length.
         """
         style = {"description_width": "initial"}
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder="Type something", description=str(desc), disabled=False, style=style)
         return text
     
-    def create_camera_integration_time_box(self, val = "0.02", desc = "Camera integration time [s]"):
+    def create_camera_integration_time_box(self, val="0.02", desc="Camera integration time [s]"):
         """
-        Box for inserting the camera integration time for tau threshold calculation.
+        Box for inserting the camera integration time in seconds.
         """
         style = {"description_width": "initial"}
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder="Type something", description=str(desc), disabled=False, style=style)
         return text
     
-    def create_points_D_fit_box(self, val = "4", desc = "Number of points fitted for D"):
+    def create_points_D_fit_box(self, val="4", desc="Number of points fitted for D"):
+        """
+        Box for inserting the number of points to be fitted to determine the diffusion coefficient.
+        """
         style = {"description_width": "initial"}
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder="Type something", description=str(desc), disabled=False, style=style)
         return text
         
-    def create_D_min_box(self, val = "0.0038", desc = "Minimal detectable D  [\u03BCm\u00b2/s]"):
+    def create_D_min_box(self, val="0.0038", desc="Minimal detectable D  [\u03BCm\u00b2/s]"):
         """
-        Box for inserting the camera integration time for tau threshold calculation.
+        Box for inserting the minimal detectable diffusion coefficient.
         """
         style = {"description_width": "initial"}
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder="Type something", description=str(desc), disabled=False, style=style)
         return text
     
-    def create_dof_box(self, val = "4", desc = "Degree of freedom of D"):
+    def create_dof_box(self, val="4", desc="Degree of freedom of D"):
         """
-        Box for inserting the camera integration time for tau threshold calculation.
+        Box for inserting the degrees of freedom.
         """
         style = {"description_width": "initial"}
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+        text = widgets.Text(value=str(val), placeholder="Type something", description=str(desc), disabled=False, style=style)
         return text
     
     def create_run_button(self):
-        """
-        Button to load a roi file for cell size.
-        """
         button = widgets.Button(
-                description='run',
+                description="run",
                 disabled=False,
-                button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='run the analysis')
-                #icon='check')
+                button_style="",
+                tooltip="run the analysis")
         return button             
         
     def printFileNames(self):
@@ -313,9 +293,9 @@ class WidgetTrackAnalysis():
                 min=0,
                 max=10.0,
                 step=0.1,
-                description='Loading:',
-                bar_style='info',
-                orientation='horizontal')
+                description="Loading:",
+                bar_style="info",
+                orientation="horizontal")
         return float_progress
     
     def create_drop_down_cells(self):
@@ -328,7 +308,7 @@ class WidgetTrackAnalysis():
     def create_drop_down_trajectories(self):
         drop_down_trajectories = widgets.Dropdown(
                 options=self.trajectory_options,
-                description='Number:',
+                description="Number:",
                 disabled=False)
         return drop_down_trajectories
     
@@ -351,7 +331,7 @@ class WidgetTrackAnalysis():
                 description="plot",
                 disabled=False,
                 button_style="",
-                tooltip = "plot chosen trajectory")
+                tooltip="plot chosen trajectory")
         return button
 
     def create_clear_output(self):
@@ -365,33 +345,33 @@ class WidgetTrackAnalysis():
                 description="save",
                 disabled=False,
                 button_style="",
-                tooltip = "save entire analysis")
+                tooltip="save entire analysis")
         return button
     
     # Plot diffusion histogram
     
-    def create_bin_size_box(self, val = "0.1" , desc = "bin size"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+    def create_bin_size_box(self, val="0.1", desc="bin size"):
         """
         Box for inserting the bin size for log10(D) histogram.
         """
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='size for log10(D) histogram', description=str(desc), disabled=False, style = style)
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder="size for log10(D) histogram", description=str(desc), disabled=False, style=style)
         return text
 
-    def create_MSD_delta_t_n(self, val = "None" , desc = "x range"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+    def create_MSD_delta_t_n(self, val="None", desc="x range"):
         """
-        Box for inserting the bin size for log10(D) histogram.
+        Box for inserting the x range in seconds for MSD plot.
         """
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='number of MSD values shown', description=str(desc), disabled=False, style = style)
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder="x range in seconds", description=str(desc), disabled=False, style=style)
         return text
 
-    def create_MSD_y_lim(self, val = "None" , desc = "y range"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+    def create_MSD_y_lim(self, val="None", desc="y range"):
         """
-        Box for inserting the bin size for log10(D) histogram.
+        Box for inserting the y range for MSD plot.
         """
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='y limit of MSD plot', description=str(desc), disabled=False, style = style)
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder="y limit of MSD plot", description=str(desc), disabled=False, style=style)
         return text
     
     def create_plot_diff_button(self):
@@ -399,15 +379,5 @@ class WidgetTrackAnalysis():
                 description="plot",
                 disabled=False,
                 button_style="",
-                tooltip = "plot diffusion histogram")
+                tooltip="plot diffusion histogram")
         return button
-
-            
-def main():
-    communicator = Mol2Judi()
-    communicator.searchSubFolders("E:/Receptor-signaling/met/rtk/resting")
-    communicator.printFileNames()
-
-
-if __name__ == '__main__':
-    main()

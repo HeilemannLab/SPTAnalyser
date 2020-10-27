@@ -1,13 +1,11 @@
-# -*- coding: utf-8 -*-
 """
-Created on Mon Feb  4 11:45:55 2019
-
 @author: Johanna Rahm
-
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
-"""
 
+Load analysed *.h5 files from trackAnalysis, filter them, calculate dynamic localization errors,
+globally visualize them, store filtered dataset.
+"""
 
 import numpy as np
 import copy
@@ -202,7 +200,7 @@ class TrajectoryStatistics():
 
     def plot_trajectory(self, cell, number):
         cell = int(cell) - 1
-        number = int(number) -1
+        number = int(number) - 1
         self.cell_trajectories[cell][number].plot_particle()
 
     def get_max_D(self):
@@ -344,8 +342,8 @@ class TrajectoryStatistics():
             else:
                 trajectory_seg_id = 0
             trc_file = copy.deepcopy(self.cells[cell_index].converted_trc_file_type)
-            trc_idx = np.isin(trc_file[:,trajectory_seg_id], self.cell_trajectories_filtered_index[cell_index])
-            trc_file=trc_file[trc_idx,:]
+            trc_idx = np.isin(trc_file[:, trajectory_seg_id], self.cell_trajectories_filtered_index[cell_index])
+            trc_file = trc_file[trc_idx, :]
             self.filtered_trc_files.append(trc_file)     
             
     def get_trc_files_hmm(self):
@@ -375,6 +373,7 @@ class TrajectoryStatistics():
         self.total_trajectories = np.sum(self.total_trajectories_cell)
 
     # calc statistics
+
     def D_average(self):
         """
         Calculate average diffusion coefficient and mean error per type for 3 and 4 type combination, average over cells
@@ -494,12 +493,13 @@ class TrajectoryStatistics():
                     ratio_immob_notype = count_immob_notype/self.total_trajectories_filtered_cell[cell_index]*100
                     type_percentages_cell = (ratio_immobile_cell, ratio_confined_cell, ratio_free_cell, ratio_not_successful_cell, ratio_immob_notype)
                 else:
-                    type_percentages_cell = (0.0,0.0,0.0,0.0,0.0)  # if all trajectories from a cell are filtered, the type % are 0
+                    type_percentages_cell = (0.0, 0.0, 0.0, 0.0, 0.0)  # if all trajectories from a cell are filtered, the type % are 0
                 self.percentages_cell_types.append(type_percentages_cell)
             self.type_percentages_mean = np.nanmean(self.percentages_cell_types, axis=0)
             self.type_percentages_error = np.nanstd(self.percentages_cell_types, axis=0, ddof=1)/math.sqrt(len(self.percentages_cell_types))
 
     # plot diffusion vs frequencies.
+
     def plot_diffusion_hist_types(self, mean_log_hist_immob, error_log_hist_immob, mean_log_hist_conf,
                                   error_log_hist_conf, mean_log_hist_free, error_log_hist_free,
                                   mean_log_hist_fit_fail, error_log_hist_fit_fail,
@@ -508,31 +508,31 @@ class TrajectoryStatistics():
         plt.subplot(111, xscale="log")
         if merge:
             (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_immob_fil_fail, yerr=error_log_hist_immob_fit_fail,
-                                        capsize=4, label="relative frequency immobile+notype", ecolor="#4169e1", color="#4169e1")  # capsize length of cap
+                                        capsize=4, label="relative frequency immobile+notype", ecolor="#4169e1", color="#4169e1")
             for cap in caps:
-                cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+                cap.set_markeredgewidth(1)
         else:
 
             (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_immob, yerr=error_log_hist_immob, capsize=4,
-                                        label="relative frequency immobile", ecolor="#4169e1", color="#4169e1")  # capsize length of cap
+                                        label="relative frequency immobile", ecolor="#4169e1", color="#4169e1")
             for cap in caps:
-                cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+                cap.set_markeredgewidth(1)
             (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_fit_fail, yerr=error_log_hist_fit_fail,
                                         capsize=4,
                                         label="relative frequency no type", ecolor="#8b008b",
-                                        color="#8b008b")  # capsize length of cap
+                                        color="#8b008b")
             for cap in caps:
-                cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+                cap.set_markeredgewidth(1)
 
         (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_conf, yerr=error_log_hist_conf, capsize=4,
-                                    label="relative frequency confined", ecolor="#228b22", color="#228b22")  # capsize length of cap
+                                    label="relative frequency confined", ecolor="#228b22", color="#228b22")
         for cap in caps:
-            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+            cap.set_markeredgewidth(1)
 
         (_, caps, _) = plt.errorbar(self.hist_diffusion, mean_log_hist_free, yerr=error_log_hist_free, capsize=4,
-                                    label="relative frequency free", ecolor="#ff8c00", color="#ff8c00")  # capsize length of cap
+                                    label="relative frequency free", ecolor="#ff8c00", color="#ff8c00")
         for cap in caps:
-            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+            cap.set_markeredgewidth(1)
 
         for c, i in enumerate(self.mean_frequencies_percent):
             if i != 0 and c == 0:
@@ -622,13 +622,13 @@ class TrajectoryStatistics():
                                        error_log_hist_immob_notype, merge)
 
     def run_diffusion_histogram(self, desired_bin_size, x_lim="None", y_lim="None", plot=True, merge=True):
-        # bin size can only be something that can be converted to float (integer or float, comma separated)
-        # If merge, immobile and notype are handled as one type in a plot and separately in a second plot
+        """
+        :param merge: If True, immobile and notype are handled as one type in a plot and separately in a second plot.
+        """
         try:
             float(desired_bin_size)
         except:
             print("Insert a dot separated float or integer as bin size (e.g. 0.1).")
-        # bin size can not be 0
         else:
             if float(desired_bin_size) != 0.0:
                 self.clear_attributes()
@@ -656,6 +656,7 @@ class TrajectoryStatistics():
                 print("Bin size can not be zero.")
 
     # plot MSD per type
+
     def plot_MSD_types(self, MSD_delta_t_n, y_lim, merge=False):
         """
         Plot the mean MSD curve per diffusion type. If merge, handle immobile and notype as one class.
@@ -671,7 +672,6 @@ class TrajectoryStatistics():
         self.delta_t_types.append(delta_t_immob_fit_fail)
 
         x = plt.figure()
-
         if merge:
             (_, caps, _) = plt.errorbar(delta_t_immob_fit_fail, self.mean_MSDs_immob_notype, yerr=self.mean_error_MSDs_immob_notype,
                                         capsize=4, label="MSD immob+notype", ecolor="#4169e1", color="#4169e1")  # capsize length of cap
@@ -793,7 +793,7 @@ class TrajectoryStatistics():
 
     def clear_attributes(self):
         """
-        If one restarts filtering, these attributes are empy (otherwise they would append).
+        If one restarts filtering, these attributes are empty (otherwise they would append).
         """
         self.hist_log_Ds = []  # histograms (logD vs freq) from all cells as np arrays in this list
         self.hist_diffusion = []  # diffusions from histogram calculation, transformed back -> 10^-(log10(D))
@@ -818,7 +818,6 @@ class TrajectoryStatistics():
         self.mean_error_MSDs_immob_notype = []
         self.delta_t_types = []
 
-        
     def determine_max_min_diffusion(self):
         """
         Create np array with log10(D) and D. -> min and max values can be determined over that. 
@@ -839,7 +838,7 @@ class TrajectoryStatistics():
             log_Ds = np.zeros(len(self.background_trajectories_filtered[bg_index]))
             bg_size = self.bg_sizes[bg_index]
             for trajectory_index in range(0, len(self.background_trajectories_filtered[bg_index])):
-                log_Ds[trajectory_index] =  np.log10(self.background_trajectories_filtered[bg_index][trajectory_index].D)
+                log_Ds[trajectory_index] = np.log10(self.background_trajectories_filtered[bg_index][trajectory_index].D)
             self.calc_diffusion_frequencies(log_Ds, desired_bin_size, bg_size, is_cell=False)
                     
     def diffusions_log(self, desired_bin_size):
@@ -860,6 +859,7 @@ class TrajectoryStatistics():
         :param log_diff: np array with log10(D) of one cell.
         :param size: cell size.
         :param desired_bin: bin size.
+        :param is_cell: If True, treat as cell, else as background.
         """
         # min & max determined by diffusions_log_complete function
         min_bin = np.ceil(-6/desired_bin)*desired_bin
@@ -890,14 +890,16 @@ class TrajectoryStatistics():
         Normalize an array (sum of elements = 1) and represent is in percent (*100).
         """
         if is_cell:
-            self.diffusion_frequencies = self.create_np_array(np.shape(self.hist_log_Ds)[1], len(self.cell_trajectories_filtered))
+            self.diffusion_frequencies = self.create_np_array(np.shape(self.hist_log_Ds)[1],
+                                                              len(self.cell_trajectories_filtered))
             for i in range (0, len(self.cell_trajectories_filtered)):
                 self.diffusion_frequencies[:,i] = self.hist_log_Ds[i][:,1]
             self.mean_frequencies = self.calc_mean_frequencies(self.diffusion_frequencies)
             self.normalization_factor = 100/np.sum(self.mean_frequencies)
             self.mean_frequencies_percent = self.mean_frequencies * self.normalization_factor
         else:
-            self.diffusion_frequencies_bg = self.create_np_array(np.shape(self.hist_log_Ds_bg)[1], len(self.background_trajectories_filtered))
+            self.diffusion_frequencies_bg = self.create_np_array(np.shape(self.hist_log_Ds_bg)[1],
+                                                                 len(self.background_trajectories_filtered))
             for i in range(0, len(self.background_trajectories_filtered)):
                 self.diffusion_frequencies_bg[:,i] = self.hist_log_Ds_bg[i][:,1]
             self.mean_frequencies_bg = self.calc_mean_frequencies(self.diffusion_frequencies_bg)
@@ -908,14 +910,16 @@ class TrajectoryStatistics():
         Normalize an array (sum of elements = 1) and represent is in percent (*100).
         """
         if is_cell:
-            self.mean_error =  np.std(self.diffusion_frequencies, axis=1, ddof=1)/(np.shape(self.diffusion_frequencies)[1])**(1/2) 
+            self.mean_error =  np.std(self.diffusion_frequencies, axis=1,
+                                      ddof=1)/(np.shape(self.diffusion_frequencies)[1])**(1/2)
             self.mean_error_percent = self.mean_error * self.normalization_factor 
         else:
-            self.mean_error_bg = np.std(self.diffusion_frequencies_bg, axis=1, ddof=1)/(np.shape(self.diffusion_frequencies_bg)[1])**(1/2)
+            self.mean_error_bg = np.std(self.diffusion_frequencies_bg, axis=1,
+                                        ddof=1)/(np.shape(self.diffusion_frequencies_bg)[1])**(1/2)
             
     def calc_bg_corrected_freq(self):
         """
-        Substract background frequencies of cell frequencies. if < 0 -> set to 0.
+        Subtract background frequencies of cell frequencies. if < 0 -> set to 0.
         Calc error.
         """
         self.corrected_frequencies = np.zeros(np.shape(self.mean_frequencies)[0],)
@@ -933,9 +937,10 @@ class TrajectoryStatistics():
         self.diff_fig.append(plt.figure())
         self.fig_name.append("diffusion_hist")
         plt.subplot(111, xscale="log")
-        (_, caps, _) = plt.errorbar(self.hist_diffusion, self.mean_frequencies_percent, yerr=self.mean_error_percent, capsize=4, label="relative frequency")  # capsize length of cap
+        (_, caps, _) = plt.errorbar(self.hist_diffusion, self.mean_frequencies_percent, yerr=self.mean_error_percent,
+                                    capsize=4, label="relative frequency")
         for cap in caps:
-            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+            cap.set_markeredgewidth(1)
 
         for c, i in enumerate(self.mean_frequencies_percent):
             if i != 0 and c == 0:
@@ -973,9 +978,11 @@ class TrajectoryStatistics():
         self.diff_fig.append(plt.figure())
         self.fig_name.append("diffusion_hist_background")
         plt.subplot(111, xscale="log")
-        (_, caps, _) = plt.errorbar(self.hist_diffusion, self.corrected_frequencies_percent, yerr=self.corrected_frequencies_error_percent, capsize=4, label="relative frequency")  # capsize length of cap
+        (_, caps, _) = plt.errorbar(self.hist_diffusion, self.corrected_frequencies_percent,
+                                    yerr=self.corrected_frequencies_error_percent,
+                                    capsize=4, label="relative frequency")
         for cap in caps:
-            cap.set_markeredgewidth(1)  # markeredgewidth thickness of cap (vertically)
+            cap.set_markeredgewidth(1)
         plt.xlim(self.min_D, self.max_D)
         plt.legend()
         plt.title("Distribution of diffusion coefficients (background corrected)")
@@ -985,11 +992,10 @@ class TrajectoryStatistics():
 
     def calc_mean_frequencies(self, np_array):
         """
-        Determine mean value over the horizonal entries of an np.array.
+        Determine mean value over the horizontal entries of an np.array.
         -> [2,2][6,4] = [4,3].
         :param np_array: Np array to build mean over.
         """
-        #mean_frequencies = np.zeros(np.size(self.hist_log_Ds[0]))
         mean_frequencies = np_array.mean(axis=1)
         return mean_frequencies
             
@@ -1017,12 +1023,3 @@ class TrajectoryStatistics():
                 mean_MSD_0 = np.mean([track.MSD_0 for track in self.cell_trajectories_filtered[cell_idx]])
                 sigma_dyn = math.sqrt((mean_MSD_0+(4/3)*mean_D*dt)/dof)
                 self.sigma_dyns.append(sigma_dyn)      
- 
-    
-def main():
-    pass
-        
-    
-if __name__ == "__main__":
-    main()
-        

@@ -1,21 +1,15 @@
-# -*- coding: utf-8 -*-
 """
-Created on Thu Jan 17 17:14:19 2019
-
 @author: Johanna Rahm
-
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
-Handle widgets for the pBleach JNB.
+Widget handling for pBleach.ipynb.
 """
-
 
 import tkinter as tk 
 import os
 from tkinter.filedialog import askopenfilename
 from ipywidgets import widgets
-from IPython.display import display
 from IPython.display import clear_output
 
 
@@ -34,58 +28,42 @@ class WidgetPBleach():
         self.save_plot_checkbox = self.create_save_plot_checkbox()
         
     def create_software_button(self):
-        """
-        Radiobutton to choose between rapidSTORM and thunderSTORM.
-        """
         button = widgets.RadioButtons(
-                options = ["ThunderSTORM", "rapidSTORM"],
-                disabled = False)
+                options=["ThunderSTORM", "rapidSTORM"],
+                disabled=False)
         return button
         
     def create_file_button(self):
-        """
-        Button to load the file.
-        """
         button = widgets.Button(
-                description='browse',
+                description="browse",
                 disabled=False,
-                button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='browse for file')
-                #icon='check')
+                button_style="",
+                tooltip="browse for file")
         return button
 
-    def open_file(self, b):  # b = ???
-        """
-        Give the file button opening powers.
-        """
-        root = tk.Tk()  # window class
-        root.withdraw()  # close the window 
-        root.update()  # close the window
+    def open_file(self, b):
+        root = tk.Tk()
+        root.withdraw()
+        root.update()
         if self.software_button.value == "ThunderSTORM":
-            root.name = askopenfilename(title="Import .tracked.csv file", filetypes=(("csv files", "*.csv"),("all files", "*.*")))
+            root.name = askopenfilename(title="Import .tracked.csv file", filetypes=(("csv files", "*.csv"), ("all files", "*.*")))
         elif self.software_button.value == "rapidSTORM":
-            root.name = askopenfilename(title="Import .tracked.txt file", filetypes=(("text files", "*.txt"),("all files", "*.*")))
+            root.name = askopenfilename(title="Import .tracked.txt file", filetypes=(("text files", "*.txt"), ("all files", "*.*")))
         self.file_name = root.name
         root.update()
         root.destroy()
-        self.file_text_box.value = self.file_name  # inserts path in box for inserting the path
+        self.file_text_box.value = self.file_name
         if os.path.isfile(self.file_name):
             self.got_file_name = True
         
-    def create_file_box(self, val = "", desc = "Complete path"):  # val = in box, desc = infront of box
-        """
-        Box for inserting the path with description, alternative for file loading button.
-        """
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='Insert path', description=str(desc), disabled=False, style = style)
+    def create_file_box(self, val="", desc="Complete path"):
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder='Insert path', description=str(desc), disabled=False, style=style)
         return text
     
-    def create_ignore_points_box(self, val = "0", desc = "Number of points"):  # val = in box, desc = infront of box
-        """
-        Box for inserting the path with description, alternative for file loading button.
-        """
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
+    def create_ignore_points_box(self, val="0", desc="Number of points"):
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder="Type something", description=str(desc), disabled=False, style=style)
         return text
     
     def change_file_box(self, change):
@@ -93,52 +71,42 @@ class WidgetPBleach():
         if os.path.isfile(self.file_name):
             self.got_file_name = True
         
-    def create_init_k_box(self, val = "0.5", desc = "Initial k [s\u207B\u00B9]"): 
+    def create_init_k_box(self, val="0.5", desc="Initial k [s\u207B\u00B9]"):
         """
-        Box for inserting the initial k.
+        Box for inserting the initial exponential decay rate k in 1/s.
         """
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style = style)
-        #self.file_name = text.value
-        #self.got_file_name = True
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder="Type something", description=str(desc), disabled=False, style=style)
         return text
     
-    def create_init_integration_time_box(self, val = "0.02", desc = "Camera integration time [s]"):  # val = in box, desc = infront of box
+    def create_init_integration_time_box(self, val="0.02", desc="Camera integration time [s]"):
         """
-        Box for inserting the integration time in s.
+        Box for inserting the camera integration time in s.
         """
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='insert path', description=str(desc), disabled=False, style = style)
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder="insert path", description=str(desc), disabled=False, style=style)
         return text    
         
     def create_run_button(self):
-        """
-        Button for running the analysis, has an on click event.
-        """
         button = widgets.Button(
-                description='run',
+                description="run",
                 disabled=False,
-                button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='run the analysis')
-                #icon='check')
+                button_style="",
+                tooltip="run the analysis")
         return button        
 
     def create_save_button(self):
-        """
-        Button to save the results, has an on click event.
-        """
         button = widgets.Button(
-                description='save',
+                description="save",
                 disabled=False,
-                button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='save the results')
-                #icon='check')
+                button_style="",
+                tooltip="save the results")
         return button    
     
     def create_save_plot_checkbox(self):
         check_box = widgets.Checkbox(
             value=True,
-            description='Save plot',
+            description="Save plot",
             disabled=False)
         return check_box
         
@@ -150,12 +118,3 @@ class WidgetPBleach():
         
     def warning_wrong_file(self):
         print("A file with false columns was loaded.")
-    
-    
-def main():
-    pass
-        
-
-if __name__ == "__main__":
-    main()
-    

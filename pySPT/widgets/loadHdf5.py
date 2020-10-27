@@ -1,19 +1,13 @@
-# -*- coding: utf-8 -*-
 """
-Created on Thu Feb 14 14:38:40 2019
-
 @author: Johanna Rahm
-
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
-Each hdf5 is loaded and the information is appended to target lists, entry index represents 
-one cell / hdf5 file.
+Each h5 is loaded into trackStats and the information is appended to target lists, entry index represents one cell.
 """
 
 import h5py
 import numpy as np
-import pandas as pd
 import os
 
 
@@ -56,7 +50,6 @@ class LoadHdf5():
         self.cells_trajectories_chi2_rossier = []  # trajectory.dD_conf
         self.cells_trajectories_analyse_successful = []  # trajectory.analyse_successful
         self.cells_trajectories_type = []
-        #
         self.cells_trajectories_MSD_fit = []  # trajectory.MSD_fit col0 = dt, col1 = MSD, col2 = fit, col3 = res 
         self.cells_trajectories_MSD_D = []  # trajectory.MSD_D col0 = dt, col1 = MSD, col2 = fit, col3 = res of first 4 values
         self.cells_trajectories_MSDs = []  # trajectory.MSDs
@@ -64,7 +57,6 @@ class LoadHdf5():
         self.trc_files_type = []  # cell.trc_file
         self.trc_files_hmm = []  # cell.trc_file
         self.locs = []  # trc snippets to initialize trajectory
-        #
         self.cells = []  # list of cell objects ->cover_slip.cells -> needs entire list
 
     def clear(self):
@@ -105,15 +97,13 @@ class LoadHdf5():
         self.cells_trajectories_chi2_rossier = []  # trajectory.dD_conf
         self.cells_trajectories_analyse_successful = []  # trajectory.analyse_successful
         self.cells_trajectories_type = []
-        #
         self.cells_trajectories_MSD_fit = []  # trajectory.MSD_fit col0 = dt, col1 = MSD, col2 = fit, col3 = res 
         self.cells_trajectories_MSD_D = []  # trajectory.MSD_D col0 = dt, col1 = MSD, col2 = fit, col3 = res of first 4 values
         self.cells_trajectories_MSDs = []  # trajectory.MSDs
         self.cells_trajectories_times = []  # trajectories.times
         self.trc_files_type = []  # cell.trc_file
         self.trc_files_hmm = []  # cell.trc_file
-        self.locs = []  # 
-        #
+        self.locs = []  #
         self.cells = []  # list of cell objects ->cover_slip.cells -> needs entire list
 
     def read_h5(self):
@@ -189,29 +179,10 @@ class LoadHdf5():
         """
         np_array = np.zeros((length,columns))
         return np_array
-        
-    def get_diffusion_infos3(self):     
-        """
-        As np.array.
-        """
-        for h5 in self.hdf5:
-            h5_index = self.hdf5.index(h5)
-            max_trajectory_index = self.trajectory_numbers[h5_index]
-            diffusion_group = h5["diffusion"]
-            diffusion_infos_data = diffusion_group["diffusionInfos"].value
-            length_trajectories = self.create_np_array(max_trajectory_index)
-            length_MSDs = self.create_np_array(max_trajectory_index)
-            for trajectory_index in range(0, max_trajectory_index):
-                length_trajectory = diffusion_infos_data[trajectory_index][5]
-                length_trajectories[trajectory_index] = length_trajectory
-                length_MSDs[trajectory_index] = length_trajectory - 1
-            self.cells_lengths_trajectories.append(length_trajectories)
-            self.cells_lengths_MSDs.append(length_MSDs)
 
     def get_diffusion_infos(self):     
         """
         Handling length_MSD, length_trajectory, id, D, dD, MSD_0, chi2.
-        
         As np.array. -> x[cell][trajectory][0] 
         """
         for h5 in self.hdf5:
@@ -241,7 +212,6 @@ class LoadHdf5():
                 trajectories_chi_D[trajectory_index] = chi_D
                 number = diffusion_infos_data[trajectory_index][0]
                 trajectories_number[trajectory_index] = number
-
             self.cells_trajectories_chi2_D.append(trajectories_chi_D)
             self.cells_trajectories_D.append(trajectories_diffusion)
             self.cells_trajectories_dD.append(trajectories_ddiffusion)
@@ -253,7 +223,6 @@ class LoadHdf5():
     def get_rossier_statistics(self):
         """
         Handling immob type, tau, dtau, r, dr, d_conf, chi2.
-        
         As np.arrays.
         """
         for h5 in self.hdf5:
@@ -300,7 +269,6 @@ class LoadHdf5():
             self.cells_trajectories_dr.append(trajectories_dr)
             self.cells_trajectories_Dconf.append(trajectories_dconf)
             self.cells_trajectories_dDconf.append(trajectories_ddconf)
-            #self.cells_trajectories_dDconf.append(trajectories_dconf)
             self.cells_trajectories_chi2_rossier.append(trajectories_chi_msd)
             self.cells_trajectories_type.append(trajectories_type)
 
@@ -312,7 +280,6 @@ class LoadHdf5():
         """
         for h5 in self.hdf5:
             h5_index = self.hdf5.index(h5)
-            max_trajectory_index = self.trajectory_numbers[h5_index]
             MSD_group = h5["MSD"]
             cell_trajectories_MSDs = []
             cell_trajectories_times = []
@@ -335,7 +302,6 @@ class LoadHdf5():
         Create a trc file hmm and trc file type as np arrays for each cell.
         """
         for h5 in self.hdf5:
-            h5_index = self.hdf5.index(h5)
             trc_group = h5["trc"]
             # trc file type
             trc_group_data_type = trc_group["trcType"].value
@@ -366,7 +332,6 @@ class LoadHdf5():
     def get_rossier_plots(self):
         for h5 in self.hdf5:
             h5_index = self.hdf5.index(h5)
-            max_trajectory_index = self.trajectory_numbers[h5_index]
             rossier_group = h5["rossier"]
             rossier_plots_group = rossier_group["rossierPlots"]
             cell_trajectories = []
@@ -386,7 +351,6 @@ class LoadHdf5():
     def get_diffusion_plots(self):
         for h5 in self.hdf5:
             h5_index = self.hdf5.index(h5)
-            max_trajectory_index = self.trajectory_numbers[h5_index]
             diffusion_group = h5["diffusion"]
             diffusion_plots_group = diffusion_group["diffusionPlots"]
             cell_trajectories = []
@@ -416,7 +380,8 @@ class LoadHdf5():
     
     def get_locs(self):
         """
-        For each trajectory locs will be created (np.array with col0 = molecule, col1 = frames, col2 = x, col3 = y, col4 = -1, col5 = intensity)
+        For each trajectory locs will be created (np.array with col0 = molecule, col1 = frames, col2 = x, col3 = y,
+        col4 = -1, col5 = intensity)
         Each cell equals a list. 
         """
         for c, trc_file in enumerate(self.trc_files_type):
@@ -446,12 +411,3 @@ class LoadHdf5():
         self.get_trcs()
         self.get_locs()
         self.get_points_fit_Ds()
-
-
-def main():
-    pass
-
-
-if __name__ == "__main__":
-    main()
-    

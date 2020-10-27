@@ -1,21 +1,15 @@
-# -*- coding: utf-8 -*-
 """
-Created on Fri Feb  1 10:53:42 2019
-
 @author: Johanna Rahm
-
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
-Create a cell object which creats trajectory objects. Cell contains informations about cell size and name.
+Coverslip -> Cell -> Trajectory.
+Create a cell object which contains information about cell size and name.
 """
 
 import numpy as np
 import math
-import copy
 from . import trajectory
-from ..hmm import microscope
-#from multiprocessing import Pool
 from tqdm import tqdm_notebook as tqdm
 
 
@@ -59,18 +53,18 @@ class Cell():
         self.convert_trc_type()  # np arrays instead of lists in list
             
     def create_trajectories_hmm(self):
-        trc_file = np.zeros([len(self.trc_file_hmm),6])
-        trc_file[:,0] = list(map(lambda row: row[0], self.trc_file_hmm))  # col0 = track id
-        trc_file[:,1] = list(map(lambda row: row[1], self.trc_file_hmm))  # frame
-        trc_file[:,2] = list(map(lambda row: row[2]*int(self.pixel_size)*10**(-3), self.trc_file_hmm))  # x in ym
-        trc_file[:,3] = list(map(lambda row: row[3]*int(self.pixel_size)*10**(-3), self.trc_file_hmm))  # y in ym
-        trc_file[:,4] = list(map(lambda row: row[4], self.trc_file_hmm))  # placeholder
-        trc_file[:,5] = list(map(lambda row: row[5], self.trc_file_hmm))  # intensity
-        for trajectory_number in range(int(trc_file[:,0].min()), int(trc_file[:,0].max())+1):    
-            idx = trc_file[:,0] == trajectory_number
+        trc_file = np.zeros([len(self.trc_file_hmm), 6])
+        trc_file[:, 0] = list(map(lambda row: row[0], self.trc_file_hmm))  # col0 = track id
+        trc_file[:, 1] = list(map(lambda row: row[1], self.trc_file_hmm))  # frame
+        trc_file[:, 2] = list(map(lambda row: row[2]*int(self.pixel_size)*10**(-3), self.trc_file_hmm))  # x in ym
+        trc_file[:, 3] = list(map(lambda row: row[3]*int(self.pixel_size)*10**(-3), self.trc_file_hmm))  # y in ym
+        trc_file[:, 4] = list(map(lambda row: row[4], self.trc_file_hmm))  # placeholder
+        trc_file[:, 5] = list(map(lambda row: row[5], self.trc_file_hmm))  # intensity
+        for trajectory_number in range(int(trc_file[:, 0].min()), int(trc_file[:, 0].max())+1):
+            idx = trc_file[:, 0] == trajectory_number
             # get rid of first localizations
-            localizations = trc_file[idx,:]
-            if not (localizations.size==0):
+            localizations = trc_file[idx, :]
+            if not localizations.size == 0:
                 self.trajectories_hmm.append(trajectory.Trajectory(localizations, self.tau_threshold, self.dt, self.dof,
                                                                    self.D_min, self.points_fit_D, self.rossier_fit_area))
 
@@ -91,14 +85,14 @@ class Cell():
         """
         trajectory_idx = [trajectory.trajectory_number for trajectory in self.analysed_trajectories_hmm]
         trc_file = np.zeros([len(self.trc_file_hmm),6])
-        trc_file[:,0] = list(map(lambda row: row[0], self.trc_file_hmm))  # col0 = track id
-        trc_file[:,1] = list(map(lambda row: row[1], self.trc_file_hmm))  # frame
-        trc_file[:,2] = list(map(lambda row: row[2]*int(self.pixel_size)*10**(-3), self.trc_file_hmm))  # x in ym
-        trc_file[:,3] = list(map(lambda row: row[3]*int(self.pixel_size)*10**(-3), self.trc_file_hmm))  # y in ym
-        trc_file[:,4] = list(map(lambda row: row[4], self.trc_file_hmm))  # placeholder
-        trc_file[:,5] = list(map(lambda row: row[5], self.trc_file_hmm))  # intensity
-        trc_idx = np.isin(trc_file[:,0], trajectory_idx)
-        self.filtered_trc_file_hmm = trc_file[trc_idx,:]
+        trc_file[:, 0] = list(map(lambda row: row[0], self.trc_file_hmm))  # col0 = track id
+        trc_file[:, 1] = list(map(lambda row: row[1], self.trc_file_hmm))  # frame
+        trc_file[:, 2] = list(map(lambda row: row[2]*int(self.pixel_size)*10**(-3), self.trc_file_hmm))  # x in ym
+        trc_file[:, 3] = list(map(lambda row: row[3]*int(self.pixel_size)*10**(-3), self.trc_file_hmm))  # y in ym
+        trc_file[:, 4] = list(map(lambda row: row[4], self.trc_file_hmm))  # placeholder
+        trc_file[:, 5] = list(map(lambda row: row[5], self.trc_file_hmm))  # intensity
+        trc_idx = np.isin(trc_file[:, 0], trajectory_idx)
+        self.filtered_trc_file_hmm = trc_file[trc_idx, :]
         
     def localizations_del(self, locs_to_del, idx):
         """
@@ -156,19 +150,18 @@ class Cell():
         """
         trc_file = np.zeros([len(self.trc_file_type),7])
         if self.seg_id:
-            trc_file[:,0] = list(map(lambda row: row[6], self.trc_file_type))  # col0 = seg id
+            trc_file[:, 0] = list(map(lambda row: row[6], self.trc_file_type))  # col0 = seg id
         else: 
-            trc_file[:,0] = list(map(lambda row: row[0], self.trc_file_type))  # col0 = track id
-        trc_file[:,1] = list(map(lambda row: row[1], self.trc_file_type))  # frame
-        trc_file[:,2] = list(map(lambda row: row[2]*int(self.pixel_size)*10**(-3), self.trc_file_type))  # x in ym
-        trc_file[:,3] = list(map(lambda row: row[3]*int(self.pixel_size)*10**(-3), self.trc_file_type))  # y in ym
-        trc_file[:,4] = list(map(lambda row: row[4], self.trc_file_type))  # placeholder
-        trc_file[:,5] = list(map(lambda row: row[5], self.trc_file_type))  # intensity
-        #print("trc", sorted(list(set(trc_file[:,0]))))
-        for trajectory_number in range(int(trc_file[:,0].min()), int(trc_file[:,0].max())+1):    
-            idx = trc_file[:,0] == trajectory_number
-            localizations = trc_file[idx,:]
-            if not (localizations.size==0):
+            trc_file[:, 0] = list(map(lambda row: row[0], self.trc_file_type))  # col0 = track id
+        trc_file[:, 1] = list(map(lambda row: row[1], self.trc_file_type))  # frame
+        trc_file[:, 2] = list(map(lambda row: row[2]*int(self.pixel_size)*10**(-3), self.trc_file_type))  # x in ym
+        trc_file[:, 3] = list(map(lambda row: row[3]*int(self.pixel_size)*10**(-3), self.trc_file_type))  # y in ym
+        trc_file[:, 4] = list(map(lambda row: row[4], self.trc_file_type))  # placeholder
+        trc_file[:, 5] = list(map(lambda row: row[5], self.trc_file_type))  # intensity
+        for trajectory_number in range(int(trc_file[:, 0].min()), int(trc_file[:, 0].max())+1):
+            idx = trc_file[:, 0] == trajectory_number
+            localizations = trc_file[idx, :]
+            if not localizations.size == 0:
                 self.trajectories.append(trajectory.Trajectory(localizations, self.tau_threshold, self.dt, self.dof,
                                                                self.D_min, self.points_fit_D, self.rossier_fit_area))
         
@@ -176,14 +169,14 @@ class Cell():
         """
         To save the trc type file later, all information is stored.
         """
-        trc_file = np.zeros([len(self.trc_file_type),7])
-        trc_file[:,0] = list(map(lambda row: row[0], self.trc_file_type))  # col0 = track id
-        trc_file[:,1] = list(map(lambda row: row[1], self.trc_file_type))  # frame
-        trc_file[:,2] = list(map(lambda row: row[2]*int(self.pixel_size)*10**(-3), self.trc_file_type))  # x in ym
-        trc_file[:,3] = list(map(lambda row: row[3]*int(self.pixel_size)*10**(-3), self.trc_file_type))  # y in ym
-        trc_file[:,4] = list(map(lambda row: row[4], self.trc_file_type))  # placeholder
-        trc_file[:,5] = list(map(lambda row: row[5], self.trc_file_type))  # intensity
-        trc_file[:,6] = list(map(lambda row: row[6], self.trc_file_type))  # col0 = seg id
+        trc_file = np.zeros([len(self.trc_file_type), 7])
+        trc_file[:, 0] = list(map(lambda row: row[0], self.trc_file_type))  # col0 = track id
+        trc_file[:, 1] = list(map(lambda row: row[1], self.trc_file_type))  # frame
+        trc_file[:, 2] = list(map(lambda row: row[2]*int(self.pixel_size)*10**(-3), self.trc_file_type))  # x in ym
+        trc_file[:, 3] = list(map(lambda row: row[3]*int(self.pixel_size)*10**(-3), self.trc_file_type))  # y in ym
+        trc_file[:, 4] = list(map(lambda row: row[4], self.trc_file_type))  # placeholder
+        trc_file[:, 5] = list(map(lambda row: row[5], self.trc_file_type))  # intensity
+        trc_file[:, 6] = list(map(lambda row: row[6], self.trc_file_type))  # col0 = seg id
         self.converted_trc_file_type = trc_file
         
     def cell_size(self):
@@ -212,30 +205,3 @@ class Cell():
         Plot a defined trajectory by its number.
         """
         self.analysed_trajectories[trajectory_number-1].plot_particle()
-        
-    # Multiprocessing -> bugged ...
-    @staticmethod
-    def analyse_trajectory(self, trajectory):
-        """
-        Multiprocessing job: analyse 1 trajectory object.
-        """
-        trajectory.analyse_particle()
-        return trajectory      
-     
-    def run_processes(self):
-        """
-        Target: analyse trajectory,
-        arg: one trajectory out of the self.trajectories list
-        """
-        with Pool(None) as p:
-            self.analysed_trajectories = p.map(self.analyse_trajectory, self.trajectories)
-            return self.analysed_trajectories
-        
-        
-def main():
-    pass
-
-
-if __name__ == "__main__":
-    main()
-

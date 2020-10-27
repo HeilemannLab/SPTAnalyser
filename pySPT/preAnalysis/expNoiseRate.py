@@ -1,10 +1,7 @@
 """
-Created on Mon Aug 17 2020
-
 @author: Johanna Rahm
-
-Research Group Heilemann
-Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt am Main.
+Research group Heilemann
+Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
 Determine the false positive rate of localizations per cell in %, based on background noise.
 """
@@ -31,6 +28,9 @@ class ExpNoiseRate():
         self.figure_names = ["density_cells", "density_background", "exp_noise_rate"]
 
     def get_files(self, path, suffix):
+        """
+        Read all *.csv files from a directory (localization files, ignore tracked files) and create pandas-frames.
+        """
         files_pd, file_names = [], []
         for file in os.listdir(path):
             if file.endswith(suffix) and "tracked" not in file:
@@ -40,6 +40,9 @@ class ExpNoiseRate():
         return files_pd, file_names
 
     def determine_number_locs(self):
+        """
+        Get number of localizations per frame and area.
+        """
         cell_locs = []
         for i, cell_name in enumerate(self.cell_names):
             for j, cell_size in self.roi_pd.iterrows():
@@ -48,16 +51,22 @@ class ExpNoiseRate():
         return cell_locs
 
     def determine_number_locs_bg(self, bg_size):
+        """
+        Get number of localizations per frame and area.
+        """
         return [max(file["id"])/(bg_size*max(file["frame"])) for file in self.bg_pd]
 
     def calc_exp_noise_rates(self, mean_bg_loc):
+        """
+        Calculate exp_noise_rate: mean(localizations_background) / localizations_cell *  100.
+        """
         return [mean_bg_loc / cell_loc * 100 for cell_loc in self.cell_locs]
 
     def plot_box(self, data_points, title, ylabel):
         df = pd.DataFrame(data_points)
         fig = plt.figure(figsize=(3, 5))
         ax = sns.boxplot(data=df, color="cornflowerblue", showmeans=True,
-                         meanprops={"marker":"s","markerfacecolor":"white", "markeredgecolor":"0.25"})
+                         meanprops={"marker": "s", "markerfacecolor": "white", "markeredgecolor": "0.25"})
         ax = sns.swarmplot(data=df, color="0.25")
         ax.set_title(title)
         ax.set_ylabel(ylabel)
@@ -79,18 +88,16 @@ class ExpNoiseRate():
         out_file_name = directory + "\\" + folder_name + "\\" + year + month + day + "_cells_exp_noise_rate.txt"
         header = "cell name\tcell density [localizations per px² frame]\texp_noise_rate [%]\t"
         max_name_length = max([len(i) for i in self.cell_names])
-        data = np.zeros(np.array(self.cell_names).size, dtype=[("col1", "U"+str(max_name_length)), ("col2", float), ("col3", float)])
+        data = np.zeros(np.array(self.cell_names).size, dtype=[("col1", "U"+str(max_name_length)),
+                                                               ("col2", float), ("col3", float)])
         data["col1"] = np.array(self.cell_names)
         data["col2"] = np.array(self.cell_locs)
         data["col3"] = np.array(self.exp_noise_rates)
-        np.savetxt(out_file_name,
-                   X=data,
-                   fmt=("%10s", "%.4e", "%.4e"),
-                   header=header)
+        np.savetxt(out_file_name, X=data, fmt=("%10s", "%.4e", "%.4e"), header=header)
         # save mean exp noise rate
         out_file_name = directory + "\\" + folder_name + "\\" + year + month + day + "_cells_exp_noise_rate_mean.txt"
         file = open(out_file_name, 'w+')
-        if not (file.closed):
+        if not file.closed:
             file.write("mean exp_noise_rate [%]\n")
             file.write("%.4f" %(np.mean(self.exp_noise_rates)))
             file.close()
@@ -98,7 +105,7 @@ class ExpNoiseRate():
         # save mean exp noise rate
         out_file_name = directory + "\\" + folder_name + "\\" + year + month + day + "_cells_exp_noise_rate_list.txt"
         file = open(out_file_name, 'w+')
-        if not (file.closed):
+        if not file.closed:
             file.write(str(self.exp_noise_rates))
             file.close()
         # save background info
@@ -108,15 +115,12 @@ class ExpNoiseRate():
         data = np.zeros(np.array(self.bg_names).size, dtype=[("col1", "U"+str(max_name_length)), ("col2", float)])
         data["col1"] = np.array(self.bg_names)
         data["col2"] = np.array(self.bg_locs)
-        np.savetxt(out_file_name,
-                   X=data,
-                   fmt=("%10s", "%.4e"),
-                   header=header)
+        np.savetxt(out_file_name, X=data, fmt=("%10s", "%.4e"), header=header)
         # save figures
         if save_fig:
             for name, fig in zip(self.figure_names, self.figures):
                 fig.savefig(directory + "\\" + folder_name + "\\" + year + month + day + "_exp_noise_rate_" + name + ".pdf",
-                               format="pdf", transparent=True, bbox_inches = "tight")
+                               format="pdf", transparent=True, bbox_inches="tight")
 
     def run_exp_noise_rate(self, cell_dir, bg_dir, roi_path, suffix, bg_size):
         self.cell_pd, self.cell_names = self.get_files(cell_dir, suffix)

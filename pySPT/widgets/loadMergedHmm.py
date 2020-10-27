@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
 """
-Created on Wed Jun 19 17:37:57 2019
-
 @author: Johanna Rahm
-
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
+
+Load merged h5 file into hmmVisualization.ipynb.
 """
 
 import h5py
@@ -36,7 +34,7 @@ class LoadMergedHmm():
         # trc
         self.trc_hmm = []  # numpy.ndarray with numpy.voids
         self.trc_type = []
-        #cell size
+        # cell size
         self.cell_size = 0.0
         self.pixel_size = 0.0
         # groups
@@ -72,7 +70,6 @@ class LoadMergedHmm():
         self.equilibrium_matrix = dset_equilibrium_matrix[0]
 
     def get_observation_alphabet(self):
-        ##### typo
         dset_observation_alphabet = self.group_hmm["observationAlphabet"]
         self.observation_alphabet = dset_observation_alphabet[0]
 
@@ -83,28 +80,19 @@ class LoadMergedHmm():
     def get_diffusion_coef(self):
         dset_diffusion_coef = self.group_physical_model["diffusionCoefficient"]
         self.diffusion_coef = dset_diffusion_coef[:]
-        #print(self.diffusion_coef)
 
     def get_weight_coef(self):
         dset_weight_coef = self.group_physical_model["weightCoefficient"]
         self.weight_coef = dset_weight_coef[:]
-        #print(self.weight_coef)
 
     def get_judi(self):
-        #####
         dset_judi = self.group_judi["judiFile"]
-        #self.judi = dset_judi
-        #print(dset_judi[:,])
 
     def get_trcs(self):
         dset_trc_hmm = self.group_trc["trcHmm"]
         self.trc_hmm = dset_trc_hmm[:]
         dset_trc_type = self.group_trc["trcType"]
         self.trc_type = dset_trc_type[:]
-        #print(self.trc)
-
-    def show_hdf5_file(self):
-        print(self.hmm_cell_hdf5)
 
     def close_hdf5_file(self):
         self.hmm_cell_hdf5.close()

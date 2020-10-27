@@ -1,13 +1,9 @@
-# -*- coding: utf-8 -*-
 """
-Created on Tue Feb 19 09:14:39 2019
-
 @author: Johanna Rahm
-
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
-Handling widgets of trackStatistics JNB.
+Widget handling for trackStatistics.ipynb.
 """
 
 import tkinter as tk 
@@ -15,14 +11,13 @@ import os
 import os.path
 import tkinter.filedialog as fd
 from ipywidgets import widgets
-from IPython.display import display
 from IPython.display import clear_output
 import datetime
+
 
 class WidgetLoadHdf5():
     def __init__(self, bin_size, x_range, y_range):
         # Load cell.h5 files
-        #self.data_set_dir = ""  # directory of cell file search
         self.file_names = []  # list of file names for cell files
         self.suffix = ".h5"
         self.dir_button = self.create_dir_button()
@@ -50,7 +45,6 @@ class WidgetLoadHdf5():
         self.immob_type_check_box = self.create_immob_type_check_box()
         self.confined_type_check_box = self.create_confined_type_check_box()
         self.free_type_check_box = self.create_free_type_check_box()
-        #self.analyse_successful_check_box = self.create_analyse_successful_check_box()
         self.analyse_not_successful_check_box = self.create_analyse_not_successful_check_box()
         self.plot_diffusions_button = self.create_plot_diffusions_button()
         # Calculate the dynamic localization error
@@ -69,8 +63,6 @@ class WidgetLoadHdf5():
         self.Dplot_checkbox = self.create_Dplot_checkbox()
         self.save_button = self.create_save_button()
         self.save_folder_name_box = self.create_save_folder_name_box()
-        
-        #self.current_date = ""
     
     def search_sub_folders(self, dir_name, is_cell=True):
         if dir_name:
@@ -86,112 +78,86 @@ class WidgetLoadHdf5():
                     self.file_names_bg.append(os.path.join(root, name))
                 
     def create_dir_button(self):
-        """
-        Button to load a directory as search platform.
-        """
         button = widgets.Button(
-                description='browse',
+                description="browse",
                 disabled=False,
-                button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='browse for directory')
-                #icon='check')
+                button_style="",
+                tooltip="browse for directory")
         return button    
     
     def open_dir(self, b):
         root = tk.Tk()
         root.withdraw()
         root.update()
-        root.name = fd.askdirectory(initialdir=os.getcwd(),title='Please select a directory') 
+        root.name = fd.askdirectory(initialdir=os.getcwd(), title="Please select a directory")
         root.update()
         root.destroy()
         self.dir_name = root.name
         self.dir_box.value=self.dir_name
-        #self.got_dir = True
         
-    def create_dir_box(self, val = "", desc = "Directory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
-        """
-        Box for inserting the directory with description, alternative for dir loading button.
-        """
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='directory to be searched in', description=str(desc), disabled=False, style = style)
+    def create_dir_box(self, val="", desc="Directory"):
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder="directory to be searched in", description=str(desc), disabled=False, style=style)
         return text
     
     def change_dir_box(self, change):
-        self.dir_name = self.dir_box.value  
-        #self.got_dir = True
+        self.dir_name = self.dir_box.value
         
     def create_init_cells_button(self):
-        """
-        Initialize objects
-        """
         button = widgets.Button(
-                description='initialize',
+                description="initialize",
                 disabled=False,
-                button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='initialize objects')
-                #icon='check')
+                button_style="",
+                tooltip="initialize objects")
         return button    
     
     # Load bg.h5 files
     
     def create_dir_button_bg(self):
-        """
-        Button to load a directory as search platform.
-        """
         button = widgets.Button(
-                description='browse',
+                description="browse",
                 disabled=False,
-                button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='browse for directory')
-                #icon='check')
+                button_style="",
+                tooltip="browse for directory")
         return button    
     
     def open_dir_bg(self, b):
         root = tk.Tk()
         root.withdraw()
         root.update()
-        root.name = fd.askdirectory(initialdir=os.getcwd(),title='Please select a directory') 
+        root.name = fd.askdirectory(initialdir=os.getcwd(), title='Please select a directory')
         root.update()
         root.destroy()
         self.dir_name_bg = root.name
         self.dir_box_bg.value = self.dir_name_bg
-        #self.got_dir_bg = True
         
-    def create_dir_box_bg(self, val = "", desc = "Directory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
-        """
-        Box for inserting the directory with description, alternative for dir loading button.
-        """
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='directory to be searched in', description=str(desc), disabled=False, style = style)
+    def create_dir_box_bg(self, val = "", desc = "Directory"):
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder="directory to be searched in", description=str(desc), disabled=False, style=style)
         return text
     
     def change_dir_box_bg(self, change):
-        self.dir_name_bg = self.dir_box_bg.value  
-        #self.got_dir_bg = True
+        self.dir_name_bg = self.dir_box_bg.value
     
     def create_init_background_button(self):
-        """
-        Initialize objects
-        """
         button = widgets.Button(
-                description='initialize',
+                description="initialize",
                 disabled=False,
-                button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='initialize objects')
-                #icon='check')
+                button_style="",
+                tooltip="initialize objects")
         return button  
     
     def create_drop_down_cells(self):
         drop_down_cells = widgets.Dropdown(
                 options=self.cell_options,
-                description='Number:',
+                description="Number:",
                 disabled=False)
         return drop_down_cells
     
     def create_drop_down_trajectories(self):
         drop_down_trajectories = widgets.Dropdown(
                 options=self.trajectory_options,
-                description='Number:',
+                description="Number:",
                 disabled=False)
         return drop_down_trajectories
     
@@ -219,7 +185,7 @@ class WidgetLoadHdf5():
                 description="plot",
                 disabled=False,
                 button_style="",
-                tooltip = "plot chosen trajectory")
+                tooltip="plot chosen trajectory")
         return button
     
     def create_clear_output(self):
@@ -230,65 +196,50 @@ class WidgetLoadHdf5():
                 description="apply filter",
                 disabled=False,
                 button_style="",
-                tooltip = "apply filter")
+                tooltip="apply filter")
         return button
     
-    def create_min_length_box(self, val = "" , desc = "Trajectory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
-        """
-        Box for inserting the minimum length of a trajectory.
-        """
-        style = {'description_width': 'initial'}  # display too long desc
-        text_min = widgets.Text(value=str(val), placeholder='min length', description=str(desc), disabled=False, style = style)
+    def create_min_length_box(self, val="", desc="Trajectory"):
+        style = {"description_width": "initial"}
+        text_min = widgets.Text(value=str(val), placeholder="min length", description=str(desc), disabled=False, style=style)
         return text_min
     
-    def create_max_length_box(self, val = "", desc = "Trajectory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
-        """
-        Box for inserting the max length of a trajectory.
-        """
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='max length', description=str(desc), disabled=False, style = style)
+    def create_max_length_box(self, val="", desc="Trajectory"):
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder="max length", description=str(desc), disabled=False, style=style)
         return text
     
-    def create_min_D_box(self, val = "" , desc = "Diffusion coefficient"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
-        """
-        Box for inserting the minimum D value.
-        """
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='min value', description=str(desc), disabled=False, style = style)
+    def create_min_D_box(self, val="", desc="Diffusion coefficient"):
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder="min value", description=str(desc), disabled=False, style=style)
         return text
     
-    def create_max_D_box(self, val = "", desc = "Diffusion coefficient"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
-        """
-        Box for inserting the max D value.
-        """
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='max value', description=str(desc), disabled=False, style = style)
+    def create_max_D_box(self, val="", desc="Diffusion coefficient"):
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder="max value", description=str(desc), disabled=False, style=style)
         return text
     
     def create_immob_type_check_box(self):
-        """
-        True -> check box is already selected; False -> check box is not selected.
-        """
         checkbox = widgets.Checkbox(value=True,
-                         description='Immobile',
+                         description="Immobile",
                          disabled=False)
         return checkbox
     
     def create_confined_type_check_box(self):
         checkbox = widgets.Checkbox(value=True,
-                         description='Confined',
+                         description="Confined",
                          disabled=False)
         return checkbox
     
     def create_free_type_check_box(self):
         checkbox = widgets.Checkbox(value=True,
-                         description='Free',
+                         description="Free",
                          disabled=False)
         return checkbox
 
     def create_analyse_not_successful_check_box(self):
         checkbox = widgets.Checkbox(value=True,
-                         description='Type determination not successful',
+                         description="Type determination not successful",
                          disabled=False)
         return checkbox
     
@@ -297,87 +248,77 @@ class WidgetLoadHdf5():
                 description="plot",
                 disabled=False,
                 button_style="",
-                tooltip = "plot diffusion coefficients")
+                tooltip="plot diffusion coefficients")
         return button
     
     def create_calc_sigma_dyn_button(self):
         """
-        Button to calculate the dynamic localization error.
+        Button to calculate the dynamic localization error per cell.
         """
         button = widgets.Button(
-                description='calc',
+                description="calc",
                 disabled=False,
-                button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='dynamic localization error')
-                #icon='check')
+                button_style="",
+                tooltip="dynamic localization error")
         return button  
     
     # Plot diffusion histogram
     
-    def create_bin_size_box(self, val = "0.1" , desc = "bin size"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+    def create_bin_size_box(self, val="0.1", desc="bin size"):
         """
         Box for inserting the bin size for log10(D) histogram.
         """
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='size for log10(D) histogram', description=str(desc), disabled=False, style = style)
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder="size for log10(D) histogram", description=str(desc), disabled=False, style=style)
         return text
 
-    def create_MSD_delta_t_n(self, val = "None" , desc = "x range"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+    def create_MSD_delta_t_n(self, val="None", desc="x range"):
         """
-        Box for inserting the bin size for log10(D) histogram.
+        Box for inserting the x range in seconds for MSD plot.
         """
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='x range in seconds', description=str(desc), disabled=False, style = style)
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder="x range in seconds", description=str(desc), disabled=False, style=style)
         return text
 
-    def create_MSD_y_lim(self, val = "None" , desc = "y range"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
+    def create_MSD_y_lim(self, val="None", desc="y range"):
         """
-        Box for inserting the bin size for log10(D) histogram.
+        Box for inserting the y range for MSD plot.
         """
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='y limit of MSD plot', description=str(desc), disabled=False, style = style)
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder="y limit of MSD plot", description=str(desc), disabled=False, style=style)
         return text
+
     # Save h5 statistics
 
     def create_save_dir_button(self):
-        """
-        Button to select directory for saving statistics h5 file.
-        """
         button = widgets.Button(
-                description='browse',
+                description="browse",
                 disabled=False,
-                button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='browse for directory')
-                #icon='check')
+                button_style="",
+                tooltip="browse for directory")
         return button  
     
     def save_open_dir(self, b):
         root = tk.Tk()
         root.withdraw()
         root.update()
-        root.name = fd.askdirectory(initialdir=os.getcwd(),title='Please select a directory') 
+        root.name = fd.askdirectory(initialdir=os.getcwd(), title="Please select a directory")
         root.update()
         root.destroy()
         self.dir_save = root.name
         self.save_dir_box.value=self.dir_save
         
-    def create_save_dir_box(self, val = "", desc = "directory"):  # val = in box, desc = infront of box; val = "C:\\Users\\pcoffice37\\Documents\\testing_file_search"
-        """
-        Box for inserting the directory with description, alternative for dir loading button.
-        """
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='directory for filtered data', description=str(desc), disabled=False, style = style)
+    def create_save_dir_box(self, val="", desc="directory"):
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder="directory for filtered data", description=str(desc), disabled=False, style=style)
         return text
     
     def change_save_dir_box(self, change):
         self.dir_save = self.save_dir_box.value   
     
-    def create_save_raw_base_name_box(self, val = "statistics", desc = "file name"):
-        """
-        Box for inserting the raw base name for statistics h5 file.
-        """
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='name for statistics .h5 file', description=str(desc), disabled=False, style = style)
+    def create_save_raw_base_name_box(self, val="statistics", desc="file name"):
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder="name for statistics .h5 file", description=str(desc), disabled=False, style=style)
         return text
     
     def calc_date(self):
@@ -393,30 +334,27 @@ class WidgetLoadHdf5():
         date = str(year + month + day)
         return date
     
-    def create_save_folder_name_box(self, desc = "folder name"):
-        """
-        Box for inserting the raw base name for statistics h5 file.
-        """
+    def create_save_folder_name_box(self, desc="folder name"):
         current_date = self.calc_date()
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(current_date + "_filtered"), placeholder='name of folder', description=str(desc), disabled=False, style = style)
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(current_date + "_filtered"), placeholder="name of folder", description=str(desc), disabled=False, style=style)
         return text
         
     def create_filtered_dataset_checkbox(self):
         checkbox = widgets.Checkbox(value=True,
-                         description='Save filtered dataset',
+                         description="Save filtered dataset",
                          disabled=False)
         return checkbox
     
     def create_Dplot_checkbox(self):
         checkbox = widgets.Checkbox(value=True,
-                         description='Save global plots',
+                         description="Save global plots",
                          disabled=False)
         return checkbox
     
     def create_hmm_trc_checkbox(self):
         checkbox = widgets.Checkbox(value=False,
-                         description='Save filtered .trc files',
+                         description="Save filtered .trc files",
                          disabled=False)
         return checkbox
     
@@ -425,7 +363,5 @@ class WidgetLoadHdf5():
                 description="save",
                 disabled=False,
                 button_style="",
-                tooltip = "save statistics")
+                tooltip="save statistics")
         return button
-
-    

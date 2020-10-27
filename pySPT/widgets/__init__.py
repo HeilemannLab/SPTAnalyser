@@ -1,9 +1,5 @@
-# -*- coding: utf-8 -*-
 """
-Created on Mon Jan 14 16:12:02 2019
-
-@author: pcoffice37
-
+@author: Johanna Rahm
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 """

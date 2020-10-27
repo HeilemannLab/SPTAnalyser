@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
 """
-Created on Wed Jun 19 17:28:20 2019
-
 @author: Johanna Rahm
-
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
+
+Widget handling for hmmVisualization.ipynb.
 """
 
 import tkinter as tk 
@@ -13,7 +11,6 @@ import os
 import os.path
 import tkinter.filedialog as fd
 from ipywidgets import widgets
-from IPython.display import display
 from IPython.display import clear_output
 import datetime
 
@@ -45,58 +42,45 @@ class WidgetHmmVis():
         self.save_button = self.create_save_button()
 
     def create_state_radiobutton(self):
-        """
-        Radiobutton to choose if the state population is based on the equilibrium matrix or
-        physical model.
-        """
         button = widgets.RadioButtons(
-                options = ["physical model", "equilibrium matrix", "state occurence"],
-                disabled = False)
+                options=["physical model", "equilibrium matrix", "state occurence"],
+                disabled=False)
         return button
-        
-        #physical model, equilibrium matrix
         
     def create_add_graphviz_bin_box(self, val="C:\\Program Files (x86)\\Graphviz2.38\\bin", desc="Graphviz bin path"):
         """
         Box for inserting the path to the bin folder of the graphviz installation (in programs).
         """
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style=style)
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder="Type something", description=str(desc), disabled=False, style=style)
         return text
     
     def create_add_graphviz_tmp_box(self, val="C:\\Users\\pcoffice37\\Documents\\graphviz_tmp", desc = "Graphviz tmp path"):
         """
-        Box for inserting the path to the bin folder of the graphviz installation (in programs).
+        Box for inserting the path to the tmp folder in the SPTAnalyser directory.
         """
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='Type something', description=str(desc), disabled=False, style=style)
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder="Type something", description=str(desc), disabled=False, style=style)
         return text
         
-    def create_load_dir_box(self, val="", desc="Directory"):  # val = in box, desc = infront of box
-        """
-        Box for inserting the directory from which all .h5 files will be loaded.
-        """
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='directory to be searched in', description=str(desc), disabled=False, style = style)
+    def create_load_dir_box(self, val="", desc="Directory"):
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder="directory to be searched in", description=str(desc), disabled=False, style=style)
         return text
     
     def create_load_dir_button(self):
-        """
-        Button to load the file.
-        """
         button = widgets.Button(
-                description='browse',
+                description="browse",
                 disabled=False,
-                button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='browse for directory')
-                #icon='check')
+                button_style="",
+                tooltip="browse for directory")
         return button
 
     def open_dir(self, b):
         root = tk.Tk()
         root.withdraw()
         root.update()
-        root.name = fd.askdirectory(initialdir=os.getcwd(),title='Please select a directory') 
+        root.name = fd.askdirectory(initialdir=os.getcwd(), title="Please select a directory")
         root.update()
         root.destroy()
         self.load_dir_name = root.name
@@ -112,11 +96,10 @@ class WidgetHmmVis():
         Button to plot.
         """
         button = widgets.Button(
-                description='plot',
+                description="plot",
                 disabled=False,
-                button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='click to plot')
-                #icon='check')
+                button_style="",
+                tooltip="click to plot")
         return button
     
     def search_sub_folders(self, dir_name):
@@ -126,13 +109,13 @@ class WidgetHmmVis():
  
     def extend_list(self, root, files):
         for name in files:
-            if name.endswith(self.suffix):
+            if name.endswith(self.suffix) and "hmm_vis" not in name:
                 self.file_names.append(os.path.join(root, name))
                 
     def create_drop_down_cells(self):
         drop_down_cells = widgets.Dropdown(
                 options=self.cell_options,
-                description='Number:',
+                description="Number:",
                 disabled=False)
         return drop_down_cells
     
@@ -146,59 +129,44 @@ class WidgetHmmVis():
     def create_drop_down_trajectories(self):
         drop_down_trajectories = widgets.Dropdown(
                 options=self.trajectory_options,
-                description='Number:',
+                description="Number:",
                 disabled=False)
         return drop_down_trajectories
     
     def create_plot_trajectory_button(self):
-        """
-        Button to plot single trajectories
-        """
         button = widgets.Button(
-                description='plot',
+                description="plot",
                 disabled=False,
-                button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='plot chosen trajectory')
-                #icon='check')
+                button_style="",
+                tooltip="plot chosen trajectory")
         return button
    
     # saving
     
     def create_save_plots_checkbox(self):
-        """
-        If true, all plots will be saved in a folder.
-        """
         checkbox = widgets.Checkbox(value=True,
-                         description='Save plots',
+                         description="Save plots",
                          disabled=False)
         return checkbox
     
-    
-    def create_save_dir_box(self, val = "", desc = "Insert directory"):  # val = in box, desc = infront of box
-        """
-        Box for inserting the path with description, alternative for file loading button.
-        """
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(val), placeholder='Directory to save', description=str(desc), disabled=False, style = style)
+    def create_save_dir_box(self, val="", desc="Insert directory"):
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder='Directory to save', description=str(desc), disabled=False, style=style)
         return text
     
     def create_save_dir_button(self):
-        """
-        Button to load the file.
-        """
         button = widgets.Button(
-                description='browse',
+                description="browse",
                 disabled=False,
-                button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='browse for directory')
-                #icon='check')
+                button_style="",
+                tooltip="browse for directory")
         return button
     
     def save_open_dir(self, b):
         root = tk.Tk()
         root.withdraw()
         root.update()
-        root.name = fd.askdirectory(initialdir=os.getcwd(),title='Please select a directory') 
+        root.name = fd.askdirectory(initialdir=os.getcwd(), title="Please select a directory")
         root.update()
         root.destroy()
         self.save_dir_name = root.name
@@ -220,28 +188,19 @@ class WidgetHmmVis():
         date = str(year + month + day)
         return date
     
-    def create_save_folder_name_box(self, desc = "Folder name"):
-        """
-        Box for inserting the raw base name for statistics h5 file.
-        """
+    def create_save_folder_name_box(self, desc="Folder name"):
         current_date = self.calc_date()
-        style = {'description_width': 'initial'}  # display too long desc
-        text = widgets.Text(value=str(current_date + "_hmm_results"), placeholder='name of folder', description=str(desc), disabled=False, style = style)
+        style = {"description_width": "initial"}  # display too long desc
+        text = widgets.Text(value=str(current_date + "_hmm_results"), placeholder="name of folder", description=str(desc), disabled=False, style=style)
         return text
 
     def create_save_button(self):
-        """
-        Button to load the file.
-        """
         button = widgets.Button(
-                description='save',
+                description="save",
                 disabled=False,
-                button_style='', # 'success', 'info', 'warning', 'danger' or ''
-                tooltip='click to save')
-                #icon='check')
+                button_style="",
+                tooltip="click to save")
         return button
     
     def create_clear_output(self):
         clear_output()
-    
-    

@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 """
-Created on Thu Feb  7 10:01:02 2019
-
 @author: Johanna Rahm
-
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
+
+Coverslip -> Cell -> Trajectory.
+Create a coverslip object containing measurement informations that are handed down to cells and trajectories.
 """
 
 import numpy as np
@@ -134,7 +133,6 @@ class CoverSlip():
                 else:
                     print("All trajecoties are shorter as the minimum trajectory length inserted, please select a smaller minimum threshold.")
                 pbar.update(1)
-
         print("Analysis took {} s".format(time.time()-start))
         print(" ")
             
@@ -151,12 +149,3 @@ class CoverSlip():
                     if trajectory_idx == trajectory.trajectory_number:
                         target_trajectory = cell.analysed_trajectories.index(trajectory)
         self.cell_trajectories[cell_index][target_trajectory].plot_particle()
-
-
-def main():
-    pass
-
-
-if __name__ == "__main__":
-    main()
-    

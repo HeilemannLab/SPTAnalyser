@@ -1,12 +1,7 @@
-# -*- coding: utf-8 -*-
 """
-Created on Fri Jan 11 13:23:47 2019
-
 @author: Johanna Rahm
-
-Research Group Heilemann
-Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt am Main.
+Research group Heilemann
+Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 """
-
 
 __all__ = ["expDisplacement", "expNoiseRate", "pBleach", "precision"]

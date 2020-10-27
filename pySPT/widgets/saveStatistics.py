@@ -1,19 +1,15 @@
-# -*- coding: utf-8 -*-
 """
-Created on Mon Mar 11 14:19:23 2019
-
 @author: Johanna Rahm
-
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
-TrackStatistics: Save statistics as hdf5
+Save statistics.h5 file in TrackStatistics.ipynb.
 """
 
 import h5py
-import tkinter as tk
 import os
 import numpy as np
+
 
 class SaveStatistics():
     def __init__(self):
@@ -31,10 +27,9 @@ class SaveStatistics():
         self.groups()   
         
     def create_h5_file(self):
-        self.h5_file = h5py.File(self.trc_file_hdf5, "w")  # w- or x = Create file, fail if exists
+        self.h5_file = h5py.File(self.trc_file_hdf5, "w")
 
-    def create_h5_name(self, path):     
-        # splitext -> tupel with path split from .* ending. It splits at the last dot in name.
+    def create_h5_name(self, path):
         self.trc_file_hdf5 = os.path.splitext(path)[0] + ".h5"    
         
     def groups(self):
@@ -52,7 +47,7 @@ class SaveStatistics():
     def cells(self, data):
         my_datatype = np.dtype([("cell name", h5py.special_dtype(vlen=str)),
                                 ("cell size [\u03BCm\u00b2]", float)])
-        dset = self.grp00.create_dataset("cells", (np.shape(data)[0],), dtype = my_datatype)
+        dset = self.grp00.create_dataset("cells", (np.shape(data)[0],), dtype=my_datatype)
         data_array = np.array(data, dtype=my_datatype)
         dset[...] = data_array
         self.h5_file.close()
@@ -60,30 +55,33 @@ class SaveStatistics():
     def backgrounds(self, data):
         my_datatype = np.dtype([("background name", h5py.special_dtype(vlen=str)),
                                 ("background size [\u03BCm\u00b2]", float)])
-        dset = self.grp02.create_dataset("backgrounds", (np.shape(data)[0],), dtype = my_datatype)
+        dset = self.grp02.create_dataset("backgrounds", (np.shape(data)[0],), dtype=my_datatype)
         data_array = np.array(data, dtype=my_datatype)
         dset[...] = data_array
 
     def cell_counts(self, cell_name, number, diffusion_coeff, counts):
-        dset = self.grp01.create_dataset(cell_name, (number, ), dtype = np.dtype([("diffusion coefficient [\u03BCm\u00b2/s]", float),
-                                         ("counts / area [1/\u03BCm\u00b2]", float)]))
+        dset = self.grp01.create_dataset(cell_name, (number,),
+                                         dtype=np.dtype([("diffusion coefficient [\u03BCm\u00b2/s]", float),
+                                                         ("counts / area [1/\u03BCm\u00b2]", float)]))
         dset["diffusion coefficient [\u03BCm\u00b2/s]"] = diffusion_coeff
         dset["counts / area [1/\u03BCm\u00b2]"] = counts
         
     def bg_counts(self, bg_name, number, diffusion_coeff, counts):
-        dset = self.grp03.create_dataset(bg_name, (number, ), dtype = np.dtype([("diffusion coefficient [\u03BCm\u00b2/s]", float),
-                                         ("counts / area [1/\u03BCm\u00b2]", float)]))
+        dset = self.grp03.create_dataset(bg_name, (number,),
+                                         dtype=np.dtype([("diffusion coefficient [\u03BCm\u00b2/s]", float),
+                                                         ("counts / area [1/\u03BCm\u00b2]", float)]))
         dset["diffusion coefficient [\u03BCm\u00b2/s]"] = diffusion_coeff
         dset["counts / area [1/\u03BCm\u00b2]"] = counts
         
     def filter_info(self, filter_settings, filter_thresholds_values):
-        dset = self.grp04.create_dataset("filters", (1,1), dtype = np.dtype([("filter immobile", int),
+        dset = self.grp04.create_dataset("filters", (1, 1),
+                                         dtype=np.dtype([("filter immobile", int),
                                                          ("filter confined", int),
                                                          ("filter free", int),
                                                          ("type determination not successful", int),
                                                          ("min trajectory length [frames]", int),
-                                                        ("max trajectory length [frames]", int),
-                                                        ("min diffusion coefficient [\u03BCm\u00b2/s]", float),
+                                                         ("max trajectory length [frames]", int),
+                                                         ("min diffusion coefficient [\u03BCm\u00b2/s]", float),
                                                          ("max diffusion coefficient [\u03BCm\u00b2/s]", float)]))
         dset["filter immobile"] = filter_settings[0]
         dset["filter confined"] = filter_settings[1]
@@ -96,7 +94,8 @@ class SaveStatistics():
         
     def statistics_4(self, type_percentages, dtype_percentages, trajectories_included, trajectories_excluded,
                      mean_Ds, mean_dDs, mean_lengths, mean_dlengths):
-        dset = self.grp06.create_dataset("statistics_4", (1,1), dtype = np.dtype([("immobile [%]", float),
+        dset = self.grp06.create_dataset("statistics_4", (1, 1),
+                                         dtype=np.dtype([("immobile [%]", float),
                                                          ("confined [%]", float),
                                                          ("free [%]", float),
                                                          ("no type [%]", float),
@@ -122,7 +121,6 @@ class SaveStatistics():
                                                          ("\u0394 mean length confined [frames]", float),
                                                          ("\u0394 mean length free [frames]", float),
                                                          ("\u0394 mean length no type [frames]", float)]))
-
         dset["immobile [%]"] = type_percentages[0]
         dset["confined [%]"] = type_percentages[1]
         dset["free [%]"] = type_percentages[2]
@@ -152,7 +150,8 @@ class SaveStatistics():
 
     def statistics_3(self, type_percentages, dtype_percentages, trajectories_included, trajectories_excluded,
                      mean_Ds, mean_dDs, mean_lengths, mean_dlengths):
-        dset = self.grp06.create_dataset("statistics_3", (1,1), dtype = np.dtype([("immobile+no type [%]", float),
+        dset = self.grp06.create_dataset("statistics_3", (1, 1),
+                                         dtype=np.dtype([("immobile+no type [%]", float),
                                                          ("confined [%]", float),
                                                          ("free [%]", float),
                                                          ("\u0394 immobile+no type [%]", float),
@@ -172,7 +171,6 @@ class SaveStatistics():
                                                          ("\u0394 mean length immobile+no type [frames]", float),
                                                          ("\u0394 mean length confined [frames]", float),
                                                          ("\u0394 mean length free [frames]", float)]))
-
         dset["immobile+no type [%]"] = type_percentages[4]
         dset["confined [%]"] = type_percentages[1]
         dset["free [%]"] = type_percentages[2]
@@ -195,21 +193,29 @@ class SaveStatistics():
         dset["\u0394 mean length free [frames]"] = mean_dlengths[2]
         
     def diffusion_plot(self, number, diffusion, mean_cell, dmean_cell):
-        dset = self.grp05.create_dataset("histogram values", (number,), dtype = np.dtype([("diffusion coefficient [\u03BCm\u00b2/s]", float),
-                                                 ("mean frequency cells", float),
-                                                 ("\u0394 mean frequency cells", float)]))
+        """
+        Diffusion plot.
+        """
+        dset = self.grp05.create_dataset("histogram values", (number,),
+                                         dtype=np.dtype([("diffusion coefficient [\u03BCm\u00b2/s]", float),
+                                                         ("mean frequency cells", float),
+                                                         ("\u0394 mean frequency cells", float)]))
         dset["diffusion coefficient [\u03BCm\u00b2/s]"] = diffusion    
         dset["mean frequency cells"] = mean_cell
         dset["\u0394 mean frequency cells"] = dmean_cell
         
     def diffusion_plot_bg(self, number, diffusion, mean_cell, dmean_cell, mean_bg, dmean_bg, mean_cell_corr, dmean_cell_corr):
-        dset = self.grp05.create_dataset("histogram values", (number,), dtype = np.dtype([("diffusion coefficient [\u03BCm\u00b2/s]", float),
-                                                              ("mean frequency cells", float),
-                                                              ("\u0394 mean frequency cells", float),
-                                                              ("mean frequency background", float),
-                                                              ("\u0394 mean frequency background", float),
-                                                              ("mean frequency corrected", float),
-                                                              ("\u0394 mean frequency corrected", float)]))
+        """
+        Diffusion plot, background correction, normalized.
+        """
+        dset = self.grp05.create_dataset("histogram values", (number,),
+                                         dtype=np.dtype([("diffusion coefficient [\u03BCm\u00b2/s]", float),
+                                                         ("mean frequency cells", float),
+                                                         ("\u0394 mean frequency cells", float),
+                                                         ("mean frequency background", float),
+                                                         ("\u0394 mean frequency background", float),
+                                                         ("mean frequency corrected", float),
+                                                         ("\u0394 mean frequency corrected", float)]))
         dset["diffusion coefficient [\u03BCm\u00b2/s]"] = diffusion
         dset["mean frequency cells"] = mean_cell
         dset["\u0394 mean frequency cells"] = dmean_cell
@@ -220,11 +226,12 @@ class SaveStatistics():
     
     def diffusion_plot_normalized(self, number, diffusion, mean_cell_percent, dmean_cell_percent):
         """
-        Diffusion plot without bg correction, normalized.
+        Diffusion plot, normalized.
         """
-        dset = self.grp05.create_dataset("histogram values normalized", (number,), dtype = np.dtype([("diffusion coefficient [\u03BCm\u00b2/s]", float),
-                                                 ("mean frequency cells [%]", float),
-                                                 ("\u0394 mean frequency cells [%]", float)]))
+        dset = self.grp05.create_dataset("histogram values normalized", (number,),
+                                         dtype=np.dtype([("diffusion coefficient [\u03BCm\u00b2/s]", float),
+                                                         ("mean frequency cells [%]", float),
+                                                         ("\u0394 mean frequency cells [%]", float)]))
         dset["diffusion coefficient [\u03BCm\u00b2/s]"] = diffusion    
         dset["mean frequency cells [%]"] = mean_cell_percent
         dset["\u0394 mean frequency cells [%]"] = dmean_cell_percent
@@ -233,19 +240,20 @@ class SaveStatistics():
                                         dmean_cell_conf, mean_cell_free, dmean_cell_free, mean_cell_notype,
                                         dmean_cell_notype, mean_cell_immob_notype, dmean_cell_immob_notype):
         """
-        Normalized values of types, no bg.
+        Diffusion plot, types, normalized.
         """
-        dset = self.grp05.create_dataset("histogram values normalized types", (number,), dtype = np.dtype([("diffusion coefficient [\u03BCm\u00b2/s]", float),
-                                                 ("mean frequency immob [%]", float),
-                                                 ("\u0394 mean frequency immob [%]", float),
-                                                 ("mean frequency conf [%]", float),
-                                                 ("\u0394 mean frequency conf [%]", float),
-                                                 ("mean frequency free [%]", float),
-                                                 ("\u0394 mean frequency free [%]", float),
-                                                 ("mean frequency notype [%]", float),
-                                                 ("\u0394 mean frequency notype [%]", float),
-                                                 ("mean frequency immob+notype [%]", float),
-                                                 ("\u0394 mean frequency immob+notype [%]", float)]))
+        dset = self.grp05.create_dataset("histogram values normalized types", (number,),
+                                         dtype=np.dtype([("diffusion coefficient [\u03BCm\u00b2/s]", float),
+                                                         ("mean frequency immob [%]", float),
+                                                         ("\u0394 mean frequency immob [%]", float),
+                                                         ("mean frequency conf [%]", float),
+                                                         ("\u0394 mean frequency conf [%]", float),
+                                                         ("mean frequency free [%]", float),
+                                                         ("\u0394 mean frequency free [%]", float),
+                                                         ("mean frequency notype [%]", float),
+                                                         ("\u0394 mean frequency notype [%]", float),
+                                                         ("mean frequency immob+notype [%]", float),
+                                                         ("\u0394 mean frequency immob+notype [%]", float)]))
         dset["diffusion coefficient [\u03BCm\u00b2/s]"] = diffusion
         dset["mean frequency immob [%]"] = mean_cell_immob
         dset["\u0394 mean frequency immob [%]"] = dmean_cell_immob
@@ -258,15 +266,17 @@ class SaveStatistics():
         dset["mean frequency immob+notype [%]"] = mean_cell_immob_notype
         dset["\u0394 mean frequency immob+notype [%]"] = dmean_cell_immob_notype
 
-    def diffusion_plot_bg_normalized(self, number, diffusion, mean_cell_percent, dmean_cell_percent, mean_cell_corr_percent, dmean_cell_corr_percent):
+    def diffusion_plot_bg_normalized(self, number, diffusion, mean_cell_percent, dmean_cell_percent,
+                                     mean_cell_corr_percent, dmean_cell_corr_percent):
         """
-        Diffusion plot with bg correction, normalized.
+        Diffusion plot, background correction, normalized.
         """
-        dset = self.grp05.create_dataset("histogram values normalized", (number,), dtype = np.dtype([("diffusion coefficient [\u03BCm\u00b2/s]", float),
-                                                 ("mean frequency cells [%]", float),
-                                                 ("\u0394 mean frequency cells [%]", float),
-                                                 ("mean frequency corrected [%]", float),
-                                                 ("\u0394 mean frequency corrected [%]", float)]))
+        dset = self.grp05.create_dataset("histogram values normalized", (number,),
+                                         dtype=np.dtype([("diffusion coefficient [\u03BCm\u00b2/s]", float),
+                                                         ("mean frequency cells [%]", float),
+                                                         ("\u0394 mean frequency cells [%]", float),
+                                                         ("mean frequency corrected [%]", float),
+                                                         ("\u0394 mean frequency corrected [%]", float)]))
         dset["diffusion coefficient [\u03BCm\u00b2/s]"] = diffusion
         dset["mean frequency cells [%]"] = mean_cell_percent
         dset["\u0394 mean frequency cells [%]"] = dmean_cell_percent
@@ -274,13 +284,14 @@ class SaveStatistics():
         dset["\u0394 mean frequency corrected [%]"] = dmean_cell_corr_percent
     
     def diffusion_bin_size(self, bin_size):
-        dset = self.grp05.create_dataset("bin size", (1,1), dtype = np.dtype([("bin size", float)]))
+        dset = self.grp05.create_dataset("bin size", (1, 1), dtype=np.dtype([("bin size", float)]))
         dset["bin size"] = bin_size
 
     def average_MSD(self, dataset_name, number, delta_t, MSD_values, MSD_errors):
-        dset = self.grp07.create_dataset(dataset_name, (number,), dtype = np.dtype([("delta_t [s]", float),
-                                                                                   ("MSD [\u03BCm\u00b2]", float),
-                                                                                   ("\u0394 MSD [\u03BCm\u00b2]", float)]))
+        dset = self.grp07.create_dataset(dataset_name, (number,),
+                                         dtype=np.dtype([("delta_t [s]", float),
+                                                         ("MSD [\u03BCm\u00b2]", float),
+                                                         ("\u0394 MSD [\u03BCm\u00b2]", float)]))
         dset["delta_t [s]"] = delta_t
         dset["MSD [\u03BCm\u00b2]"] = MSD_values
         dset["\u0394 MSD [\u03BCm\u00b2]"] = MSD_errors
