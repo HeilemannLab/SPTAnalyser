@@ -14,7 +14,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
     
 setuptools.setup(name = "SPTAnalyser",
-                 version = "04.09.20",
+                 version = "12.01.2021",
                  author = "Johanna Rahm and Sebastian Malkusch",
                  author_email = "johanna-rahm@gmx.de",
                  description = "a package for analysing SPT data",
@@ -34,8 +34,7 @@ setuptools.setup(name = "SPTAnalyser",
                                    "hide_code",
                                    "tornado==5.1",
                                    "pandas",
-                                   "graphviz",
-                                   "python-graphviz"],
+                                   "graphviz"],
                    classifiers = ["Programming Language :: Python :: 3",
                                   "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",  # "License :: OSI Approved :: GPL-3.0 License",
                                   "Operating System :: OS Independent",],)
