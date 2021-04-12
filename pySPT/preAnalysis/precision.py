@@ -417,11 +417,12 @@ class Precision():
         plt.show()
         self.figure_box = fig
 
-    def save_precision_list(self, path, precision_lst, save_fig):
+    def save_precision_list(self, path, precision_lst, save_fig, cell_names):
         try:
             os.mkdir(path)
         except FileExistsError:
             pass
+        # save precision values as list
         file = open(path + "\\precisions_list.txt", "w+")
         file.write(str(precision_lst))
         file.close()
@@ -434,9 +435,21 @@ class Precision():
             month = str(0) + month
         if len(day) == 1:
             day = str(0) + day
+        # save precision figure
         if save_fig:
             self.figure_box.savefig(path + "\\" + year + month + day + "_precision.pdf",
                            format="pdf", transparent=True, bbox_inches= "tight")
+        # save cell info & precision values as column
+        out_file_name = path + "\\precisions.txt"
+        header = "cell name\tprecision [nm]\t"
+        cell_names = [os.path.splitext(i)[0] for i in cell_names]
+        max_name_length = max([len(i) for i in cell_names])
+        data = np.zeros(np.array(cell_names).size, dtype=[("col1", "U"+str(max_name_length)),
+                                                               ("col2", float)])
+        data["col1"] = np.array(cell_names)
+        data["col2"] = np.array(precision_lst)
+        np.savetxt(out_file_name, X=data, fmt=("%10s", "%.4e"), header=header)
+
         print("Results successfully saved.")
 
     def save_microscope(self, file_dir, pixel_size, dt):

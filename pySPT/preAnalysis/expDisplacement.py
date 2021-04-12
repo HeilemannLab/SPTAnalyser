@@ -110,12 +110,9 @@ class ExpDisplacement():
             day = str(0) + day
         out_file_name = directory + "\\" + year + month + day + "_" + base_name + "_exp_displacement.txt"
         file = open(out_file_name, 'w+')
-        if not file.close:
-            file.write("exp_displacement [nm]\tmax_mjd [nm]\n")
-            file.write("%.3f\t%.3f\n" %(self.average_mjd, self.max_mjd))
-            file.close()
-        else:
-            print("error: could not open file %s. Make sure the folder does exist" %(out_file_name))
+        file.write("exp_displacement [nm]\tmax_mjd [nm]\n")
+        file.write("%.3f\t%.3f\n" %(self.average_mjd, self.max_mjd))
+        file.close()
         
     def run_exp_displacement(self):
         self.load_seg_file()

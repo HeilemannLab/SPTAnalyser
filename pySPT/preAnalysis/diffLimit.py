@@ -216,7 +216,7 @@ class DiffLimit():
                 for file in self.files:
                     file_distances = []
                     if file_ending == ".csv":
-                        for frame in range(min(file["frame"]), max(file["frame"])):
+                        for frame in range(min(file["frame"]), max(file["frame"])+1):
                             frame_file = file[file["frame"] == frame]
                             xy_positions = self.xy_stack(frame_file["x [nm]"].to_numpy(), frame_file["y [nm]"].to_numpy())
                             neighbor_positions = []
