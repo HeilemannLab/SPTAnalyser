@@ -1,33 +1,35 @@
-# pySPT
-pySPT a tool for ...
+# SPTAnalyser
+
+Batch processing of single particle tracking data</br>
+Compatible with PALMTracer<sup>[1]</sup>, rapidSTORM<sup>[2]</sup>, ThunderSTORM<sup>[3]</sup> and swift<sup>[4]</sup></br>
+MSD-based extraction of diffusion coefficients and diffusion types<sup>[5]</sup></br>
+Transition counting between different diffusion modes</br>
+Hidden markov modeling with ermine<sup>[6]</sup>
 
 ## To install the package run:
 
-python setup.py sdist bdist_wheel
-
-pip install pySPT-19.3-py3-none-any.whl
-
-pip install tornado== 5.1
-
-jupyter nbextension install --py hide_code
-
-jupyter nbextension enable --py hide_code
-
-jupyter serverextension enable --py hide_code
-
+```
+conda create --name SPTAnalyser
+conda activate SPTAnalyser
+cd path_to_file
+conda install pip
+pip install SPTAnalyser-XXXXX-py3-none-any.whl
+pip install jupyter_contrib_nbextensions
+jupyter contrib nbextension install
+jupyter notebook 
+```
 
 ## Literature
-The code is based upon the work of Harwardt et al. 2017
 
-See: Harwardt M.-L. I. E., Young P., Bleymüller W. M., Meyer T., Karathanasis C., Niemann H. H., Heilemann M., Dietz M. S. (2017) Membrane dynamics of resting and internalin B-bound MET receptor tyrosine kinase studied by single-molecule tracking.
-FEBS Open Bio. 2017 (7):1422-1440.
-
-DOI: doi:10.1002/2211-5463.12285
+[1] https://www.iins.u-bordeaux.fr/team-sibarita-PALMTracer
+[2] S. Wolter, A. Löschberger, T. Holm, S. Aufmkolk, M.-C. Dabauvalle, S. van de Linde, M. Sauer, 2012, Nature Methods, 9, 1040-1041, DOI: 10.1038/nmeth.2224 </br>
+[3] M. Ovesny, P. Krizek, J. Borkovec, Z. Svindrych, G. M. Hagen, 2014, Bioinformatics, 30, 2389-2390, DOI: 10.1093/bioinformatics/btu202 </br>
+[4] M. Endesfelder, C. Schießl, B. Turkowyd, T. Lechner, U. Endesfelder, Manuscript in Prep. </br>
+[5] M.-L. I. E. Harwardt, P. Young, W. M. Bleymüller, T. Meyer, C. Karathanasis, H. H. Niemann, M. Heilemann, M. S. Dietz, 2017, FEBS Open Bio, 7, 1422-1440, DOI: 10.1002/2211-5463.12285 </br>
+[6] https://github.com/SMLMS/ermine
 
 
 ## Web
-For more information visit:
-
-http://share.smb.uni-frankfurt.de
-
+For more information visit:  </br>
+http://share.smb.uni-frankfurt.de  </br>
 https://github.com/JohannaRahm

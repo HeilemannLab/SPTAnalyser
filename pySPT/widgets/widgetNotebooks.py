@@ -1,15 +1,12 @@
-# -*- coding: utf-8 -*-
 """
-Created on Wed Feb 20 14:02:19 2019
-
 @author: Johanna Rahm
-
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
-Large juncs of code that would scare the user of the JNB :) 
-"""
+Determine the false positive rate of localizations per cell in %, based on background noise.
 
+Large junks of code that would scare the user of the JNB :)
+"""
 
 from . import hdf5
 from . import saveFiltered
@@ -39,6 +36,7 @@ def load_merged_h5(file_paths):
         merged_h5s.append(load_merged_hmm)
     return merged_h5s
 
+
 def init_merge_hdf5_path_handler(h5_paths, archive_paths, save_paths):
     """
     Opens the txt files that contain all paths in a list and iterates through
@@ -54,7 +52,6 @@ def init_merge_hdf5_path_handler(h5_paths, archive_paths, save_paths):
         merge_hdf5 = mergeHdf5.MergeHdf5(line_h5_strip, line_archive_strip, line_save_strip)
         merge_hdf5.run()
         print("{} saved".format(line_save))
-        print("Duration: %.2f s" % (time.time() - start))
     print("Merging successful!")
     print("Duration: %.2f s"%(time.time()-start))
 
@@ -79,11 +76,9 @@ def init_filter_notebook(cover_slip, widget_load_hdf5, load_hdf5, is_cell=True):
         one_cell = cell.Cell()
         one_cell.filtered_trc_file_hmm = load_hdf5.trc_files_hmm[cell_index]
         one_cell.converted_trc_file_type = load_hdf5.trc_files_type[cell_index]
-        #print("converted trc file type", one_cell.converted_trc_file_type)
         one_cell.pixel_size = load_hdf5.pixel_sizes[cell_index]
         one_cell.pixel_amount = load_hdf5.pixel_amounts[cell_index]
         one_cell.size = load_hdf5.cell_sizes[cell_index]
-        #one_cell.points_fit_D = load_hdf5.points_fit_D[cell_index]
         one_cell.name = load_hdf5.names[cell_index]
         one_cell.tau_threshold = load_hdf5.tau_thresholds[cell_index]
         one_cell.dt = load_hdf5.dts[cell_index]
@@ -214,7 +209,8 @@ def init_save_track_analysis(cover_slip, cell_index, track_analysis, widget_trac
     if widget_track_analysis.hmm_check_box.value:
         widget_dir_structure.sub_folder = "\\hmm"
         widget_dir_structure.create_folder()
-        save_trc_hmm = saveTrcHmm.SaveTrcHmm(cell.filtered_trc_file_hmm, cell.pixel_size, widget_dir_structure.sub_folder_dir, widget_dir_structure.raw_base_name, widget_track_analysis.hmm_trc_float_precision_box.value)
+        save_trc_hmm = saveTrcHmm.SaveTrcHmm(cell.filtered_trc_file_hmm, cell.pixel_size, widget_dir_structure.sub_folder_dir,
+                                             widget_dir_structure.raw_base_name, widget_track_analysis.hmm_trc_float_precision_box.value)
         save_trc_hmm.run_save()
     
     
@@ -233,10 +229,12 @@ def init_save_filtered_analysis(cover_slip, cell_index, track_stats, directory, 
                               cell.min_track_length_hmm, cell.sigma_dyn_hmm)    
     h5_filtered.statistics_4(track_stats.percentages_cell_types[cell_index], track_stats.total_trajectories_filtered_cell[cell_index],
                              (track_stats.total_trajectories_cell[cell_index]-track_stats.total_trajectories_filtered_cell[cell_index]),
-                           track_stats.D_cell_types[cell_index], track_stats.dD_cell_types[cell_index], track_stats.length_cell_types[cell_index], track_stats.dlength_cell_types[cell_index])
+                           track_stats.D_cell_types[cell_index], track_stats.dD_cell_types[cell_index], track_stats.length_cell_types[cell_index],
+                             track_stats.dlength_cell_types[cell_index])
     h5_filtered.statistics_3(track_stats.percentages_cell_types[cell_index], track_stats.total_trajectories_filtered_cell[cell_index],
                              (track_stats.total_trajectories_cell[cell_index]-track_stats.total_trajectories_filtered_cell[cell_index]),
-                           track_stats.D_cell_types[cell_index], track_stats.dD_cell_types[cell_index], track_stats.length_cell_types[cell_index], track_stats.dlength_cell_types[cell_index])
+                           track_stats.D_cell_types[cell_index], track_stats.dD_cell_types[cell_index], track_stats.length_cell_types[cell_index],
+                             track_stats.dlength_cell_types[cell_index])
     h5_filtered.trc_type(np.shape(track_stats.filtered_trc_files[cell_index]), track_stats.filtered_trc_files[cell_index][:,0],
                     track_stats.filtered_trc_files[cell_index][:,1], track_stats.filtered_trc_files[cell_index][:,2],
                     track_stats.filtered_trc_files[cell_index][:,3], track_stats.filtered_trc_files[cell_index][:,4],
@@ -362,6 +360,7 @@ def init_save_track_stats(h5_stats, track_stats, directory, folder_name, name):
     h5_stats.cells(cell_info)
     print("The statistics file is saved.")
 
+
 def init_save_hmm_vis_stats(hmm_vis, directory, folder_name):
     """
     JNB hmmVisualization, create h5 file for statistics & plot infos.
@@ -375,7 +374,6 @@ def init_save_hmm_vis_stats(hmm_vis, directory, folder_name):
                     hmm_vis.loc_density[cell_idx], hmm_vis.aic_values[cell_idx], hmm_vis.bic_values[cell_idx], hmm_vis.log_likelihoods[cell_idx])
         cell_info.append(one_cell)
     save_hmm_vis.cell_info(cell_info)
-    #save_hmm_vis.mean_aic_value(hmm_vis.mean_aic_value)
     save_hmm_vis.mean_states(hmm_vis.states_percentages, hmm_vis.states_percentages_error, hmm_vis.mean_D, hmm_vis.mean_D_error)
     save_hmm_vis.mean_tps(hmm_vis.mean_tps)
     for cell_idx in range(len(hmm_vis.cells)):
@@ -384,5 +382,3 @@ def init_save_hmm_vis_stats(hmm_vis, directory, folder_name):
     save_hmm_vis.node_sizes(hmm_vis.mean_node_size)
     save_hmm_vis.edge_sizes(hmm_vis.mean_edge_size)
     save_hmm_vis.dmean_tps(hmm_vis.mean_tps_error)
-    print("Plots are saved!")
-        

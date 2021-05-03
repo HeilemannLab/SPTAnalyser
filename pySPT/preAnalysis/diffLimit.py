@@ -153,12 +153,17 @@ class GridNNSearch:
 
 class DiffLimit():
     def __init__(self):
+        self.px_size = 0  # pixel size in nm
+        self.n_px = 0  # number of pixels in a row
         self.nn_distances = []  # nearest neighbors per frame of localization files
         self.min_nn_distances = []  # minimal nearest neighbor per localization file
         self.files = []  #  pd localization files
         self.file_paths = []  # paths to localization files
         self.file_names = []  # names of localization files
         self.figure = []  # boxplot of nearest neighbor distances
+
+    def clear_object(self):
+        self.__init__()
 
     def get_files(self, dir, file_ending):
         file_path = dir
@@ -223,7 +228,7 @@ class DiffLimit():
                             neighbor_positions.append(xy_positions)
                             if len(xy_positions) > 0:
                                 grid_nn_search = GridNNSearch(xy_positions, list(neighbor_positions),
-                                                              int(np.floor(math.sqrt(len(xy_positions)))), 256, 158)
+                                                              int(np.floor(math.sqrt(len(xy_positions)))), self.n_px, self.px_size)
                                 nn_distances, _ = grid_nn_search.get_nn_distances()
                                 file_distances.extend(nn_distances)
                     elif file_ending == ".txt":
@@ -234,7 +239,7 @@ class DiffLimit():
                             neighbor_positions.append(xy_positions)
                             if len(xy_positions) > 0:
                                 grid_nn_search = GridNNSearch(xy_positions, list(neighbor_positions),
-                                                              int(np.floor(math.sqrt(len(xy_positions)))), 256, 158)
+                                                              int(np.floor(math.sqrt(len(xy_positions)))), self.n_px, self.px_size)
                                 nn_distances, _ = grid_nn_search.get_nn_distances()
                                 file_distances.extend(nn_distances)
                     self.nn_distances.append(file_distances)

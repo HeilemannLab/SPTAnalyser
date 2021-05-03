@@ -63,7 +63,7 @@ class ExpNoiseRate():
         return [mean_bg_loc / cell_loc * 100 for cell_loc in self.cell_locs]
 
     def plot_box(self, data_points, title, ylabel):
-        df = pd.DataFrame(data_points)
+        df = pd.DataFrame(data_points, columns=[""])
         fig = plt.figure(figsize=(3, 5))
         ax = sns.boxplot(data=df, color="cornflowerblue", showmeans=True,
                          meanprops={"marker": "s", "markerfacecolor": "white", "markeredgecolor": "0.25"})

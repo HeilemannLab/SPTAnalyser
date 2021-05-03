@@ -14,7 +14,7 @@ from IPython.display import clear_output
 
 
 class WidgetDiffLimit():
-    def __init__(self):
+    def __init__(self, px_size, n_px):
         self.software_button = self.create_software_button()
         self.got_dir = False
         self.dir_name = ""
@@ -27,6 +27,8 @@ class WidgetDiffLimit():
         self.roi_path = ""
         self.got_roi_path = False
         self.roi_text_box = self.create_roi_box()
+        self.px_size_box = self.create_px_size_box(px_size)
+        self.n_px_box = self.create_n_px_box(n_px)
         self.roi_button = self.create_roi_button()
         self.run_button = self.create_run_button()
         self.save_button = self.create_save_button()
@@ -118,6 +120,18 @@ class WidgetDiffLimit():
     def create_roi_box(self, val="", desc="Complete path"):
         style = {"description_width": "initial"}
         text = widgets.Text(value=str(val), placeholder="insert path of roi.log", description=str(desc), disabled=False,
+                            style=style)
+        return text
+
+    def create_px_size_box(self, val, desc="Pixel size [nm]"):
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder="pixel size in nm", description=str(desc), disabled=False,
+                            style=style)
+        return text
+
+    def create_n_px_box(self, val, desc="Number of pixels per row"):
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder="nmber of pixels per row", description=str(desc), disabled=False,
                             style=style)
         return text
 

@@ -14,14 +14,14 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
     
 setuptools.setup(name = "SPTAnalyser",
-                 version = "12.01.2021",
+                 version = "210503",
                  author = "Johanna Rahm and Sebastian Malkusch",
                  author_email = "johanna-rahm@gmx.de",
                  description = "a package for analysing SPT data",
                  long_description = long_description,
                  long_description_content_type = "text/markdown",
                  licence = "GNU GENERAL PUBLIC LICENSE",
-                 url="https:/github.com/JohannaRahm/pySPT",
+                 url="https:/github.com/JohannaRahm/SPTAnalyser",
                  packages = setuptools.find_packages(),
                  install_requires=["numpy",
                                    "matplotlib",
