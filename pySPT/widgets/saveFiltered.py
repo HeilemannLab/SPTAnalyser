@@ -184,13 +184,13 @@ class SaveFiltered():
                                                              ("\u0394 diffusion coefficient [\u03BCm\u00b2/s]", float),
                                                              ("MSD(0) [\u03BCm\u00b2]", float),
                                                              ("chi\u00b2 [\u03BCm\u2074]", float),
-                                                             ("length [nm]", int)]))
+                                                             ("length [frames]", int)]))
         dset["trajectory id"] = trajectory_id
         dset["diffusion coefficient [\u03BCm\u00b2/s]"] = diffusion_coeff
         dset["\u0394 diffusion coefficient [\u03BCm\u00b2/s]"] = ddiffusion_coeff
         dset["MSD(0) [\u03BCm\u00b2]"] = MSD_0
         dset["chi\u00b2 [\u03BCm\u2074]"] = chi2
-        dset["length [nm]"] = length
+        dset["length [frames]"] = length
         
     def data_diffusion_plots(self, trajectory_number, dt, MSD, fit, residues, points_fit_D):
         # for correct order of numbering, fill the trajectory number with 000 -> 0001, 0002 ... 

@@ -117,7 +117,7 @@ class LoadHdf5():
         """
         for h5 in self.hdf5:
             diffusion_group = h5["diffusion"]
-            diffusion_infos_data = diffusion_group["diffusionInfos"].value
+            diffusion_infos_data = diffusion_group["diffusionInfos"][()]
             self.trajectory_numbers.append(np.shape(diffusion_infos_data)[0])
 
     def count_cells(self):
@@ -148,7 +148,7 @@ class LoadHdf5():
             diffusion_group = h5["diffusion"]
             diffusionPlots_group = diffusion_group["diffusionPlots"]
             keys = list(diffusionPlots_group.keys())
-            self.points_fit_Ds.append(len(diffusionPlots_group[keys[0]].value))  # len is the column length.
+            self.points_fit_Ds.append(len(diffusionPlots_group[keys[0]][()]))  # len is the column length.
             
     def settings(self):
         """
@@ -156,7 +156,7 @@ class LoadHdf5():
         """
         for h5 in self.hdf5:
             settings_group = h5["settings"]
-            settings_data = settings_group["settings"].value
+            settings_data = settings_group["settings"][()]
             self.dts.append(settings_data[0][0][0])
             self.pixel_sizes.append(settings_data[0][0][1])
             self.pixel_amounts.append(settings_data[0][0][2])
@@ -189,7 +189,7 @@ class LoadHdf5():
             h5_index = self.hdf5.index(h5)
             max_trajectory_index = self.trajectory_numbers[h5_index]
             diffusion_group = h5["diffusion"]
-            diffusion_infos_data = diffusion_group["diffusionInfos"].value
+            diffusion_infos_data = diffusion_group["diffusionInfos"][()]
             lengths_trajectories = self.create_np_array(max_trajectory_index)
             lengths_MSDs = self.create_np_array(max_trajectory_index)
             trajectories_number = self.create_np_array(max_trajectory_index)
@@ -286,7 +286,7 @@ class LoadHdf5():
             trajectory_indexes = [int(trajectory_idx[0]) for trajectory_idx in self.cells_trajectories_number[h5_index]]
             for trajectory_index in trajectory_indexes:
                 trajectory_key = "Trajectory" + self.trajectory_number_set_digits(trajectory_index)
-                trajectory_data = MSD_group[trajectory_key].value
+                trajectory_data = MSD_group[trajectory_key][()]
                 MSDs = np.zeros(len(trajectory_data))
                 times = np.zeros(len(trajectory_data))
                 for duration in range(0, len(trajectory_data)):
@@ -304,7 +304,7 @@ class LoadHdf5():
         for h5 in self.hdf5:
             trc_group = h5["trc"]
             # trc file type
-            trc_group_data_type = trc_group["trcType"].value
+            trc_group_data_type = trc_group["trcType"][()]
             max_index = np.shape(trc_group_data_type)[0]
             trc_type = self.create_np_array(np.shape(trc_group_data_type)[0], 7)
             for i in range(0, max_index):
@@ -317,7 +317,7 @@ class LoadHdf5():
                 trc_type[i,6] = trc_group_data_type[i][6]  # seg id
             self.trc_files_type.append(trc_type)
             # trc file hmm
-            trc_group_data_hmm = trc_group["trcHmm"].value
+            trc_group_data_hmm = trc_group["trcHmm"][()]
             max_index = np.shape(trc_group_data_hmm)[0]
             trc_hmm = self.create_np_array(np.shape(trc_group_data_hmm)[0], 7)
             for i in range(0, max_index):
@@ -338,7 +338,7 @@ class LoadHdf5():
             trajectory_indexes = [int(trajectory_idx[0]) for trajectory_idx in self.cells_trajectories_number[h5_index]]
             for trajectory_index in trajectory_indexes:
                 rossier_plot_key = "rossierPlot" + self.trajectory_number_set_digits(trajectory_index)
-                rossier_plot_data = rossier_plots_group[rossier_plot_key].value
+                rossier_plot_data = rossier_plots_group[rossier_plot_key][()]
                 MSD_fit = self.create_np_array(len(rossier_plot_data), 4)
                 for duration in range(0, len(rossier_plot_data)):
                     MSD_fit[duration,0] = rossier_plot_data[duration][0]  # dt
@@ -357,7 +357,7 @@ class LoadHdf5():
             trajectory_indexes = [int(trajectory_idx[0]) for trajectory_idx in self.cells_trajectories_number[h5_index]]
             for trajectory_index in trajectory_indexes:
                 diffusion_plot_key = "diffusionPlot" + self.trajectory_number_set_digits(trajectory_index)
-                diffusion_plot_data = diffusion_plots_group[diffusion_plot_key].value
+                diffusion_plot_data = diffusion_plots_group[diffusion_plot_key][()]
                 MSD_D = self.create_np_array(len(diffusion_plot_data), 4) 
                 for duration in range(0, len(diffusion_plot_data)):
                     MSD_D[duration,0] = diffusion_plot_data[duration][0]  # dt

@@ -73,11 +73,13 @@ def main(config_path):
 
     try:
         max_displacement = config["PARAMETERS_GLOBAL"]["max_displacement"]
+        max_displacement = str(float(max_displacement) * float(exp_displacement))
     except KeyError:
         raise IncorrectConfigException("Parameter max_displacement missing in config.")
 
     try:
         max_displacement_pp = config["PARAMETERS_GLOBAL"]["max_displacement_pp"]
+        max_displacement_pp = str(float(max_displacement_pp) * float(exp_displacement))
     except KeyError:
         raise IncorrectConfigException("Parameter max_displacement_pp missing in config.")
 
