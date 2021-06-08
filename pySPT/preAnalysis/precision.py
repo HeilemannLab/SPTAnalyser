@@ -405,15 +405,16 @@ class Precision():
             self.mean_values.append(10**mean_log)
         for name, precision in zip(file_names, self.mean_values):
             print(os.path.splitext(name)[0] + ":", str(precision))
-        print(self.mean_values)
 
     def plot_box(self):
         df = pd.DataFrame(self.mean_values)
         fig = plt.figure(figsize=(3, 5))
-        ax = sns.boxplot(data=df, color="cornflowerblue", showmeans=True,
+        ax = sns.violinplot(data=df, color="cornflowerblue", showmeans=True,
                          meanprops={"marker": "s", "markerfacecolor": "white", "markeredgecolor": "0.25"})
         ax = sns.swarmplot(data=df, color="0.25")
         ax.set_ylabel("precision / nm")
+        ax.set_xlabel("cells")
+        ax.set(xticklabels=[])
         plt.show()
         self.figure_box = fig
 
@@ -422,10 +423,6 @@ class Precision():
             os.mkdir(path)
         except FileExistsError:
             pass
-        # save precision values as list
-        file = open(path + "\\precisions_list.txt", "w+")
-        file.write(str(precision_lst))
-        file.close()
         now = datetime.datetime.now()
         year = str(now.year)
         year = year[2:]

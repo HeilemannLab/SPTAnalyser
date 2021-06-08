@@ -10,6 +10,7 @@ Write batch file for swift with set parameters for multiple files.
 import os
 import sys
 import configparser
+import pandas as pd
 
 
 class IncorrectConfigException(Exception):
@@ -121,21 +122,35 @@ def main(config_path):
     except KeyError:
         raise IncorrectConfigException("No save directory defined in config.")
 
+    # precision = []
+    # for i in range(len(n_file_paths)):
+    #     if os.path.exists(precision_vals[i]):
+    #         with open(precision_vals[i], "r") as f:
+    #             first_line = f.readline()
+    #             precision += first_line.strip('][\n').split(', ')
+    #     else:
+    #         precision += [precision_vals[i]] * n_file_paths[i]
+
+    # exp_noise_rate = []
+    # for i in range(len(n_file_paths)):
+    #     if os.path.exists(exp_noise_rate_vals[i]):
+    #         with open(exp_noise_rate_vals[i], "r") as f:
+    #             first_line = f.readline()
+    #             exp_noise_rate += first_line.strip('][\n').split(', ')
+    #     else:
+    #         exp_noise_rate += [exp_noise_rate_vals[i]] * n_file_paths[i]
+
     precision = []
     for i in range(len(n_file_paths)):
         if os.path.exists(precision_vals[i]):
-            with open(precision_vals[i], "r") as f:
-                first_line = f.readline()
-                precision += first_line.strip('][\n').split(', ')
+            precision = pd.read_csv(precision_vals[i], sep=" ").iloc[:, 1].to_list()
         else:
             precision += [precision_vals[i]] * n_file_paths[i]
 
     exp_noise_rate = []
     for i in range(len(n_file_paths)):
         if os.path.exists(exp_noise_rate_vals[i]):
-            with open(exp_noise_rate_vals[i], "r") as f:
-                first_line = f.readline()
-                exp_noise_rate += first_line.strip('][\n').split(', ')
+            exp_noise_rate = pd.read_csv(exp_noise_rate_vals[i], sep=" ").iloc[:, 2].to_list()
         else:
             exp_noise_rate += [exp_noise_rate_vals[i]] * n_file_paths[i]
 
