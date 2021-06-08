@@ -79,6 +79,9 @@ class CoverSlip():
         self.calc_tau_threshold()
         if self.roi_file:  # if no roi file path was inserted, no file can be loaded  
             roi_file = np.atleast_1d(np.genfromtxt(self.roi_file, dtype=None, delimiter=",", skip_header=3, encoding=None))
+            if len(roi_file[0]) > 2:
+                print("Warning: Please check for correct *.LOG file format, the cell sizes can not be transferred. "
+                      "Possible error source: , in file naming.")
         with tqdm(total=len(self.cell_files), desc="Cell") as pbar:
             for file_name in self.cell_files:
                 cell_idx = self.cell_files.index(file_name)
@@ -100,6 +103,8 @@ class CoverSlip():
                             else:
                                 raw_file += i
                         raw_file = raw_file.replace('"', "")
+                        if raw_file[-5:] in ["_size", "-size"]:
+                            raw_file = raw_file[:-5]
                         if one_cell.name == raw_file:
                             one_cell.size = file[1]
                 # in PT the column order is set and not necessary.

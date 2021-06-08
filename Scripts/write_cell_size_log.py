@@ -19,7 +19,6 @@ class IncorrectConfigException(Exception):
 
 
 def read_areas(directory):
-    directory += "\\cells\\rois"
     files = os.listdir(directory)
     files = [file for file in files if file.endswith(".csv")]
     file_areas = [int(pd.read_csv(directory + "\\" + file)["Area"]) for file in files]
@@ -55,7 +54,7 @@ def main(config_path):
 
     for dir in dirs: 
         files, file_areas = read_areas(dir)
-        write_log(files, file_areas, dir + "\\cells\\rois\\" + os.path.basename(dir) + "_cell-sizes.LOG")
+        write_log(files, file_areas, dir + "\\cell_sizes.LOG")
 
 
 if __name__ == "__main__":
