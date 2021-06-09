@@ -7,13 +7,16 @@ Load tracked files, calculate diffusion coefficients, type analysis, save as *.h
 """
 
 import numpy as np
+import pandas as pd
 import copy
 import math
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 class TrackAnalysis():
     def __init__(self):
+        self.seg_id = ""  # "seg id" or "track id"
         self.cell_trajectories = []  # [[],[]] contains list of cells, cells contain trajectories
         self.cell_trajectories_filtered = []  # deep copy of original cell trajectories
         self.cell_trajectories_index = []
@@ -22,7 +25,7 @@ class TrackAnalysis():
         self.max_D = - math.inf
         self.total_trajectories = 0  # amount of trajectories in data set
         self.total_trajectories_cell = []  # amount of trajectories per cell
-        self.cell_type_count = []  # tupel with percentage of types (immob, confined, free %) per cell
+        self.cell_type_count = []  # tupel with percentage of types (immob, confined, free, notype %) per cell
         self.cell_sizes = []
         self.hist_log_Ds = []  # histograms (logD vs freq) from all cells as np arrays in this list
         self.diffusion_frequencies = []  # only freq (divided by cell size) of cells
@@ -211,6 +214,10 @@ class TrackAnalysis():
                 MSD_delta_t_n = None if MSD_delta_t_n == "None" else float(MSD_delta_t_n)
                 y_lim = None if y_lim == "None" else float(y_lim)
                 self.MSD_types(MSD_delta_t_n, y_lim)
+                self.plot_sizes_ntracks()
+                self.plot_type_distributions()
+                self.plot_D_distributions()
+                self.plot_length_distributions()
             else:
                 print("Bin size can not be zero.")
 
@@ -347,6 +354,104 @@ class TrackAnalysis():
         plt.ylabel("Mean MSD [\u03BCm\u00b2]")
         plt.xlabel("Time step [s]")
         plt.show()
+
+    def plot_violine(self, lst, title, x_axis, y_axis, color="cornflowerblue"):
+        df = pd.DataFrame(lst)
+        fig = plt.figure(figsize=(3, 5))
+        ax = sns.violinplot(data=df, color=color, showmeans=True,
+                         meanprops={"marker": "s", "markerfacecolor": "white", "markeredgecolor": "0.25"})
+        ax = sns.swarmplot(data=df, color="0.25")
+        ax.set_ylabel(y_axis)
+        ax.set_xlabel(x_axis)
+        ax.set_title(title)
+        ax.set(xticklabels=[])
+        plt.show()
+
+
+    def plot_violine_subplots(self, lsts, title, x_axiss, y_axis, colors):
+        fig, axs = plt.subplots(1, len(lsts), sharey=True)
+        for c, (lst, x_axis, color) in enumerate(zip(lsts, x_axiss, colors)):
+            df = pd.DataFrame(lst)
+            sns.violinplot(data=df, color=color, showmeans=True, meanprops={"marker": "s", "markerfacecolor": "white", "markeredgecolor": "0.25"}, ax=axs[c])
+            sns.swarmplot(data=df, color="0.25", ax=axs[c])
+            axs[c].set_xlabel(x_axis)
+            axs[c].set(xticklabels=[])
+        fig.text(0.04, 0.5, y_axis, va="center", rotation="vertical")
+        plt.suptitle(title)
+        plt.show()
+
+    def plot_D_distributions(self):
+        # average D per cell, global and per type
+        all_Ds = []
+        for cell in self.cell_trajectories:
+             all_Ds.append(np.mean([trajectory.D for trajectory in cell]))
+        # get mean D values per cell and type
+        immob_Ds = []
+        for cell in self.trajectories_immob_cells:
+             immob_Ds.append(np.mean([trajectory.D for trajectory in cell]))
+        conf_Ds = []
+        for cell in self.trajectories_conf_cells:
+            conf_Ds.append(np.mean([trajectory.D for trajectory in cell]))
+        free_Ds = []
+        for cell in self.trajectories_free_cells:
+            free_Ds.append(np.mean([trajectory.D for trajectory in cell]))
+        notype_Ds = []
+        for cell in self.trajectories_notype_cells:
+            notype_Ds.append(np.mean([trajectory.D for trajectory in cell]))
+        lsts = [all_Ds, immob_Ds, conf_Ds, free_Ds, notype_Ds]
+        title = "mean diffusion coefficients per cell"
+        x_axiss = ["all", "immobile", "confined", "free", "notype"]
+        y_axis = "diffusion coefficient [\u00B5m\u00B2/s]"
+        colors = ["cornflowerblue", "#4169e1", "#228b22", "#ff8c00", "#8b008b"]
+        self.plot_violine_subplots(lsts, title, x_axiss, y_axis, colors)
+
+    def plot_sizes_ntracks(self):
+        # cell sizes
+        target = "segments" if self.seg_id == "seg id" else "trajectories"  # SEG OR TRACK
+        self.plot_violine(self.cell_sizes, "cell sizes", "cells", "cell size [\u00B5m\u00B2]")
+        self.plot_violine([len(tracks) for tracks in self.cell_trajectories], "number of " + target + " per cell", "cells", "number of " + target)
+
+    def plot_length_distributions(self):
+        # average lengths per cell, global and per type
+        target = "segment" if self.seg_id == "seg id" else "trajectory"  # SEG OR TRACK
+        all_lengths = []
+        for cell in self.cell_trajectories:
+             all_lengths.append(np.mean([trajectory.length_trajectory for trajectory in cell]))
+        # get mean D values per cell and type
+        immob_lengths = []
+        for cell in self.trajectories_immob_cells:
+             immob_lengths.append(np.mean([trajectory.length_trajectory for trajectory in cell]))
+        conf_lengths = []
+        for cell in self.trajectories_conf_cells:
+            conf_lengths.append(np.mean([trajectory.length_trajectory for trajectory in cell]))
+        free_lengths = []
+        for cell in self.trajectories_free_cells:
+            free_lengths.append(np.mean([trajectory.length_trajectory for trajectory in cell]))
+        notype_lengths = []
+        for cell in self.trajectories_notype_cells:
+            notype_lengths.append(np.mean([trajectory.length_trajectory for trajectory in cell]))
+
+        lsts = [all_lengths, immob_lengths, conf_lengths, free_lengths, notype_lengths]
+        title = "mean " + target + " lengths per cell"
+        x_axiss = ["all", "immobile", "confined", "free", "notype"]
+        y_axis = "length [frames]"
+        colors = ["cornflowerblue", "#4169e1", "#228b22", "#ff8c00", "#8b008b"]
+        self.plot_violine_subplots(lsts, title, x_axiss, y_axis, colors)
+
+
+    def plot_type_distributions(self):
+        target = "segments" if self.seg_id == "seg id" else "trajectories"  # SEG OR TRACK
+        immob_percentages = [cell[0] for cell in self.cell_type_count]
+        conf_percentages = [cell[1] for cell in self.cell_type_count]
+        free_percentages = [cell[2] for cell in self.cell_type_count]
+        notype_percentages = [cell[3] for cell in self.cell_type_count]
+
+        lsts = [immob_percentages, conf_percentages, free_percentages, notype_percentages]
+        title = "mean type percentages per cell"
+        x_axiss = ["immobile", "confined", "free", "notype"]
+        y_axis = "type [\u0025]"
+        colors = ["#4169e1", "#228b22", "#ff8c00", "#8b008b"]
+        self.plot_violine_subplots(lsts, title, x_axiss, y_axis, colors)
 
     def calc_mean_error_different_lengths(self, arrays):
         """

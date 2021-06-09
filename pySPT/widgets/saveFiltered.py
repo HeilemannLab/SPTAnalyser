@@ -158,11 +158,11 @@ class SaveFiltered():
                                                       ("fit area", float),
                                                       ("dof", int),
                                                       ("D min [\u03BCm\u00b2/s]", float),
-                                                      ("\u0394 loc dyn type [\u03BCm]", float),
+                                                      ("\u0394 loc dyn seg [\u03BCm]", float),
                                                       ("track id", int),
                                                       ("seg id", int),
                                                       ("min trajectory length hmm", int),
-                                                      ("\u0394 loc dyn hmm [\u03BCm]", float)]))
+                                                      ("\u0394 loc dyn track [\u03BCm]", float)]))
         dset["dt [s]"] = dt
         dset["pixelsize [nm]"] = pixelsize
         dset["pixel amount"] = pixelamount
@@ -172,11 +172,11 @@ class SaveFiltered():
         dset["fit area"] = fit_area
         dset["dof"] = dof
         dset["D min [\u03BCm\u00b2/s]"] = D_min
-        dset["\u0394 loc dyn type [\u03BCm]"] = dloc_dyn_type
+        dset["\u0394 loc dyn seg [\u03BCm]"] = dloc_dyn_type
         dset["track id"] = not seg_bool
         dset["seg id"] = seg_bool
         dset["min trajectory length hmm"] = min_length_hmm
-        dset["\u0394 loc dyn hmm [\u03BCm]"] = dloc_dyn_hmm
+        dset["\u0394 loc dyn track [\u03BCm]"] = dloc_dyn_hmm
         
     def data_diffusion_info(self, number, trajectory_id, diffusion_coeff, ddiffusion_coeff, MSD_0, chi2, length):
         dset = self.grp02.create_dataset("diffusionInfos", (number,), dtype=np.dtype([("trajectory id", int),
