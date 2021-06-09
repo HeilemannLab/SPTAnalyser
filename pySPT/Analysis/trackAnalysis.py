@@ -367,7 +367,6 @@ class TrackAnalysis():
         ax.set(xticklabels=[])
         plt.show()
 
-
     def plot_violine_subplots(self, lsts, title, x_axiss, y_axis, colors):
         fig, axs = plt.subplots(1, len(lsts), sharey=True)
         for c, (lst, x_axis, color) in enumerate(zip(lsts, x_axiss, colors)):
@@ -376,7 +375,7 @@ class TrackAnalysis():
             sns.swarmplot(data=df, color="0.25", ax=axs[c])
             axs[c].set_xlabel(x_axis)
             axs[c].set(xticklabels=[])
-        fig.text(0.04, 0.5, y_axis, va="center", rotation="vertical")
+        fig.text(0.02, 0.5, y_axis, va="center", rotation="vertical")
         plt.suptitle(title)
         plt.show()
 
@@ -438,9 +437,7 @@ class TrackAnalysis():
         colors = ["cornflowerblue", "#4169e1", "#228b22", "#ff8c00", "#8b008b"]
         self.plot_violine_subplots(lsts, title, x_axiss, y_axis, colors)
 
-
     def plot_type_distributions(self):
-        target = "segments" if self.seg_id == "seg id" else "trajectories"  # SEG OR TRACK
         immob_percentages = [cell[0] for cell in self.cell_type_count]
         conf_percentages = [cell[1] for cell in self.cell_type_count]
         free_percentages = [cell[2] for cell in self.cell_type_count]

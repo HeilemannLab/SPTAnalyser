@@ -8,9 +8,11 @@ globally visualize them, store filtered dataset.
 """
 
 import numpy as np
+import pandas as pd
 import copy
 import math
 import matplotlib.pyplot as plt
+import seaborn as sns
 import time
 
 
@@ -47,6 +49,7 @@ class TrajectoryStatistics():
         self.hist_log_Ds = []  # histograms (logD vs freq) from all cells as np arrays in this list
         self.hist_log_Ds_bg = []
         self.diffusion_frequencies = []  # only freq (divided by cell size) of cells
+        self.diffusion_frequencies_norm = []  # only freq (divided by cell size) of cells and norm to 100%
         self.diffusion_frequencies_bg = []  # only freq (divided my bg size) of bg
         self.hist_diffusion = []  # diffusions from histogram calculation, transformed back -> 10^-(log10(D))
         self.hist_diffusion_immob = []  # mean histogram frequencies of diffusions type immobile & error
@@ -95,6 +98,8 @@ class TrajectoryStatistics():
         self.mean_error_MSDs_immob_notype = []
         self.MSD_fig_types = []
         self.MSD_fig_types_merge = []
+        self.cell_sizes_fig = []
+        self.n_segments_fig = []
 
     def create_filtered_framework(self):
         """
@@ -130,6 +135,9 @@ class TrajectoryStatistics():
         self.dlength_mean_types = []
         self.length_cell_types = []
         self.dlength_cell_types = []
+        self.type_percentages_cell_fig = []
+        self.diff_cell_fig = []
+        self.lengths_cell_fig = []
         
     def run_statistics(self, min_length, max_length, min_D, max_D, filter_immob, filter_confined,
                        filter_free, filter_analyse_not_successful):
@@ -652,6 +660,11 @@ class TrajectoryStatistics():
                     x_lim = None if x_lim == "None" else float(x_lim)
                     y_lim = None if y_lim == "None" else float(y_lim)
                     self.MSD_types(x_lim, y_lim, merge)
+                    # plot cell distributions
+                    self.plot_sizes_ntracks()
+                    self.plot_type_distributions()
+                    self.plot_D_distributions()
+                    self.plot_length_distributions()
             else:
                 print("Bin size can not be zero.")
 
@@ -706,6 +719,110 @@ class TrajectoryStatistics():
         plt.xlabel("Time step [s]")
         plt.show()
         return x
+
+    def plot_violine(self, lst, title, x_axis, y_axis, color="cornflowerblue"):
+        df = pd.DataFrame(lst)
+        fig = plt.figure(figsize=(3, 5))
+        ax = sns.violinplot(data=df, color=color, showmeans=True,
+                         meanprops={"marker": "s", "markerfacecolor": "white", "markeredgecolor": "0.25"})
+        ax = sns.swarmplot(data=df, color="0.25")
+        ax.set_ylabel(y_axis)
+        ax.set_xlabel(x_axis)
+        ax.set_title(title)
+        ax.set(xticklabels=[])
+        plt.show()
+        return fig
+
+    def plot_violine_subplots(self, lsts, title, x_axiss, y_axis, colors):
+        fig, axs = plt.subplots(1, len(lsts), sharey=True)
+        for c, (lst, x_axis, color) in enumerate(zip(lsts, x_axiss, colors)):
+            df = pd.DataFrame(lst)
+            sns.violinplot(data=df, color=color, showmeans=True, meanprops={"marker": "s", "markerfacecolor": "white", "markeredgecolor": "0.25"}, ax=axs[c])
+            sns.swarmplot(data=df, color="0.25", ax=axs[c])
+            axs[c].set_xlabel(x_axis)
+            axs[c].set(xticklabels=[])
+        fig.text(0.02, 0.5, y_axis, va="center", rotation="vertical")
+        plt.suptitle(title)
+        plt.show()
+        return fig
+
+    def plot_D_distributions(self):
+        # average D per cell, global and per type
+        all_Ds = []
+        for cell in self.cell_trajectories_filtered:
+             all_Ds.append(np.mean([trajectory.D for trajectory in cell]))
+        # get mean D values per cell and type
+        immob_notype_Ds = []
+        for cell in self.trajectories_immob_notype_cells_filtered:
+            immob_notype_Ds.append(np.mean([trajectory.D for trajectory in cell]))
+        conf_Ds = []
+        for cell in self.trajectories_conf_cells_filtered:
+            conf_Ds.append(np.mean([trajectory.D for trajectory in cell]))
+        free_Ds = []
+        for cell in self.trajectories_free_cells_filtered:
+            free_Ds.append(np.mean([trajectory.D for trajectory in cell]))
+        immob_Ds = []
+        for cell in self.trajectories_immob_cells_filtered:
+             immob_Ds.append(np.mean([trajectory.D for trajectory in cell]))
+        notype_Ds = []
+        for cell in self.trajectories_notype_cells_filtered:
+            notype_Ds.append(np.mean([trajectory.D for trajectory in cell]))
+        lsts = [all_Ds, immob_notype_Ds, conf_Ds, free_Ds, immob_Ds, notype_Ds]
+        title = "mean diffusion coefficients per cell"
+        x_axiss = ["all", "immob+notype", "conf", "free", "immobile", "notype"]
+        y_axis = "diffusion coefficient [\u00B5m\u00B2/s]"
+        colors = ["cornflowerblue", "#4169e1", "#228b22", "#ff8c00", "#4169e1", "#8b008b"]
+        self.diff_cell_fig = self.plot_violine_subplots(lsts, title, x_axiss, y_axis, colors)
+
+    def plot_sizes_ntracks(self):
+        # cell sizes
+        target = "segments" if self.cells[0].seg_id else "trajectories"  # SEG OR TRACK
+        self.cell_sizes_fig = self.plot_violine(self.cell_sizes, "cell sizes", "cells", "cell size [\u00B5m\u00B2]")
+        self.n_segments_fig = self.plot_violine([len(tracks) for tracks in self.cell_trajectories_filtered], "number of " + target + " per cell", "cells", "number of " + target)
+
+    def plot_length_distributions(self):
+        # average lengths per cell, global and per type
+        target = "segment" if self.cells[0].seg_id else "trajectory"  # SEG OR TRACK
+        all_lengths = []
+        for cell in self.cell_trajectories_filtered:
+             all_lengths.append(np.mean([trajectory.length_trajectory for trajectory in cell]))
+        # get mean D values per cell and type
+        immob_notype_lengths = []
+        for cell in self.trajectories_immob_notype_cells_filtered:
+            immob_notype_lengths.append(np.mean([trajectory.length_trajectory for trajectory in cell]))
+        conf_lengths = []
+        for cell in self.trajectories_conf_cells_filtered:
+            conf_lengths.append(np.mean([trajectory.length_trajectory for trajectory in cell]))
+        free_lengths = []
+        for cell in self.trajectories_free_cells_filtered:
+            free_lengths.append(np.mean([trajectory.length_trajectory for trajectory in cell]))
+        immob_lengths = []
+        for cell in self.trajectories_immob_cells_filtered:
+             immob_lengths.append(np.mean([trajectory.length_trajectory for trajectory in cell]))
+        notype_lengths = []
+        for cell in self.trajectories_notype_cells_filtered:
+            notype_lengths.append(np.mean([trajectory.length_trajectory for trajectory in cell]))
+
+        lsts = [all_lengths, immob_notype_lengths, conf_lengths, free_lengths, immob_lengths, notype_lengths]
+        title = "mean " + target + " lengths per cell"
+        x_axiss = ["all", "immob+notype", "conf", "free", "immobile", "notype"]
+        y_axis = "length [frames]"
+        colors = ["cornflowerblue", "#4169e1", "#228b22", "#ff8c00", "#4169e1", "#8b008b"]
+        self.lengths_cell_fig = self.plot_violine_subplots(lsts, title, x_axiss, y_axis, colors)
+
+    def plot_type_distributions(self):
+        immob_notype_percentages = [cell[4] for cell in self.percentages_cell_types]
+        conf_percentages = [cell[1] for cell in self.percentages_cell_types]
+        free_percentages = [cell[2] for cell in self.percentages_cell_types]
+        immob_percentages = [cell[0] for cell in self.percentages_cell_types]
+        notype_percentages = [cell[3] for cell in self.percentages_cell_types]
+
+        lsts = [immob_notype_percentages, conf_percentages, free_percentages, immob_percentages, notype_percentages]
+        title = "mean type percentages per cell"
+        x_axiss = ["immob+notype", "conf", "free", "immobile", "notype"]
+        y_axis = "type [\u0025]"
+        colors = ["#4169e1", "#228b22", "#ff8c00", "#4169e1", "#8b008b"]
+        self.type_percentages_cell_fig = self.plot_violine_subplots(lsts, title, x_axiss, y_axis, colors)
 
     def calc_mean_error_different_lengths(self, arrays):
         """
@@ -896,6 +1013,7 @@ class TrajectoryStatistics():
                 self.diffusion_frequencies[:,i] = self.hist_log_Ds[i][:,1]
             self.mean_frequencies = self.calc_mean_frequencies(self.diffusion_frequencies)
             self.normalization_factor = 100/np.sum(self.mean_frequencies)
+            self.diffusion_frequencies_norm = self.diffusion_frequencies * self.normalization_factor
             self.mean_frequencies_percent = self.mean_frequencies * self.normalization_factor
         else:
             self.diffusion_frequencies_bg = self.create_np_array(np.shape(self.hist_log_Ds_bg)[1],
@@ -973,6 +1091,12 @@ class TrajectoryStatistics():
         # MSD type
         self.MSD_fig_types.savefig(directory + "\\" + folder_name + "\\" + "MSD_type" + ".pdf", format="pdf", transparent=True)
         self.MSD_fig_types_merge.savefig(directory + "\\" + folder_name + "\\" + "MSD_type_merge" + ".pdf", format="pdf", transparent=True)
+        self.cell_sizes_fig.savefig(directory + "\\" + folder_name + "\\" + "cell_sizes" + ".pdf", format="pdf", transparent=True, bbox_inches="tight")
+        target = "segments" if self.cells[0].seg_id else "trajectories"  # SEG OR TRACK
+        self.n_segments_fig.savefig(directory + "\\" + folder_name + "\\" + "number_" + target + ".pdf", format="pdf", transparent=True, bbox_inches="tight")
+        self.type_percentages_cell_fig.savefig(directory + "\\" + folder_name + "\\" + "type_percentages_cell" + ".pdf", format="pdf", transparent=True, bbox_inches="tight")
+        self.diff_cell_fig.savefig(directory + "\\" + folder_name + "\\" + "diffusion_cell" + ".pdf", format="pdf", transparent=True, bbox_inches="tight")
+        self.lengths_cell_fig.savefig(directory + "\\" + folder_name + "\\" + target + "_lengths_cell" + ".pdf", format="pdf", transparent=True, bbox_inches="tight")
 
     def plot_bar_log_bins_bg_corrected(self):
         self.diff_fig.append(plt.figure())

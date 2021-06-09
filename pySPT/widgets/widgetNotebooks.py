@@ -313,9 +313,10 @@ def init_save_track_stats(h5_stats, track_stats, directory, folder_name, name):
     # if no bg file was loaded only mean cell frequencies are determined
     if not track_stats.background_trajectories:
         h5_stats.diffusion_plot_normalized(len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.mean_frequencies_percent,
-                                           track_stats.mean_error_percent)
+                                           track_stats.mean_error_percent, track_stats.diffusion_frequencies_norm)
+
         h5_stats.diffusion_plot(len(track_stats.hist_diffusion), track_stats.hist_diffusion, track_stats.mean_frequencies,
-                                   track_stats.mean_error)
+                                   track_stats.mean_error, track_stats.diffusion_frequencies)
         h5_stats.diffusion_plot_normalized_types(len(track_stats.hist_diffusion), track_stats.hist_diffusion,
                                                  track_stats.hist_diffusion_immob[0],
                                                  track_stats.hist_diffusion_immob[1], track_stats.hist_diffusion_conf[0],
