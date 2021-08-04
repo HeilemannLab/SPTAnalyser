@@ -20,7 +20,7 @@ jupyter notebook
 ```
 
 ## Contributors
-Johanna Rahm, Sebastian Malkusch, Marie-Lena Harwardt, Claudia Catapano
+Johanna Rahm, Sebastian Malkusch, Marie-Lena Harwardt, Marina Dietz, Claudia Catapano
 
 ## Literature
 
