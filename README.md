@@ -19,6 +19,9 @@ jupyter contrib nbextension install
 jupyter notebook 
 ```
 
+## Contributors
+Johanna Rahm, Sebastian Malkusch, Marie-Lena Harwardt, Claudia Catapano
+
 ## Literature
 
 [1] https://www.iins.u-bordeaux.fr/team-sibarita-PALMTracer
