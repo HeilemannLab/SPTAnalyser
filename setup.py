@@ -12,17 +12,17 @@ import setuptools
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
-    
-setuptools.setup(name = "SPTAnalyser",
-                 version = "210621",
-                 author = "Johanna Rahm and Sebastian Malkusch",
-                 author_email = "johanna-rahm@gmx.de",
-                 description = "a package for analysing SPT data",
-                 long_description = long_description,
-                 long_description_content_type = "text/markdown",
-                 licence = "GNU GENERAL PUBLIC LICENSE",
+
+setuptools.setup(name="SPTAnalyser",
+                 version="210814",
+                 author="Johanna Rahm and Sebastian Malkusch",
+                 author_email="johanna-rahm@gmx.de",
+                 description="a package for analysing SPT data",
+                 long_description=long_description,
+                 long_description_content_type="text/markdown",
+                 licence="GNU GENERAL PUBLIC LICENSE",
                  url="https:/github.com/JohannaRahm/SPTAnalyser",
-                 packages = setuptools.find_packages(),
+                 packages=setuptools.find_packages(),
                  install_requires=["numpy",
                                    "matplotlib",
                                    "seaborn",
@@ -35,6 +35,6 @@ setuptools.setup(name = "SPTAnalyser",
                                    "tornado",
                                    "pandas",
                                    "graphviz"],
-                   classifiers = ["Programming Language :: Python :: 3",
-                                  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",  # "License :: OSI Approved :: GPL-3.0 License",
+                   classifiers=["Programming Language :: Python :: 3",
+                                  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
                                   "Operating System :: OS Independent",],)
