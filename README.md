@@ -11,13 +11,16 @@ Hidden markov modeling with ermine<sup>[6]</sup>
 ```
 conda create --name SPTAnalyser
 conda activate SPTAnalyser
-cd path_to_file
 conda install pip
+conda install pywin32
+pip install jupyterlab
 pip install SPTAnalyser-XXXXX-py3-none-any.whl
 pip install jupyter_contrib_nbextensions
 jupyter contrib nbextension install
 jupyter notebook 
 ```
+
+Give the analysis a try with the test files in the dataset folder, including localization files from ThunderSTORM, tracked files from swift, SPTAnalyser trackAnalysis output.
 
 ## Contributors
 Johanna Rahm, Sebastian Malkusch, Marie-Lena Harwardt, Marina Dietz, Claudia Catapano
