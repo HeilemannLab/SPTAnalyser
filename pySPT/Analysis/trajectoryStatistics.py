@@ -629,7 +629,7 @@ class TrajectoryStatistics():
                                        mean_log_hist_notype, error_log_hist_notype, mean_log_hist_immob_notype,
                                        error_log_hist_immob_notype, merge)
 
-    def run_diffusion_histogram(self, desired_bin_size, x_lim="None", y_lim="None", plot=True, merge=True):
+    def run_diffusion_histogram(self, desired_bin_size, x_lim="None", y_lim="None", y_min=0, plot=True, merge=True):
         """
         :param merge: If True, immobile and notype are handled as one type in a plot and separately in a second plot.
         """
@@ -659,7 +659,7 @@ class TrajectoryStatistics():
                     # plot MSD type
                     x_lim = None if x_lim == "None" else float(x_lim)
                     y_lim = None if y_lim == "None" else float(y_lim)
-                    self.MSD_types(x_lim, y_lim, merge)
+                    self.MSD_types(x_lim, y_lim, y_min, merge)
                     # plot cell distributions
                     self.plot_sizes_ntracks()
                     self.plot_type_distributions()
@@ -670,7 +670,7 @@ class TrajectoryStatistics():
 
     # plot MSD per type
 
-    def plot_MSD_types(self, MSD_delta_t_n, y_lim, merge=False):
+    def plot_MSD_types(self, MSD_delta_t_n, y_lim, y_min, merge=False):
         """
         Plot the mean MSD curve per diffusion type. If merge, handle immobile and notype as one class.
         """
@@ -712,7 +712,7 @@ class TrajectoryStatistics():
 
         x_lim_max = None if MSD_delta_t_n is None else MSD_delta_t_n
         plt.xlim(0, x_lim_max)
-        plt.ylim(0, y_lim)
+        plt.ylim(y_min, y_lim)
         plt.legend()
         plt.title("Mean MSD values per type")
         plt.ylabel("Mean MSD [\u03BCm\u00b2]")
@@ -723,9 +723,8 @@ class TrajectoryStatistics():
     def plot_violine(self, lst, title, x_axis, y_axis, color="cornflowerblue"):
         df = pd.DataFrame(lst)
         fig = plt.figure(figsize=(3, 5))
-        ax = sns.violinplot(data=df, color=color, showmeans=True,
-                         meanprops={"marker": "s", "markerfacecolor": "white", "markeredgecolor": "0.25"})
-        ax = sns.swarmplot(data=df, color="0.25")
+        ax = sns.violinplot(data=df, color=color, scale="width", cut=0, inner="quartile")
+        ax = sns.stripplot(data=df, color="0.25")
         ax.set_ylabel(y_axis)
         ax.set_xlabel(x_axis)
         ax.set_title(title)
@@ -737,8 +736,8 @@ class TrajectoryStatistics():
         fig, axs = plt.subplots(1, len(lsts), sharey=True)
         for c, (lst, x_axis, color) in enumerate(zip(lsts, x_axiss, colors)):
             df = pd.DataFrame(lst)
-            sns.violinplot(data=df, color=color, showmeans=True, meanprops={"marker": "s", "markerfacecolor": "white", "markeredgecolor": "0.25"}, ax=axs[c])
-            sns.swarmplot(data=df, color="0.25", ax=axs[c])
+            sns.violinplot(data=df, color=color, scale="width", cut=0, inner="quartile", ax=axs[c])
+            sns.stripplot(data=df, color=color, edgecolor=(19/255,27/255,30/255), linewidth=1, ax=axs[c])
             axs[c].set_xlabel(x_axis)
             axs[c].set(xticklabels=[])
         fig.text(0.02, 0.5, y_axis, va="center", rotation="vertical")
@@ -849,7 +848,7 @@ class TrajectoryStatistics():
         mean_error = [np.nanstd(i, ddof=1) / math.sqrt(len(i)) for i in arrays_sorted]
         return mean, mean_error
 
-    def MSD_types(self, MSD_delta_t_n, y_lim, merge):
+    def MSD_types(self, MSD_delta_t_n, y_lim, y_min, merge):
         average_MSDs_immob = []
         average_MSDs_immob_error = []
         for cell in self.trajectories_immob_cells_filtered:
@@ -903,10 +902,10 @@ class TrajectoryStatistics():
         self.mean_error_MSDs_immob_notype, _ = self.calc_mean_error_different_lengths(average_MSDs_immob_notype_error)
 
         if merge:
-            self.MSD_fig_types = self.plot_MSD_types(MSD_delta_t_n, y_lim, merge=False)
-            self.MSD_fig_types_merge = self.plot_MSD_types(MSD_delta_t_n, y_lim, merge=merge)
+            self.MSD_fig_types = self.plot_MSD_types(MSD_delta_t_n, y_lim, y_min, merge=False)
+            self.MSD_fig_types_merge = self.plot_MSD_types(MSD_delta_t_n, y_lim, y_min, merge=merge)
         else:
-            self.plot_MSD_types(MSD_delta_t_n, y_lim)
+            self.plot_MSD_types(MSD_delta_t_n, y_lim, y_min)
 
     def clear_attributes(self):
         """
@@ -1084,19 +1083,20 @@ class TrajectoryStatistics():
     
     def save_diff_fig(self, directory, folder_name):
         for fig, name in zip(self.diff_fig, self.fig_name):  # diffusion hist / bg hist
-            fig.savefig(directory + "\\"+ folder_name +  "\\" + name + ".pdf", format="pdf", transparent=True)
+            fig.savefig(directory + "\\"+ folder_name +  "\\" + name + ".svg")
         # diffusion hist type
-        self.diff_fig_types.savefig(directory + "\\" + folder_name + "\\" + "diffusion_hist_type" + ".pdf", format="pdf", transparent=True)
-        self.diff_fig_types_merge.savefig(directory + "\\" + folder_name + "\\" + "diffusion_hist_type_merge" + ".pdf", format="pdf", transparent=True)
+        self.diff_fig_types.savefig(directory + "\\" + folder_name + "\\" + "diffusion_hist_type" + ".svg")
+        self.diff_fig_types_merge.savefig(directory + "\\" + folder_name + "\\" + "diffusion_hist_type_merge" + ".svg")
         # MSD type
-        self.MSD_fig_types.savefig(directory + "\\" + folder_name + "\\" + "MSD_type" + ".pdf", format="pdf", transparent=True)
-        self.MSD_fig_types_merge.savefig(directory + "\\" + folder_name + "\\" + "MSD_type_merge" + ".pdf", format="pdf", transparent=True)
-        self.cell_sizes_fig.savefig(directory + "\\" + folder_name + "\\" + "cell_sizes" + ".pdf", format="pdf", transparent=True, bbox_inches="tight")
+        self.MSD_fig_types.savefig(directory + "\\" + folder_name + "\\" + "MSD_type" + ".svg")
+        self.MSD_fig_types_merge.savefig(directory + "\\" + folder_name + "\\" + "MSD_type_merge" + ".svg")
+        self.cell_sizes_fig.savefig(directory + "\\" + folder_name + "\\" + "cell_sizes" + ".svg", bbox_inches="tight")
         target = "segments" if self.cells[0].seg_id else "trajectories"  # SEG OR TRACK
-        self.n_segments_fig.savefig(directory + "\\" + folder_name + "\\" + "number_" + target + ".pdf", format="pdf", transparent=True, bbox_inches="tight")
-        self.type_percentages_cell_fig.savefig(directory + "\\" + folder_name + "\\" + "type_percentages_cell" + ".pdf", format="pdf", transparent=True, bbox_inches="tight")
-        self.diff_cell_fig.savefig(directory + "\\" + folder_name + "\\" + "diffusion_cell" + ".pdf", format="pdf", transparent=True, bbox_inches="tight")
-        self.lengths_cell_fig.savefig(directory + "\\" + folder_name + "\\" + target + "_lengths_cell" + ".pdf", format="pdf", transparent=True, bbox_inches="tight")
+        self.n_segments_fig.savefig(directory + "\\" + folder_name + "\\" + "number_" + target + ".svg", bbox_inches="tight")
+        self.type_percentages_cell_fig.savefig(directory + "\\" + folder_name + "\\" + "type_percentages_cell" + ".svg", bbox_inches="tight")
+        self.diff_cell_fig.savefig(directory + "\\" + folder_name + "\\" + "diffusion_cell" + ".svg", bbox_inches="tight")
+        self.lengths_cell_fig.savefig(directory + "\\" + folder_name + "\\" + target + "_lengths_cell" + ".svg", bbox_inches="tight")
+        #self.lengths_cell_fig.savefig(directory + "\\" + folder_name + "\\" + target + "_lengths_cell" + ".pdf", format="pdf", transparent=True, bbox_inches="tight")
 
     def plot_bar_log_bins_bg_corrected(self):
         self.diff_fig.append(plt.figure())

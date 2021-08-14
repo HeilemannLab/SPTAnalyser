@@ -65,7 +65,7 @@ class ExpNoiseRate():
     def plot_box(self, data_points, title, ylabel):
         df = pd.DataFrame(data_points, columns=[""])
         fig = plt.figure(figsize=(3, 5))
-        ax = sns.violinplot(data=df, color="cornflowerblue", showmeans=True,
+        ax = sns.boxplot(data=df, color="cornflowerblue", showmeans=True,
                          meanprops={"marker": "s", "markerfacecolor": "white", "markeredgecolor": "0.25"})
         ax = sns.swarmplot(data=df, color="0.25")
         ax.set_title(title)

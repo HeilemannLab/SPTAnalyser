@@ -358,9 +358,8 @@ class TrackAnalysis():
     def plot_violine(self, lst, title, x_axis, y_axis, color="cornflowerblue"):
         df = pd.DataFrame(lst)
         fig = plt.figure(figsize=(3, 5))
-        ax = sns.violinplot(data=df, color=color, showmeans=True,
-                         meanprops={"marker": "s", "markerfacecolor": "white", "markeredgecolor": "0.25"})
-        ax = sns.swarmplot(data=df, color="0.25")
+        ax = sns.violinplot(data=df, color=color, scale="width", cut=0, inner="quartile")
+        ax = sns.stripplot(data=df, color=color, edgecolor=(19 / 255, 27 / 255, 30 / 255), linewidth=1)
         ax.set_ylabel(y_axis)
         ax.set_xlabel(x_axis)
         ax.set_title(title)
@@ -371,8 +370,8 @@ class TrackAnalysis():
         fig, axs = plt.subplots(1, len(lsts), sharey=True)
         for c, (lst, x_axis, color) in enumerate(zip(lsts, x_axiss, colors)):
             df = pd.DataFrame(lst)
-            sns.violinplot(data=df, color=color, showmeans=True, meanprops={"marker": "s", "markerfacecolor": "white", "markeredgecolor": "0.25"}, ax=axs[c])
-            sns.swarmplot(data=df, color="0.25", ax=axs[c])
+            sns.violinplot(data=df, color=color, scale="width", cut=0, inner="quartile", ax=axs[c])
+            sns.stripplot(data=df, color=color, edgecolor=(19/255,27/255,30/255), linewidth=1, ax=axs[c])
             axs[c].set_xlabel(x_axis)
             axs[c].set(xticklabels=[])
         fig.text(0.02, 0.5, y_axis, va="center", rotation="vertical")
