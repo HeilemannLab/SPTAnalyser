@@ -46,7 +46,6 @@ class WidgetLoadHdf5():
         self.confined_type_check_box = self.create_confined_type_check_box()
         self.free_type_check_box = self.create_free_type_check_box()
         self.analyse_not_successful_check_box = self.create_analyse_not_successful_check_box()
-        self.plot_diffusions_button = self.create_plot_diffusions_button()
         # Calculate the dynamic localization error
         self.calc_sigma_dyn_button = self.create_calc_sigma_dyn_button()
         # Plot diffusion histogram
@@ -88,6 +87,8 @@ class WidgetLoadHdf5():
     def open_dir(self, b):
         root = tk.Tk()
         root.withdraw()
+        root.attributes("-topmost", True)
+        root.lift()
         root.update()
         root.name = fd.askdirectory(initialdir=os.getcwd(), title="Please select a directory")
         root.update()
@@ -124,6 +125,8 @@ class WidgetLoadHdf5():
     def open_dir_bg(self, b):
         root = tk.Tk()
         root.withdraw()
+        root.attributes("-topmost", True)
+        root.lift()
         root.update()
         root.name = fd.askdirectory(initialdir=os.getcwd(), title='Please select a directory')
         root.update()
@@ -150,14 +153,14 @@ class WidgetLoadHdf5():
     def create_drop_down_cells(self):
         drop_down_cells = widgets.Dropdown(
                 options=self.cell_options,
-                description="Number:",
+                description="Cell:",
                 disabled=False)
         return drop_down_cells
     
     def create_drop_down_trajectories(self):
         drop_down_trajectories = widgets.Dropdown(
                 options=self.trajectory_options,
-                description="Number:",
+                description="Trajectory:",
                 disabled=False)
         return drop_down_trajectories
     
@@ -193,10 +196,10 @@ class WidgetLoadHdf5():
     
     def create_filter_button(self):
         button = widgets.Button(
-                description="apply filter",
+                description="filter & plot",
                 disabled=False,
                 button_style="",
-                tooltip="apply filter")
+                tooltip="apply filter and display global information")
         return button
     
     def create_min_length_box(self, val="", desc="Trajectory"):
@@ -242,14 +245,6 @@ class WidgetLoadHdf5():
                          description="Type determination not successful",
                          disabled=False)
         return checkbox
-    
-    def create_plot_diffusions_button(self):
-        button = widgets.Button(
-                description="plot",
-                disabled=False,
-                button_style="",
-                tooltip="plot diffusion coefficients")
-        return button
     
     def create_calc_sigma_dyn_button(self):
         """
@@ -301,6 +296,8 @@ class WidgetLoadHdf5():
     def save_open_dir(self, b):
         root = tk.Tk()
         root.withdraw()
+        root.attributes("-topmost", True)
+        root.lift()
         root.update()
         root.name = fd.askdirectory(initialdir=os.getcwd(), title="Please select a directory")
         root.update()
