@@ -26,7 +26,6 @@ def get_files(dir_path, mask_names):
     files = []
     file_names = []
     for file in os.listdir(dir_path):
-        print(file, mask_names)
         if file.endswith(".h5") and file not in mask_names:
             files.append(dir_path + "\\" + file)
             file_names.append(file)
@@ -155,16 +154,7 @@ def main(config_path):
     except KeyError:
         raise IncorrectConfigException("Parameter save_name missing in config.")
 
-    # path = r"T:\Chemie_phd\SPTAnalyser\test_data\trackStats"
-    # save_path = r"T:\Chemie_phd\SPTAnalyser\test_data\trackStats"
-    # save_name = "results"
-    # folder_name = "statistics"  # "rossier" / statistics
-    # file_name = "statistics_3"  # "rossierStatistics" statistics_3
-    # column_idx = 8  # starting from 1
-    # mask_names = ["Fab_CS2_cell05", "Fab_CS2_cell04.h5"]
-
     mask_names = [name + ".h5" if name[-3:] != ".h5" else name for name in mask_names]
-    print(mask_names)
     file_paths, file_names = get_files(path, mask_names)
     h5_files = read_files(file_paths)
     all_values, mean_values, mean_errors_STD, mean_errors_SEM = extract_values(h5_files, folder_name, file_name, column_idx-1)
@@ -173,7 +163,7 @@ def main(config_path):
         save_mean_results(save_path, save_name, file_names, mean_values, mean_errors_STD, mean_errors_SEM)
     else:
         save_single_results(save_path, save_name, file_names, mean_values, mean_errors_STD, mean_errors_SEM)
-
+    print("Results saved at", save_path)
 
 if __name__ == "__main__":
     try:

@@ -32,6 +32,8 @@ def write_log(files, file_areas, save_log):
     f.write('"Image Name", "Area"\n')
     
     for file, file_area in zip(files, file_areas):
+        if file[-9:-4] == "_size":
+            file = file[:-9] + ".csv"
         f.write('"' + file + '"' + ", " + str(file_area) + '\n')
         
     f.close()
