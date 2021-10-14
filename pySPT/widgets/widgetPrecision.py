@@ -30,7 +30,6 @@ class WidgetPrecision():
         self.dir_button_save = self.create_dir_button()
         self.dir_box_save = self.create_dir_box(placeholder="Directory to save")
         self.save_figures_checkbox_folder = self.create_save_figures_checkbox_folder()
-        self.check_microscope_folder = self.create_check_microscope_folder()
         # precision per file
         self.file_name = ""
         self.got_file_name = False
@@ -69,6 +68,8 @@ class WidgetPrecision():
     def open_dir(self, b):
         root = tk.Tk()
         root.withdraw()
+        root.attributes("-topmost", True)
+        root.lift()
         root.update()
         root.name = fd.askdirectory(initialdir=os.getcwd(), title="Please select a directory")
         root.update()
@@ -115,6 +116,8 @@ class WidgetPrecision():
     def open_dir_save(self, b):
         root = tk.Tk()
         root.withdraw()
+        root.attributes("-topmost", True)
+        root.lift()
         root.update()
         root.name = fd.askdirectory(initialdir=os.getcwd(), title="Please select a directory")
         root.update()
@@ -144,22 +147,14 @@ class WidgetPrecision():
                 disabled=False)
         return check_box
 
-    def create_check_microscope_folder(self):
-        """
-        If true, microscope file containing pixel_size, integration time and static error is saved
-        -> (SPTAnalyser/preAnalysis/microscope.txt).
-        """
-        check_box = widgets.Checkbox(
-                value=True,
-                description="Save microscope file for HMM analysis?",
-                disabled=False)
-        return check_box
 
     # precision per file
         
     def open_file(self, b):
         root = tk.Tk()
         root.withdraw()
+        root.attributes("-topmost", True)
+        root.lift()
         root.update()
         if self.software_button.value == "ThunderSTORM":
             root.name = askopenfilename(title="Import .csv file", filetypes=(("csv files", "*.csv"),("all files", "*.*")))

@@ -42,6 +42,8 @@ class WidgetExpDisp():
     def open_file(self, b):
         root = tk.Tk()
         root.withdraw()
+        root.attributes("-topmost", True)
+        root.lift()
         root.update()
         if self.software_button.value == "ThunderSTORM":
             root.name = askopenfilename(title="Import .tracked.csv file", filetypes=(("csv files", "*.csv"), ("all files", "*.*")))

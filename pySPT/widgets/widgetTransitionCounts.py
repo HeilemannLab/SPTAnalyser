@@ -44,6 +44,8 @@ class DefineDirectory():
     def open_dir(self, b):
         root = tk.Tk()
         root.withdraw()
+        root.attributes("-topmost", True)
+        root.lift()
         root.update()
         root.name = fd.askdirectory(initialdir=os.getcwd(), title="Please select a directory")
         root.update()
@@ -70,7 +72,7 @@ class RunAnalysis():
 
     def create_run_analysis_button(self):
         button = widgets.Button(
-            description="run",
+            description="run & save",
             disabled=False,
             button_style="",
             tooltip="run analysis")
@@ -89,12 +91,13 @@ class RunAnalysis():
 
 
 class Parameter():
-    def __init__(self, n_types, mask, counts_path, trajectory_path, save_dir):
+    def __init__(self, n_types, mask, counts_path, trajectory_path, save_dir, save_folder):
         self.n_diff_states_box = self.create_n_diff_states_box(n_types)
         self.mask_box = self.create_mask_box(mask)
         self.counts_file_box = self.create_counts_file_box(counts_path)
         self.trajectory_file_box = self.create_trajectory_file_box(trajectory_path)
         self.save_dir_box = self.create_save_dir_box(save_dir)
+        self.save_folder_box = self.create_save_folder_box(save_folder)
 
 
     def create_n_diff_states_box(self, val=""):
@@ -123,6 +126,12 @@ class Parameter():
 
     def create_save_dir_box(self, val=""):
         style = {"description_width": "initial"}
-        text = widgets.Text(value=str(val), placeholder="directory to be searched in", description="Save dir",
+        text = widgets.Text(value=str(val), placeholder="directory to save results", description="Save dir",
+                            disabled=False, style=style)
+        return text
+
+    def create_save_folder_box(self, val=""):
+        style = {"description_width": "initial"}
+        text = widgets.Text(value=str(val), placeholder="name of results folder", description="Save folder",
                             disabled=False, style=style)
         return text

@@ -109,8 +109,9 @@ class LoadHdf5():
     def read_h5(self):
         for file_name in self.file_names:
             h5_file = h5py.File(file_name, "r")
-            self.hdf5.append(h5_file)
-            
+            if "filterInfo" not in h5_file.keys():  # prevent trackStats input files
+                self.hdf5.append(h5_file)
+
     def count_trajectory_numbers(self):
         """
         Create list with numbers of trajectories for each cell [int, int ...].

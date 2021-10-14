@@ -82,7 +82,7 @@ class WidgetTrackAnalysis():
         """
         True -> Save hmm.trc file in SPTAnalyser/hmm folder.
         """
-        checkbox = widgets.Checkbox(value=True,
+        checkbox = widgets.Checkbox(value=False,
                          description="Save .trc file",
                          disabled=False)
         return checkbox
@@ -91,7 +91,7 @@ class WidgetTrackAnalysis():
         """
         True -> Save microscope.txt file (containing dt, pixel size, sigma dyn) in SPTAnalyser/hmm folder.
         """
-        checkbox = widgets.Checkbox(value=True,
+        checkbox = widgets.Checkbox(value=False,
                          description="Save .microscope file",
                          disabled=False)
         return checkbox
@@ -175,6 +175,8 @@ class WidgetTrackAnalysis():
         root = tk.Tk()
         root.withdraw()
         root.update()
+        root.attributes("-topmost", True)
+        root.lift()
         root.name = fd.askdirectory(initialdir=os.getcwd(),title="Please select a directory")
         root.update()
         root.destroy()
@@ -212,7 +214,9 @@ class WidgetTrackAnalysis():
         root = tk.Tk()
         root.withdraw()
         root.update()
-        root.name = fd.askopenfilename(title="Import roi.log file", filetypes=(("log files", "*.log"),("all files", "*.*")))
+        root.attributes("-topmost", True)
+        root.lift()
+        root.name = fd.askopenfilename(title="Import roi.log file", filetypes=(("log files", "*.log"),("all files", "*.*")),)
         root.update()
         root.destroy()
         self.roi_name = root.name
@@ -301,14 +305,14 @@ class WidgetTrackAnalysis():
     def create_drop_down_cells(self):
         drop_down_cells = widgets.Dropdown(
                 options=self.cell_options,
-                description='Number:',
+                description="Cell:",
                 disabled=False)
         return drop_down_cells
     
     def create_drop_down_trajectories(self):
         drop_down_trajectories = widgets.Dropdown(
                 options=self.trajectory_options,
-                description="Number:",
+                description="Trajectory:",
                 disabled=False)
         return drop_down_trajectories
     

@@ -59,6 +59,8 @@ class WidgetExpNoiseRate():
     def open_dir(self, b):
         root = tk.Tk()
         root.withdraw()
+        root.attributes("-topmost", True)
+        root.lift()
         root.update()
         root.name = fd.askdirectory(initialdir=os.getcwd(), title="Please select a directory")
         root.update()
@@ -74,6 +76,8 @@ class WidgetExpNoiseRate():
     def open_dir_bg(self, b):
         root = tk.Tk()
         root.withdraw()
+        root.attributes("-topmost", True)
+        root.lift()
         root.update()
         root.name = fd.askdirectory(initialdir=os.getcwd(), title="Please select a directory")
         root.update()
@@ -106,6 +110,8 @@ class WidgetExpNoiseRate():
     def open_file(self, b):
         root = tk.Tk()
         root.withdraw()
+        root.attributes("-topmost", True)
+        root.lift()
         root.update()
         root.name = fd.askopenfilename(title="Import .roi file",
                                        filetypes=(("roi logs", "*.log"), ("all files", "*.*")))
@@ -164,6 +170,8 @@ class WidgetExpNoiseRate():
     def open_dir_save(self, b):
         root = tk.Tk()
         root.withdraw()
+        root.attributes("-topmost", True)
+        root.lift()
         root.update()
         root.name = fd.askdirectory(initialdir=os.getcwd(), title="Please select a directory")
         root.update()
