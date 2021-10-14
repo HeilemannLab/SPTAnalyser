@@ -136,7 +136,7 @@ class Trajectory():
         except:
             self.analyse_successful = False
         if self.analyse_successful:
-            [chisq, p] = chisquare(MSDs, self.function_full_MSD(times, self.r, self.D_conf))
+            [chisq, p] = chisquare(MSDs/np.sum(MSDs), self.function_full_MSD(times, self.r, self.D_conf)/np.sum(self.function_full_MSD(times, self.r, self.D_conf)))
             self.chi_MSD_fit = chisq
             self.tau = self.r**2/(3*self.D_conf)
             self.dr = self.cov[0,0]**0.5
