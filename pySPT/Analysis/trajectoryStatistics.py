@@ -629,7 +629,7 @@ class TrajectoryStatistics():
                                        mean_log_hist_notype, error_log_hist_notype, mean_log_hist_immob_notype,
                                        error_log_hist_immob_notype, merge)
 
-    def run_diffusion_histogram(self, desired_bin_size, x_lim="None", y_lim="None", y_min=0, plot=True, merge=True):
+    def run_diffusion_histogram(self, desired_bin_size, x_lim="None", y_lim="None", y_min=0, merge=True):
         """
         :param merge: If True, immobile and notype are handled as one type in a plot and separately in a second plot.
         """
@@ -651,20 +651,19 @@ class TrajectoryStatistics():
                     self.determine_mean_frequency(is_cell=False)
                     self.calc_mean_error(is_cell=False)
                     self.calc_bg_corrected_freq()
-                if plot:
-                    self.plot_bar_log_bins()
-                    self.diffusion_hist_types(float(desired_bin_size), merge)
-                    if self.background_trajectories:
-                        self.plot_bar_log_bins_bg_corrected()
-                    # plot MSD type
-                    x_lim = None if x_lim == "None" else float(x_lim)
-                    y_lim = None if y_lim == "None" else float(y_lim)
-                    self.MSD_types(x_lim, y_lim, y_min, merge)
-                    # plot cell distributions
-                    self.plot_sizes_ntracks()
-                    self.plot_type_distributions()
-                    self.plot_D_distributions()
-                    self.plot_length_distributions()
+                self.plot_bar_log_bins()
+                self.diffusion_hist_types(float(desired_bin_size), merge)
+                if self.background_trajectories:
+                    self.plot_bar_log_bins_bg_corrected()
+                # plot MSD type
+                x_lim = None if x_lim == "None" else float(x_lim)
+                y_lim = None if y_lim == "None" else float(y_lim)
+                self.MSD_types(x_lim, y_lim, y_min, merge)
+                # plot cell distributions
+                self.plot_sizes_ntracks()
+                self.plot_type_distributions()
+                self.plot_D_distributions()
+                self.plot_length_distributions()
             else:
                 print("Bin size can not be zero.")
 
