@@ -167,7 +167,7 @@ class PBleach():
         out_file_name = directory + "\\" + year + month + day + "_" + base_name + "_p_bleach" + "_histogram.txt"
         header = "frames [count]\ttime [s]\tfraction\texponential fit\tresidues\t"
         np.savetxt(out_file_name, X=self.mjd_n_histogram, fmt=("%i", "%.4e", "%.4e", "%.4e", "%.4e"), header=header)
-        print("Results are saved.")    
+        print("Results are saved at", directory)
         
     def save_fit_results(self, directory, base_name):
         """

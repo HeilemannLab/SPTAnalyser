@@ -125,7 +125,7 @@ class ExpDisplacement():
         self.save_mjd_frequencies(directory, base_name)
         if save_fig:
             self.run_save_plot(directory, base_name)
-        print("Results are saved.")
+        print("Results are saved at", directory)
         
     def run_save_plot(self, directory, base_name):
         now = datetime.datetime.now()

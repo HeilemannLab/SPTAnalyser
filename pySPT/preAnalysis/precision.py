@@ -38,6 +38,7 @@ class Precision():
         self.figures = []
         self.figure_names = []
         self.figure_box = []
+        self.analysis_executed = False
         
     def run_precision(self):
         """
@@ -344,28 +345,7 @@ class Precision():
             self.save_x_hist_log(directory, base_name)
             self.save_y_hist_log(directory, base_name)
         self.save_fit_results(directory, base_name)
-        print("Results are saved.")
-        
-    def save_hmm_microscope(self, directory, px_size, integration_time):
-        """
-        For the HMM-analysis a microscope.txt file for each cell is needed which contains the localization uncertainty
-        (static), camera pixel size and integration time. This file will be saved in the SPTAnalysis/preAnalysis
-        per cell optionally.
-        """
-        if self.software == "ThunderSTORM":
-            loc_uncertainty = self.mean_x
-        elif self.software == "rapidSTORM":
-            loc_uncertainty = (self.mean_x + self.mean_y) / 2
-        out_file_name = directory + "\\" + "microscope.txt"
-        file = open(out_file_name, "w")
-        if not file.closed:
-            file.write("# SMLMS Microscope File \n")
-            file.write("# pxl Size[nm] \n")
-            file.write("# integration Time [s] \n")
-            file.write("# localization precision [nm] \n")
-            file.write("%.6e \n" %(float(px_size)))
-            file.write("%.6e \n" %(float(integration_time)))
-            file.write("%.6e \n" %(loc_uncertainty))
+        print("Results are saved at", directory)
             
     def run_save_plots(self, directory, base_name):
         now = datetime.datetime.now()
@@ -448,18 +428,3 @@ class Precision():
         np.savetxt(out_file_name, X=data, fmt=("%10s", "%.4e"), header=header)
 
         print("Results successfully saved.")
-
-    def save_microscope(self, file_dir, pixel_size, dt):
-        _, file_names = self.get_loc_files(file_dir)
-        for i, error in zip(file_names, self.mean_values):
-            folder_name = "SPTAnalyser_" + os.path.splitext(i)[0]
-            try:
-                os.mkdir(file_dir + "\\" + folder_name)
-            except FileExistsError:
-                pass
-            try:
-                os.mkdir(file_dir + "\\" + folder_name + "\\preAnalysis")
-            except FileExistsError:
-                pass
-            mic = microscope.Microscope(dt, pixel_size, error, file_dir + "\\" + folder_name + "\\preAnalysis", ym_to_nm=False)
-            mic.save_hmm_microscope()
