@@ -143,14 +143,14 @@ def main(config_path):
     precision = []
     for i in range(len(n_file_paths)):
         if os.path.exists(precision_vals[i]):
-            precision = pd.read_csv(precision_vals[i], sep=" ").iloc[:, 1].to_list()
+            precision = pd.read_csv(precision_vals[i], sep=" ", encoding="latin").iloc[:, 1].to_list()
         else:
             precision += [precision_vals[i]] * n_file_paths[i]
 
     exp_noise_rate = []
     for i in range(len(n_file_paths)):
         if os.path.exists(exp_noise_rate_vals[i]):
-            exp_noise_rate = pd.read_csv(exp_noise_rate_vals[i], sep=" ").iloc[:, 2].to_list()
+            exp_noise_rate = pd.read_csv(exp_noise_rate_vals[i], sep=" ", encoding="latin").iloc[:, 2].to_list()
         else:
             exp_noise_rate += [exp_noise_rate_vals[i]] * n_file_paths[i]
 
