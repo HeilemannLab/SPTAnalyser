@@ -23,7 +23,7 @@ class GridNNSearch:
     potential nearest neighbor candidates for a center.
     """
 
-    def __init__(self, centers, neighbors, number_subregions, number_pixels, pixel_size):
+    def __init__(self, centers, neighbors, number_subregions, number_pixels, pixel_size, max_search_area):
         self.number_pixels = number_pixels  # 256
         self.pixel_size = pixel_size  # 158 nm
         self.number_subregions = number_subregions  # e.g. ~ number of neighbor points
@@ -32,6 +32,7 @@ class GridNNSearch:
         self.centers = centers  # xy-locations of centers
         self.grid_neighbors = self.create_grid(number_subregions)  # subregions linked to their points (xy-locs)
         self.center_is_neighbor = self.center_is_neighbor()  # list of booleans if center list equals a neighbor list
+        self.max_search_area = max_search_area  # stop criterium to find nearest neighbor for sparse regions
 
     def center_is_neighbor(self):
         """
@@ -91,6 +92,8 @@ class GridNNSearch:
                 if neighbors_conc:
                     search_area += 1
                     found_neighbor = True
+                elif search_area > self.max_search_area:
+                    break
                 else:
                     search_area += 1
             valid_sub_regions = self.get_valid_sub_regions(subregion, search_area)
@@ -161,6 +164,7 @@ class DiffLimit():
         self.file_paths = []  # paths to localization files
         self.file_names = []  # names of localization files
         self.figure = []  # boxplot of nearest neighbor distances
+        self.max_search_area = 0  # max search area (stop criterium for sparse regions)
 
     def clear_object(self):
         self.__init__()
@@ -228,7 +232,8 @@ class DiffLimit():
                             neighbor_positions.append(xy_positions)
                             if len(xy_positions) > 0:
                                 grid_nn_search = GridNNSearch(xy_positions, list(neighbor_positions),
-                                                              int(np.floor(math.sqrt(len(xy_positions)))), self.n_px, self.px_size)
+                                                              int(np.floor(math.sqrt(len(xy_positions)))), self.n_px,
+                                                              self.px_size, self.max_search_area)
                                 nn_distances, _ = grid_nn_search.get_nn_distances()
                                 file_distances.extend(nn_distances)
                     elif file_ending == ".txt":
@@ -239,7 +244,8 @@ class DiffLimit():
                             neighbor_positions.append(xy_positions)
                             if len(xy_positions) > 0:
                                 grid_nn_search = GridNNSearch(xy_positions, list(neighbor_positions),
-                                                              int(np.floor(math.sqrt(len(xy_positions)))), self.n_px, self.px_size)
+                                                              int(np.floor(math.sqrt(len(xy_positions)))), self.n_px,
+                                                              self.px_size, self.max_search_area)
                                 nn_distances, _ = grid_nn_search.get_nn_distances()
                                 file_distances.extend(nn_distances)
                     self.nn_distances.append(file_distances)

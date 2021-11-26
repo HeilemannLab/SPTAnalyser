@@ -86,7 +86,7 @@ class ExpNoiseRate():
             day = str(0) + day
         # save cell info & exp noise rate
         out_file_name = directory + "\\" + folder_name + "\\" + year + month + day + "_cells_exp_noise_rate.txt"
-        header = "cell name\tcell density [localizations per px² frame]\texp_noise_rate [%]\t"
+        header = "cell name\tcell density [localizations per px2 frame]\texp_noise_rate [%]\t"
         max_name_length = max([len(i) for i in self.cell_names])
         data = np.zeros(np.array(self.cell_names).size, dtype=[("col1", "U"+str(max_name_length)),
                                                                ("col2", float), ("col3", float)])
@@ -103,7 +103,7 @@ class ExpNoiseRate():
             file.close()
         # save background info
         out_file_name = directory + "\\" + folder_name + "\\" + year + month + day + "_background.txt"
-        header = "background name\tbackground density [localizations per px² frame]\t"
+        header = "background name\tbackground density [localizations per px2 frame]\t"
         max_name_length = max([len(i) for i in self.bg_names])
         data = np.zeros(np.array(self.bg_names).size, dtype=[("col1", "U"+str(max_name_length)), ("col2", float)])
         data["col1"] = np.array(self.bg_names)
