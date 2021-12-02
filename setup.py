@@ -14,7 +14,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(name="SPTAnalyser",
-                 version="211014",
+                 version="211202",
                  author="Johanna Rahm and Sebastian Malkusch",
                  author_email="johanna-rahm@gmx.de",
                  description="a package for analysing SPT data",
@@ -23,7 +23,7 @@ setuptools.setup(name="SPTAnalyser",
                  licence="GNU GENERAL PUBLIC LICENSE",
                  url="https:/github.com/JohannaRahm/SPTAnalyser",
                  packages=setuptools.find_packages(),
-                 install_requires=["numpy",
+                 install_requires=["numpy>=1.20.0",
                                    "matplotlib",
                                    "seaborn",
                                    "scipy",
