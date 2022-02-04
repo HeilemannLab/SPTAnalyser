@@ -1144,5 +1144,8 @@ class TrajectoryStatistics():
                 dt = self.cell_trajectories_filtered[cell_idx][0].dt
                 mean_D = np.mean([track.D for track in self.cell_trajectories_filtered[cell_idx]])
                 mean_MSD_0 = np.mean([track.MSD_0 for track in self.cell_trajectories_filtered[cell_idx]])
-                sigma_dyn = math.sqrt((mean_MSD_0+(4/3)*mean_D*dt)/dof)
+                if (mean_MSD_0+(4/3)*mean_D*dt)/dof > 0:
+                    sigma_dyn = math.sqrt((mean_MSD_0+(4/3)*mean_D*dt)/dof)
+                else:
+                    sigma_dyn = "negative argument in square root, error not calculable for this target"
                 self.sigma_dyns.append(sigma_dyn)      

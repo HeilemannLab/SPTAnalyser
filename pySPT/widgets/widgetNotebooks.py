@@ -224,6 +224,10 @@ def init_save_filtered_analysis(cover_slip, cell_index, track_stats, directory, 
     h5_filtered.create_h5(directory + "\\" + folder_name + "\\" + cell_name)
     cell = track_stats.cells[cell_index]
     one_trajectory = track_stats.cell_trajectories_filtered[cell_index][0]  # get trajectory attributes, that are the same for every trajectory
+    if isinstance(track_stats.sigma_dyns[cell_index], str):
+        track_stats.sigma_dyns[cell_index] = 0
+    if isinstance(cell.sigma_dyn_hmm, str):
+        cell.sigma_dyn_hmm = 0
     h5_filtered.data_settings(cell.dt, cell.pixel_size, cell.pixel_amount, cell.size, cell.tau_threshold, cell.min_track_length_type,
                               one_trajectory.fit_area, cell.dof, cell.D_min, track_stats.sigma_dyns[cell_index], cell.seg_id,
                               cell.min_track_length_hmm, cell.sigma_dyn_hmm)    
