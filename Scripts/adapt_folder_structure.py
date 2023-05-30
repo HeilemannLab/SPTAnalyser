@@ -51,7 +51,7 @@ def get_matching_files(directory, target, ending=".tif", dl=False):
     matching_files = []
     for path, subdirs, files in os.walk(directory):
         for name in files:
-            if target in name and os.path.splitext(name)[1] == ending:  # "dl not in name"
+            if target in name.lower() and os.path.splitext(name)[1] == ending:  # "dl not in name"
                 if dl:
                     if "dl" in name.lower() or "tl" in name.lower():
                         matching_files.append(os.path.join(path, name))
@@ -75,20 +75,51 @@ def sort_files_target_folder(files, folder):
 def rename_files(folder, remove_str="_MMStack.ome.tif"):
     """
     Rename files in a folder cell_1_MMStack.ome.tif -> cell_1.tif
+    Also replaces all keywords with lowercase ones
     """
     for f in os.listdir(folder):
+        if 'cell' in f.lower():
+            pos = f.lower().find('cell')  #finds the position of the respective keyword
+            name = f[:pos] + 'cell' + f[pos+4:] #compiles new file name, cutting the keyword out and replacing it with the lowercase one
+            os.rename(folder + "\\" + f, folder + "\\" + name) #renaming
+            f = name
+        if 'background' in f.lower():
+            pos = f.lower().find('background')
+            name = f[:pos] + 'background' + f[pos + 10:]
+            os.rename(folder + "\\" + f, folder + "\\" + name)
+            f = name
+        if '_dl' in f.lower():
+            pos = f.lower().find('_dl')
+            name = f[:pos] + '_dl' + f[pos + 3:]
+            os.rename(folder + "\\" + f, folder + "\\" + name)
+            f = name
+        if '_tl' in f.lower():
+            pos = f.lower().find('_tl')
+            name = f[:pos] + '_tl' + f[pos + 3:]
+            os.rename(folder + "\\" + f, folder + "\\" + name)
+            f = name
         if remove_str in f:
             os.rename(folder + "\\" + f, folder + "\\" + f[:-len(remove_str)] + ".tif")
 
 
 def remove_empty_folders(dir):
     """
-    Go through items in directory, if empty folders, delete them.
+    Go through items in directory, if empty folders, delete them. Also deletes folders that only contain comments.txt and DisplaySettings.json
     :param dir: Directory
     """
     for f in os.listdir(dir):
-        if os.path.isdir(dir + "\\" + f) and len(os.listdir(dir + "\\" + f)) == 0:
-            os.rmdir(dir + "\\" + f)
+        if os.path.isdir(dir + "\\" + f):
+            contents = list(os.listdir(dir + "\\" + f))
+            try:    #attempts to delete comments.txt from list of contents
+                contents.remove("comments.txt")
+            except ValueError:
+                pass
+            try:    #attempts to delete DisplaySettings.json from list of contents
+                contents.remove("DisplaySettings.json")
+            except ValueError:
+                pass
+            if len(contents) == 0:
+                shutil.rmtree(dir + "\\" + f) #removes directory if list of contents is empty after attempted removal above
 
 
 def main(config_path):
