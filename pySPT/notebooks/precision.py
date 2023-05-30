@@ -1,3 +1,10 @@
+"""
+@author: Alexander Niedrig, Johanna Rahm, Claudia Catapano
+Research group Heilemann
+Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
+
+virtual version of the precision notebook
+"""
 import os
 from pySPT.widgets import widgetDirectoryStructure
 from pySPT.widgets import widgetColumnSort

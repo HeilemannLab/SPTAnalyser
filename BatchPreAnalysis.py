@@ -1,5 +1,5 @@
 """
-@author: Alexander Niedrig, Johanna Rahm
+@author: Alexander Niedrig, Johanna Rahm, Claudia Catapano
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
@@ -36,6 +36,8 @@ def get_matching_files(directory, target, exclusion_String):
                 if exclusion_String not in name.lower():
                     matching_files.append(os.path.join(path, name))
     return matching_files
+
+#functions to write the cell sizes
 
 def read_areas(directory):
     files = os.listdir(directory)
@@ -99,21 +101,25 @@ def main(config_path):
 
 
     for dir in dirs:
-        if os.path.exists(dir + "\\PreAnalysisParameters"):
+        if os.path.exists(dir + "\\PreAnalysisParameters"): #resets previous calculation of PreAnalysisParameters and recreates foldes
             shutil.rmtree(dir + "\\PreAnalysisParameters")
         os.mkdir(dir + "\\PreAnalysisParameters")
         os.mkdir(dir + "\\PreAnalysisParameters\\parameters")
-        files, file_areas = read_areas(dir + "\\cells\\rois")
+        files, file_areas = read_areas(dir + "\\cells\\rois")   #writes cell_sizes.log for directories
         write_log(files, file_areas, dir + "\\cells\\rois\\cell_sizes.LOG")
+        #runs virtual precision notebooks
         precison_nb= precision.precisionNotebook(dir, software,pixel_size,camera_integration_time)
         precison_nb.run_analysis()
         precison_nb.save_analysis()
+        #runs virtual exp_noise notebook
         noiseRate_nb = exp_noise_rate.noiseRateNotebook(dir,software,background_size)
         noiseRate_nb.run_analysis()
         noiseRate_nb.save_analysis()
+        #runs virtual diffraction_limit notebook
         diffLimit_nb = diffractionLimit.diffLimitNotebook(dir,software,pixel_size,pixel_per_row)
         diffLimit_nb.run_analysis()
         diffLimit_nb.save_analysis()
+        #changes dir for post calculation data sorting, copies the important files to the parameters subfolder and renames the exp_noise_rate
         dir = dir + "\\PreAnalysisParameters"
         shutil.copy(dir + "\\precision\\precisions.txt",dir +"\\parameters")
         noiseRate = get_matching_files(dir + "\\exp_noise_rate", "exp_noise_rate","mean")

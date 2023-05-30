@@ -1,4 +1,10 @@
+"""
+@author: Alexander Niedrig, Johanna Rahm, Claudia Catapano
+Research group Heilemann
+Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
+virtual version of the diffraction_limit notebook
+"""
 from pySPT.widgets import widgetDiffLimit
 from pySPT.widgets import widgetColumnSort
 from pySPT.preAnalysis import diffLimit_noGUI as diffLimit
