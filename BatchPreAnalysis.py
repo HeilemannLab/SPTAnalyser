@@ -10,15 +10,16 @@ import os
 import sys
 import shutil
 import configparser
-from pySPT.notebookspy import precision
-from pySPT.notebookspy import diffractionLimit
+from pySPT.notebookspy import precision_noGUI as precision
+from pySPT.notebookspy import diffractionLimit_noGUI as diffractionLimit
 import pandas as pd
-from pySPT.notebookspy import exp_noise_rate
+from pySPT.notebookspy import exp_noise_rate_noGUI as exp_noise_rate
 
 
 class IncorrectConfigException(Exception):
     def __init__(self, msg):
         Exception.__init__(self, msg)
+
 
 def get_matching_files(directory, target, exclusion_String):
     """
@@ -37,7 +38,8 @@ def get_matching_files(directory, target, exclusion_String):
                     matching_files.append(os.path.join(path, name))
     return matching_files
 
-#functions to write the cell sizes
+
+# functions to write the cell sizes
 
 def read_areas(directory):
     files = os.listdir(directory)
@@ -99,34 +101,34 @@ def main(config_path):
     except KeyError:
         raise IncorrectConfigException("Parameter background_size missing in config.")
 
-
     for dir in dirs:
-        if os.path.exists(dir + "\\PreAnalysisParameters"): #resets previous calculation of PreAnalysisParameters and recreates foldes
+        if os.path.exists(
+                dir + "\\PreAnalysisParameters"):  # resets previous calculation of PreAnalysisParameters and recreates foldes
             shutil.rmtree(dir + "\\PreAnalysisParameters")
         os.mkdir(dir + "\\PreAnalysisParameters")
         os.mkdir(dir + "\\PreAnalysisParameters\\parameters")
-        files, file_areas = read_areas(dir + "\\cells\\rois")   #writes cell_sizes.log for directories
+        files, file_areas = read_areas(dir + "\\cells\\rois")  # writes cell_sizes.log for directories
         write_log(files, file_areas, dir + "\\cells\\rois\\cell_sizes.LOG")
-        #runs virtual precision notebooks
-        precison_nb= precision.precisionNotebook(dir, software,pixel_size,camera_integration_time)
+        # runs virtual precision notebooks
+        precison_nb = precision.precisionNotebook(dir, software, pixel_size, camera_integration_time)
         precison_nb.run_analysis()
         precison_nb.save_analysis()
-        #runs virtual exp_noise notebook
-        noiseRate_nb = exp_noise_rate.noiseRateNotebook(dir,software,background_size)
+        # runs virtual exp_noise notebook
+        noiseRate_nb = exp_noise_rate.noiseRateNotebook(dir, software, background_size)
         noiseRate_nb.run_analysis()
         noiseRate_nb.save_analysis()
-        #runs virtual diffraction_limit notebook
-        diffLimit_nb = diffractionLimit.diffLimitNotebook(dir,software,pixel_size,pixel_per_row)
+        # runs virtual diffraction_limit notebook
+        diffLimit_nb = diffractionLimit.diffLimitNotebook(dir, software, pixel_size, pixel_per_row)
         diffLimit_nb.run_analysis()
         diffLimit_nb.save_analysis()
-        #changes dir for post calculation data sorting, copies the important files to the parameters subfolder and renames the exp_noise_rate
+        # changes dir for post calculation data sorting, copies the important files to the parameters subfolder and renames the exp_noise_rate
         dir = dir + "\\PreAnalysisParameters"
-        shutil.copy(dir + "\\precision\\precisions.txt",dir +"\\parameters")
-        noiseRate = get_matching_files(dir + "\\exp_noise_rate", "exp_noise_rate","mean")
-        shutil.copy(noiseRate[0], dir+"\\parameters")
-        os.rename(get_matching_files(dir+'\\parameters', "exp_noise_rate","mean")[0],dir+"\\parameters\\exp_noise_rate.txt")
+        shutil.copy(dir + "\\precision\\precisions.txt", dir + "\\parameters")
+        noiseRate = get_matching_files(dir + "\\exp_noise_rate", "exp_noise_rate", "mean")
+        shutil.copy(noiseRate[0], dir + "\\parameters")
+        os.rename(get_matching_files(dir + '\\parameters', "exp_noise_rate", "mean")[0],
+                  dir + "\\parameters\\exp_noise_rate.txt")
         shutil.copy(dir + "\\diff_limit_nn\\min_nearest_neighbor_distances.csv", dir + "\\parameters")
-
 
 
 if __name__ == "__main__":
