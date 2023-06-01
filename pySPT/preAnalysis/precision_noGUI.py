@@ -1,10 +1,11 @@
 """
-@author: Johanna Rahm
+@author: Johanna Rahm, Alexander Niedrig
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
 Extract the localization precision from a rapidSTORM (x and y) or thunderSTORM (x and y are the same -> 1 value) file
 and build a mean value (log-transform values, average values, retransform average).
+Draws no graphs to allow batch processing.
 """
 
 import numpy as np

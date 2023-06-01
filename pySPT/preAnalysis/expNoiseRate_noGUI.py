@@ -1,9 +1,10 @@
 """
-@author: Johanna Rahm
+@author: Johanna Rahm, Alexander Niedrig
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
 Determine the false positive rate of localizations per cell in %, based on background noise.
+Draws no graphs to allow batch processing.
 """
 
 import os

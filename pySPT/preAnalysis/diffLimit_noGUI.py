@@ -1,9 +1,10 @@
 """
-@author: Johanna Rahm
+@author: Johanna Rahm, Alexander Niedrig
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
 Determine the minimal distance localizations can be told apart based on nearest neighbor analysis.
+Draws no graphs to allow batch processing.
 """
 
 

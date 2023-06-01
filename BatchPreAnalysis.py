@@ -3,17 +3,17 @@
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
-Determines cell sizes, expected noise rate, precision and diffraction limit.
+Determines cell sizes, expected noise rate, precision and diffraction limit for batch processing.
 """
 
 import os
 import sys
 import shutil
 import configparser
-from pySPT.notebooks import precision
-from pySPT.notebooks import diffractionLimit
+from pySPT.notebookspy import precision
+from pySPT.notebookspy import diffractionLimit
 import pandas as pd
-from pySPT.notebooks import exp_noise_rate
+from pySPT.notebookspy import exp_noise_rate
 
 
 class IncorrectConfigException(Exception):

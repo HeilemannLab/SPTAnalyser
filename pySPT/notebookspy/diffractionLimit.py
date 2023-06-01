@@ -3,7 +3,7 @@
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
-virtual version of the diffraction_limit notebook
+virtual python only version of the diffraction_limit.ipynb notebook for batch processing analysis
 """
 from pySPT.widgets import widgetDiffLimit
 from pySPT.widgets import widgetColumnSort

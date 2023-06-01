@@ -3,7 +3,7 @@
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
-virtual version of the precision notebook
+virtual python only version of the precision.ipynb notebook for batch processing analysis
 """
 import os
 from pySPT.widgets import widgetDirectoryStructure

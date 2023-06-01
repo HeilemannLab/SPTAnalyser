@@ -1,10 +1,11 @@
 """
-@author: Johanna Rahm
+@author: Johanna Rahm, Alexander Niedrig
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
 P_bleach is the probability per particle and frame to bleach [0..1]. Calc k with exp decay function a*exp(-dt*k).
 With k, calc cumulative distribution function 1-exp(-dt*k) = probability of event in the interval [0..1], 1 = 1 frame.
+Draws no graphs to allow batch processing.
 """
 
 import numpy as np

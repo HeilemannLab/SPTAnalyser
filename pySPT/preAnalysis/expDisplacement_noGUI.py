@@ -1,11 +1,12 @@
 """
-@author: Johanna Rahm
+@author: Johanna Rahm, Alexander Niedrig
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
 Determine how far a particle moves between frames in the x/y-plane [nm].
 Fraction vs mjd [nm] weighted by mjd_n -> determine the average as initial exp_displacement value.
 Based on segments.
+Draws no graphs to allow batch processing.
 """
 
 import datetime

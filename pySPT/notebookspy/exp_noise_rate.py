@@ -3,7 +3,7 @@
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
-virtual version of the expected noise rate notebook
+virtual python only version of the exp_noise_rate.ipynb notebook for batch processing analysis
 """
 import os
 from pySPT.widgets import widgetExpNoiseRate
