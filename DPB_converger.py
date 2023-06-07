@@ -360,4 +360,4 @@ if __name__ == "__main__":
         cfg_path = sys.argv[1]
         main(cfg_path)
     except IndexError:
-        print("Usage: python adapt_folder_structure.py your_config_file.ini")
+        print("Usage: python DPB_converger.py your_config_file.ini")
