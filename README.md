@@ -24,7 +24,7 @@ jupyter notebook
 Give the analysis a try with the test files in the dataset folder, including localization files from ThunderSTORM, tracked files from swift, and SPTAnalyser trackAnalysis output.
 
 ## Contributors
-Johanna Rahm, Sebastian Malkusch, Marie-Lena Harwardt, Marina Dietz, Claudia Catapano
+Johanna Rahm, Sebastian Malkusch, Marie-Lena Harwardt, Marina Dietz, Claudia Catapano, Alexander Niedrig
 
 ## Literature
 
