@@ -100,7 +100,7 @@ def main(config_path):
     except KeyError:
         raise IncorrectConfigException("Parameter degree_of_freedom missing in config.")
     try:
-        min_dD = config["DIFFUSION_TYPE_PARAM"]["min_detectable_D"]
+        min_dynamic_D = config["DIFFUSION_TYPE_PARAM"]["min_detectable_D"]
     except KeyError:
         raise IncorrectConfigException("Parameter min_D missing in config.")
     try:
@@ -113,15 +113,15 @@ def main(config_path):
     except KeyError:
         raise IncorrectConfigException("Parameter id_type missing in config.")
     try:
-        min_traj = config["FILTER_PARAMETERS"]["min_trajectory_len"]
+        filter_min_traj = config["FILTER_PARAMETERS"]["min_trajectory_len"]
     except KeyError:
         raise IncorrectConfigException("Parameter min_trajectory_len missing in config.")
     try:
-        max_traj = config["FILTER_PARAMETERS"]["max_trajectory_len"]
+        filter_max_traj = config["FILTER_PARAMETERS"]["max_trajectory_len"]
     except KeyError:
         raise IncorrectConfigException("Parameter max_trajectory_len missing in config.")
     try:
-        min_D = config["FILTER_PARAMETERS"]["min_D"]
+        filter_min_D = config["FILTER_PARAMETERS"]["min_D"]
     except KeyError:
         raise IncorrectConfigException("Parameter min_D missing in config.")
     try:
@@ -145,9 +145,9 @@ def main(config_path):
     except KeyError:
         raise IncorrectConfigException("Parameter filter_for_noType missing in config.")
     try:
-        save_dir = config["SAVE_DIR"]["sav"]
+        save_dir = config["SAVE_DIR"]["save"]
     except KeyError:
-        raise IncorrectConfigException("Parameter sav missing in config.")
+        raise IncorrectConfigException("Parameter save missing in config.")
     # resets tracking directories
     try:
         os.mkdir(save_dir)
@@ -159,6 +159,7 @@ def main(config_path):
             os.mkdir(save_dir + '\\trackAnalysis\\backgrounds')
         os.mkdir(save_dir + '\\trackAnalysis\\cells')
     except FileExistsError:
+        print("directory " + save_dir + '\\trackAnalysis exists. Will be overwritten')
         shutil.rmtree(save_dir + '\\trackAnalysis')
         os.mkdir(save_dir + '\\trackAnalysis')
         if len(background) != 0:
@@ -174,7 +175,7 @@ def main(config_path):
             notebook_analysis = trackAnalysis.analysisNotebook(software, mask_words, dir,
                                                                dir + r'\cells\rois\cell_sizes.LOG', pixel_size,
                                                                background_size,
-                                                               camera_integration_time, n_points, MSD_f_area, dof, min_dD,
+                                                               camera_integration_time, n_points, MSD_f_area, dof, min_dynamic_D,
                                                                min_tra_len,
                                                                id_type)
             notebook_analysis.run_analysis()
@@ -185,7 +186,6 @@ def main(config_path):
             except shutil.Error:
                 print(
                     'File ' + file + ' already exists in the trackAnalysis directory. Please check for duplicate files. Skipping...')
-                pass
 
     # runs analysis for given backgrounds
     if len(background) > 0:
@@ -194,7 +194,7 @@ def main(config_path):
                 warnings.simplefilter("ignore")
                 print("Analysing " + str(background.index(bg) + 1) + "/" + str(len(background)) + "  " + bg)
                 notebook_analysis = trackAnalysis.analysisNotebook(software, mask_words, bg, '', pixel_size, background_size,
-                                                        camera_integration_time, n_points, MSD_f_area, dof, min_dD,
+                                                        camera_integration_time, n_points, MSD_f_area, dof, min_dynamic_D,
                                                         min_tra_len,
                                                         id_type)
                 notebook_analysis.run_analysis()
@@ -209,15 +209,15 @@ def main(config_path):
     print("running statistic filtering")
     if len(background) == 0:
         notebook_statistics = trackStatistics.statisticsNotebook(save_dir + '\\trackAnalysis\\cells',
-                                                                 '', min_traj, max_traj,
-                                                                 min_D, max_D, filter_immobile,
+                                                                 '', filter_min_traj, filter_max_traj,
+                                                                 filter_min_D, max_D, filter_immobile,
                                                                  filter_confined, filter_free, filter_noType)
 
     else:
         notebook_statistics = trackStatistics.statisticsNotebook(save_dir + '\\trackAnalysis\\cells',
-                                                                 save_dir + '\\trackAnalysis\\backgrounds', min_traj,
-                                                                 max_traj,
-                                                                 min_D, max_D, filter_immobile,
+                                                                 save_dir + '\\trackAnalysis\\backgrounds', filter_min_traj,
+                                                                 filter_max_traj,
+                                                                 filter_min_D, max_D, filter_immobile,
                                                                  filter_confined, filter_free, filter_noType)
     notebook_statistics.save(save_dir)
     print("--- %s seconds ---" % (time.time() - start_time))
@@ -228,4 +228,4 @@ if __name__ == "__main__":
         cfg_path = sys.argv[1]
         main(cfg_path)
     except KeyError:
-        print("Usage: python adapt_folder_structure.py your_config_file.ini")
+        print("Usage: python trackAnalysisStatistics.py your_config_file.ini")

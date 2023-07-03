@@ -13,7 +13,7 @@ import warnings
 
 import pandas as pd
 from pySPT.notebookspy import trackAnalysis_noGUI as trackAnalysis
-from pySPT.notebookspy import trackStatistics_noGUI as dlp
+from pySPT.notebookspy import trackStatistics_noGUI as sigma_dyn
 
 
 class IncorrectConfigException(Exception):
@@ -101,7 +101,7 @@ def main(config_path):
     except KeyError:
         raise IncorrectConfigException("Parameter degree_of_freedom missing in config.")
     # minimum detectable D should be zero to calculated  this value
-    min_dD = "0"
+    min_dynamic_D = "0"
     try:
         min_tra_len = config["DIFFUSION_TYPE_PARAM"]["min_track_length"]
     except KeyError:
@@ -112,19 +112,19 @@ def main(config_path):
     except KeyError:
         raise IncorrectConfigException("Parameter id_type missing in config.")
     try:
-        min_traj = config["FILTER_PARAMETERS"]["min_trajectory_len"]
+        filter_min_length = config["FILTER_PARAMETERS"]["min_trajectory_len"]
     except KeyError:
         raise IncorrectConfigException("Parameter min_trajectory_len missing in config.")
     try:
-        max_traj = config["FILTER_PARAMETERS"]["max_trajectory_len"]
+        filter_max_length = config["FILTER_PARAMETERS"]["max_trajectory_len"]
     except KeyError:
         raise IncorrectConfigException("Parameter max_trajectory_len missing in config.")
     try:
-        min_D = config["FILTER_PARAMETERS"]["min_D"]
+        filter_min_D = config["FILTER_PARAMETERS"]["min_D"]
     except KeyError:
         raise IncorrectConfigException("Parameter min_D missing in config.")
     try:
-        max_D = config["FILTER_PARAMETERS"]["max_D"]
+        filter_max_D = config["FILTER_PARAMETERS"]["max_D"]
     except KeyError:
         raise IncorrectConfigException("Parameter max_D missing in config.")
     try:
@@ -144,32 +144,33 @@ def main(config_path):
     except KeyError:
         raise IncorrectConfigException("Parameter filter_for_noType missing in config.")
     try:
-        save_dir = config["SAVE_DIR"]["sav"]
+        save_dir = config["SAVE_DIR"]["save"]
     except KeyError:
-        raise IncorrectConfigException("Parameter sav missing in config.")
+        raise IncorrectConfigException("Parameter save missing in config.")
     # resets tracking directories
     try:
         os.mkdir(save_dir)
     except FileExistsError:
         pass
     try:
-        os.mkdir(save_dir + '\\trackAnalysis')
+        os.mkdir(save_dir + "\\trackAnalysis")
         if len(background) != 0:
-            os.mkdir(save_dir + '\\trackAnalysis\\backgrounds')
-        os.mkdir(save_dir + '\\trackAnalysis\\cells')
+            os.mkdir(save_dir + "\\trackAnalysis\\backgrounds")
+        os.mkdir(save_dir + "\\trackAnalysis\\cells")
     except FileExistsError:
-        shutil.rmtree(save_dir + '\\trackAnalysis')
-        os.mkdir(save_dir + '\\trackAnalysis')
+        print("directory " + save_dir + "\\trackAnalysis exists. Will be overwritten")
+        shutil.rmtree(save_dir + "\\trackAnalysis")
+        os.mkdir(save_dir + "\\trackAnalysis")
         if len(background) != 0:
-            os.mkdir(save_dir + '\\trackAnalysis\\backgrounds')
-        os.mkdir(save_dir + '\\trackAnalysis\\cells')
+            os.mkdir(save_dir + "\\trackAnalysis\\backgrounds")
+        os.mkdir(save_dir + "\\trackAnalysis\\cells")
 
     # runs analysis for each given directory
 
     for dir in directories:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            cslog = get_matching_files(dir,'.log','=')
+            cslog = get_matching_files(dir,".log","=")
             if len(cslog) == 1:
                 cslog=cslog[0]
             elif len(cslog) == 0:
@@ -177,65 +178,64 @@ def main(config_path):
             elif len(cslog) > 1:
                 raise IncorrectConfigException("multiple .log files in " + dir)
             else:
-                print('This should not happen.')
+                print("This should not happen.")
             print("Analysing " + str(directories.index(dir) + 1) + "/" + str(len(directories)) + "  " + dir)
             notebook_analysis = trackAnalysis.analysisNotebook(software, mask_words, dir,
                                                                cslog,
                                                                pixel_size, background_size,
-                                                               camera_integration_time, n_points, MSD_f_area, dof, min_dD,
+                                                               camera_integration_time, n_points, MSD_f_area, dof, min_dynamic_D,
                                                                min_tra_len,
                                                                id_type)
             notebook_analysis.run_analysis()
             notebook_analysis.save_analysis()
-            for file in get_matching_files(dir, '.h5', 'background'):
+            for file in get_matching_files(dir, ".h5", "background"):
                 try:
-                    shutil.move(file, save_dir + '\\trackAnalysis\\cells')
+                    shutil.move(file, save_dir + "\\trackAnalysis\\cells")
                 except shutil.Error:
                     print(
-                        'File ' + file + ' already exists in the trackAnalysis\\cells directory. Please check for duplicate files. Skipping...')
-                    pass
+                        "File " + file + " already exists in the trackAnalysis\\cells directory. Please check for duplicate files. Skipping...")
     # runs analysis for given backgrounds
     for bg in background:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             print("Analysing " + str(background.index(bg) + 1) + "/" + str(len(background)) + "  " + bg)
-            notebook_analysis = trackAnalysis.analysisNotebook(software, mask_words, bg, '', pixel_size, background_size,
-                                                               camera_integration_time, n_points, MSD_f_area, dof, min_dD,
+            notebook_analysis = trackAnalysis.analysisNotebook(software, mask_words, bg, "", pixel_size, background_size,
+                                                               camera_integration_time, n_points, MSD_f_area, dof, min_dynamic_D,
                                                                min_tra_len,
                                                                id_type)
             notebook_analysis.run_analysis()
             notebook_analysis.save_analysis()
-            for file in get_matching_files(bg, '.h5', 'cell'):
+            for file in get_matching_files(bg, ".h5", "cell"):
                 try:
-                    shutil.move(file, save_dir + '\\trackAnalysis\\backgrounds')
+                    shutil.move(file, save_dir + "\\trackAnalysis\\backgrounds")
                 except shutil.Error:
                     print(
-                        'File ' + file + ' already exists in the trackAnalysis\\background directory. Please check for duplicate files. Skipping...')
+                        "File " + file + " already exists in the trackAnalysis\\background directory. Please check for duplicate files. Skipping...")
                     pass
     # creates the statistics notebook depending on whether backgrounds are given or not
     if len(background) == 0:
-        notebook_statistics = dlp.statisticsNotebook(save_dir + '\\trackAnalysis\\cells', '',
-                                                     min_traj, max_traj, min_D, max_D, filter_immobile,
+        notebook_statistics = sigma_dyn.statisticsNotebook(save_dir + "\\trackAnalysis\\cells", "",
+                                                     filter_min_length, filter_max_length, filter_min_D, filter_max_D, filter_immobile,
                                                      filter_confined, filter_free, filter_noType)
     else:
-        notebook_statistics = dlp.statisticsNotebook(save_dir + '\\trackAnalysis\\cells',
-                                                     save_dir + '\\trackAnalysis\\backgrounds',
-                                                     min_traj, max_traj, min_D, max_D, filter_immobile,
+        notebook_statistics = sigma_dyn.statisticsNotebook(save_dir + "\\trackAnalysis\\cells",
+                                                     save_dir + "\\trackAnalysis\\backgrounds",
+                                                     filter_min_length, filter_max_length, filter_min_D, filter_max_D, filter_immobile,
                                                      filter_confined, filter_free, filter_noType)
-    # gets two lists, one with the cell names one with the dlp and writes them into a dataframe
-    cells, dlps = notebook_statistics.calc()
-    dlp_frame = pd.DataFrame(data={"cell": cells, "Sigma Dyn [um]": dlps})
+    # gets two lists, one with the cell names one with the sigma_dyn and writes them into a dataframe
+    cells, sigma_dyns = notebook_statistics.calc()
+    sigma_dyn_frame = pd.DataFrame(data={"cell": cells, "Sigma Dyn [um]": sigma_dyns})
     # extracts sigma_dyn
-    dlp_value = dlp_frame.iloc[:, 1].quantile([0.75]).item()
-    print("Sigma = " + str(dlp_value))
+    sigma_dyn_value = sigma_dyn_frame.iloc[:, 1].quantile([0.75]).item()
+    print("Sigma = " + str(sigma_dyn_value))
     # calculates d_min
-    d_min = dlp_value ** 2 / (float(dof) * float(camera_integration_time) * 4)
+    d_min = sigma_dyn_value ** 2 / (float(dof) * float(camera_integration_time) * 4)
     print("D_min = " + str(d_min))
     # output as file
-    dlp_frame.to_csv(save_dir + "\\sigma_dyn_per_cell.csv", index=False)
-    out = pd.Series([dlp_value, d_min], ["Sigma Dyn [um]", "D_min [um^2s^-1]"])
+    sigma_dyn_frame.to_csv(save_dir + "\\sigma_dyn_per_cell.csv", index=False)
+    out = pd.Series([sigma_dyn_value, d_min], ["Sigma Dyn [um]", "D_min [um^2s^-1]"])
     out.to_csv(save_dir + "\\D_min.csv", header=False)
-    shutil.rmtree(save_dir + '\\trackAnalysis')
+    shutil.rmtree(save_dir + "\\trackAnalysis")
     print("--- %s seconds ---" % (time.time() - start_time))
 
 
@@ -244,4 +244,4 @@ if __name__ == "__main__":
         cfg_path = sys.argv[1]
         main(cfg_path)
     except IndexError:
-        print("Usage: python determineDmin.py your_config_file.ini")
+        print("Usage: python Dmin_autocalculator.py your_config_file.ini")
