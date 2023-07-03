@@ -9,6 +9,7 @@ import os
 import shutil
 import sys
 import time
+import warnings
 
 import pandas as pd
 from pySPT.notebookspy import trackAnalysis_noGUI as trackAnalysis
@@ -32,7 +33,7 @@ def get_matching_files(directory, target, exclusion_string):
     matching_files = []
     for path, subdirs, files in os.walk(directory):
         for name in files:
-            if target in name.lower():
+            if target.lower() in name.lower():
                 if exclusion_string not in name.lower():
                     matching_files.append(os.path.join(path, name))
     return matching_files
@@ -100,7 +101,7 @@ def main(config_path):
     except KeyError:
         raise IncorrectConfigException("Parameter degree_of_freedom missing in config.")
     # minimum detectable D should be zero to calculated  this value
-    min_dD = 0
+    min_dD = "0"
     try:
         min_tra_len = config["DIFFUSION_TYPE_PARAM"]["min_track_length"]
     except KeyError:
@@ -166,39 +167,51 @@ def main(config_path):
     # runs analysis for each given directory
 
     for dir in directories:
-        cslog = get_matching_files(dir,'.LOG')
-        print("Analysing " + str(directories.index(dir) + 1) + "/" + str(len(directories)) + "  " + dir)
-        notebook_analysis = trackAnalysis.analysisNotebook(software, mask_words, dir,
-                                                           cslog,
-                                                           pixel_size, background_size,
-                                                           camera_integration_time, n_points, MSD_f_area, dof, min_dD,
-                                                           min_tra_len,
-                                                           id_type)
-        notebook_analysis.run_analysis()
-        notebook_analysis.save_analysis()
-        for file in get_matching_files(dir, '.h5', 'background'):
-            try:
-                shutil.move(file, save_dir + '\\trackAnalysis\\cells')
-            except shutil.Error:
-                print(
-                    'File ' + file + ' already exists in the trackAnalysis\\cells directory. Please check for duplicate files. Skipping...')
-                pass
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            cslog = get_matching_files(dir,'.log','=')
+            if len(cslog) == 1:
+                cslog=cslog[0]
+            elif len(cslog) == 0:
+                raise IncorrectConfigException("cell sizes .log file missing in " + dir)
+            elif len(cslog) > 1:
+                raise IncorrectConfigException("multiple .log files in " + dir)
+            else:
+                print('This should not happen.')
+            print("Analysing " + str(directories.index(dir) + 1) + "/" + str(len(directories)) + "  " + dir)
+            notebook_analysis = trackAnalysis.analysisNotebook(software, mask_words, dir,
+                                                               cslog,
+                                                               pixel_size, background_size,
+                                                               camera_integration_time, n_points, MSD_f_area, dof, min_dD,
+                                                               min_tra_len,
+                                                               id_type)
+            notebook_analysis.run_analysis()
+            notebook_analysis.save_analysis()
+            for file in get_matching_files(dir, '.h5', 'background'):
+                try:
+                    shutil.move(file, save_dir + '\\trackAnalysis\\cells')
+                except shutil.Error:
+                    print(
+                        'File ' + file + ' already exists in the trackAnalysis\\cells directory. Please check for duplicate files. Skipping...')
+                    pass
     # runs analysis for given backgrounds
     for bg in background:
-        print("Analysing " + str(background.index(bg) + 1) + "/" + str(len(background)) + "  " + bg)
-        notebook_analysis = trackAnalysis.analysisNotebook(software, mask_words, bg, '', pixel_size, background_size,
-                                                           camera_integration_time, n_points, MSD_f_area, dof, min_dD,
-                                                           min_tra_len,
-                                                           id_type)
-        notebook_analysis.run_analysis()
-        notebook_analysis.save_analysis()
-        for file in get_matching_files(bg, '.h5', 'cell'):
-            try:
-                shutil.move(file, save_dir + '\\trackAnalysis\\backgrounds')
-            except shutil.Error:
-                print(
-                    'File ' + file + ' already exists in the trackAnalysis\\background directory. Please check for duplicate files. Skipping...')
-                pass
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            print("Analysing " + str(background.index(bg) + 1) + "/" + str(len(background)) + "  " + bg)
+            notebook_analysis = trackAnalysis.analysisNotebook(software, mask_words, bg, '', pixel_size, background_size,
+                                                               camera_integration_time, n_points, MSD_f_area, dof, min_dD,
+                                                               min_tra_len,
+                                                               id_type)
+            notebook_analysis.run_analysis()
+            notebook_analysis.save_analysis()
+            for file in get_matching_files(bg, '.h5', 'cell'):
+                try:
+                    shutil.move(file, save_dir + '\\trackAnalysis\\backgrounds')
+                except shutil.Error:
+                    print(
+                        'File ' + file + ' already exists in the trackAnalysis\\background directory. Please check for duplicate files. Skipping...')
+                    pass
     # creates the statistics notebook depending on whether backgrounds are given or not
     if len(background) == 0:
         notebook_statistics = dlp.statisticsNotebook(save_dir + '\\trackAnalysis\\cells', '',
@@ -219,7 +232,7 @@ def main(config_path):
     d_min = dlp_value ** 2 / (float(dof) * float(camera_integration_time) * 4)
     print("D_min = " + str(d_min))
     # output as file
-    dlp_frame.to_csv(save_dir + "\\DLP_per_cell.csv", index=False)
+    dlp_frame.to_csv(save_dir + "\\sigma_dyn_per_cell.csv", index=False)
     out = pd.Series([dlp_value, d_min], ["Sigma Dyn [um]", "D_min [um^2s^-1]"])
     out.to_csv(save_dir + "\\D_min.csv", header=False)
     shutil.rmtree(save_dir + '\\trackAnalysis')

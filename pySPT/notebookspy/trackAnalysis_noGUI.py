@@ -11,7 +11,8 @@ from pySPT.widgets import widgetColumnSort
 from pySPT.widgets import widgetDirectoryStructure
 from pySPT.widgets import widgetTrackAnalysis
 from pySPT.widgets.widgetNotebooks import init_save_track_analysis
-
+import time
+from tqdm import *
 
 class analysisNotebook():
 
@@ -82,5 +83,6 @@ class analysisNotebook():
                                                          self.widget_track_analysis.MSD_y_lim.value)
 
     def save_analysis(self):
-        for cell_index in range(0, len(self.cover_slip.cells)):
+        print('saving analysis to working directory')
+        for cell_index in tqdm(range(0, len(self.cover_slip.cells))):
             init_save_track_analysis(self.cover_slip, cell_index, self.track_analysis, self.widget_track_analysis)

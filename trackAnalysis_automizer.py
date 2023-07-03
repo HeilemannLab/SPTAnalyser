@@ -9,6 +9,7 @@ import os
 import shutil
 import sys
 import time
+import warnings
 
 from pySPT.notebookspy import trackAnalysis_noGUI as trackAnalysis
 from pySPT.notebookspy import trackStatistics_noGUI as trackStatistics
@@ -31,7 +32,7 @@ def get_matching_files(directory, target, exclusion_string):
     matching_files = []
     for path, subdirs, files in os.walk(directory):
         for name in files:
-            if target in name.lower():
+            if target.lower() in name.lower():
                 if exclusion_string not in name.lower():
                     matching_files.append(os.path.join(path, name))
     return matching_files
@@ -166,16 +167,18 @@ def main(config_path):
 
     # runs analysis for each given directory
 
-    for dir in directories:
-        print("Analysing " + str(directories.index(dir) + 1) + "/" + str(len(directories)) + " :" + dir)
-        notebook_analysis = trackAnalysis.analysisNotebook(software, mask_words, dir,
-                                                           dir + r'\cells\rois\cell_sizes.LOG', pixel_size,
-                                                           background_size,
-                                                           camera_integration_time, n_points, MSD_f_area, dof, min_dD,
-                                                           min_tra_len,
-                                                           id_type)
-        notebook_analysis.run_analysis()
-        notebook_analysis.save_analysis()
+    for dir in directories :
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            print("Analysing " + str(directories.index(dir) + 1) + "/" + str(len(directories)) + " :" + dir)
+            notebook_analysis = trackAnalysis.analysisNotebook(software, mask_words, dir,
+                                                               dir + r'\cells\rois\cell_sizes.LOG', pixel_size,
+                                                               background_size,
+                                                               camera_integration_time, n_points, MSD_f_area, dof, min_dD,
+                                                               min_tra_len,
+                                                               id_type)
+            notebook_analysis.run_analysis()
+            notebook_analysis.save_analysis()
         for file in get_matching_files(dir, '.h5', 'background'):
             try:
                 shutil.move(file, save_dir + '\\trackAnalysis\\cells')
@@ -187,13 +190,15 @@ def main(config_path):
     # runs analysis for given backgrounds
     if len(background) > 0:
         for bg in background:
-            print("Analysing " + str(background.index(bg) + 1) + "/" + str(len(background)) + "  " + bg)
-            notebook_analysis = trackAnalysis.analysisNotebook(software, mask_words, bg, '', pixel_size, background_size,
-                                                    camera_integration_time, n_points, MSD_f_area, dof, min_dD,
-                                                    min_tra_len,
-                                                    id_type)
-            notebook_analysis.run_analysis()
-            notebook_analysis.save_analysis()
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                print("Analysing " + str(background.index(bg) + 1) + "/" + str(len(background)) + "  " + bg)
+                notebook_analysis = trackAnalysis.analysisNotebook(software, mask_words, bg, '', pixel_size, background_size,
+                                                        camera_integration_time, n_points, MSD_f_area, dof, min_dD,
+                                                        min_tra_len,
+                                                        id_type)
+                notebook_analysis.run_analysis()
+                notebook_analysis.save_analysis()
             for file in get_matching_files(bg, '.h5', 'cell'):
                 try:
                     shutil.move(file, save_dir + '\\trackAnalysis\\backgrounds')
@@ -201,7 +206,7 @@ def main(config_path):
                     print(
                         'File ' + file + ' already exists in the trackAnalysis\\background directory. Please check for duplicate files. Skipping...')
                     pass
-
+    print("running statistic filtering")
     if len(background) == 0:
         notebook_statistics = trackStatistics.statisticsNotebook(save_dir + '\\trackAnalysis\\cells',
                                                                  '', min_traj, max_traj,
