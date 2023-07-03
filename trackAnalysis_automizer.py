@@ -154,12 +154,14 @@ def main(config_path):
         pass
     try:
         os.mkdir(save_dir + '\\trackAnalysis')
-        os.mkdir(save_dir + '\\trackAnalysis\\backgrounds')
+        if len(background) != 0:
+            os.mkdir(save_dir + '\\trackAnalysis\\backgrounds')
         os.mkdir(save_dir + '\\trackAnalysis\\cells')
     except FileExistsError:
-        shutil.rmtree(save_dir + "\\trackAnalysis")
+        shutil.rmtree(save_dir + '\\trackAnalysis')
         os.mkdir(save_dir + '\\trackAnalysis')
-        os.mkdir(save_dir + '\\trackAnalysis\\backgrounds')
+        if len(background) != 0:
+            os.mkdir(save_dir + '\\trackAnalysis\\backgrounds')
         os.mkdir(save_dir + '\\trackAnalysis\\cells')
 
     # runs analysis for each given directory
@@ -186,12 +188,12 @@ def main(config_path):
     if len(background) > 0:
         for bg in background:
             print("Analysing " + str(background.index(bg) + 1) + "/" + str(len(background)) + "  " + bg)
-            analNB = trackAnalysis.analysisNotebook(software, mask_words, bg, '', pixel_size, background_size,
+            notebook_analysis = trackAnalysis.analysisNotebook(software, mask_words, bg, '', pixel_size, background_size,
                                                     camera_integration_time, n_points, MSD_f_area, dof, min_dD,
                                                     min_tra_len,
                                                     id_type)
-            analNB.run_analysis()
-            analNB.save_analysis()
+            notebook_analysis.run_analysis()
+            notebook_analysis.save_analysis()
             for file in get_matching_files(bg, '.h5', 'cell'):
                 try:
                     shutil.move(file, save_dir + '\\trackAnalysis\\backgrounds')

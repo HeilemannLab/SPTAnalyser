@@ -153,20 +153,23 @@ def main(config_path):
         pass
     try:
         os.mkdir(save_dir + '\\trackAnalysis')
-        os.mkdir(save_dir + '\\trackAnalysis\\backgrounds')
+        if len(background) != 0:
+            os.mkdir(save_dir + '\\trackAnalysis\\backgrounds')
         os.mkdir(save_dir + '\\trackAnalysis\\cells')
     except FileExistsError:
         shutil.rmtree(save_dir + '\\trackAnalysis')
         os.mkdir(save_dir + '\\trackAnalysis')
-        os.mkdir(save_dir + '\\trackAnalysis\\backgrounds')
+        if len(background) != 0:
+            os.mkdir(save_dir + '\\trackAnalysis\\backgrounds')
         os.mkdir(save_dir + '\\trackAnalysis\\cells')
 
     # runs analysis for each given directory
 
     for dir in directories:
+        cslog = get_matching_files(dir,'.LOG')
         print("Analysing " + str(directories.index(dir) + 1) + "/" + str(len(directories)) + "  " + dir)
         notebook_analysis = trackAnalysis.analysisNotebook(software, mask_words, dir,
-                                                           dir + r'\cells\rois\cell_sizes.LOG',
+                                                           cslog,
                                                            pixel_size, background_size,
                                                            camera_integration_time, n_points, MSD_f_area, dof, min_dD,
                                                            min_tra_len,
@@ -208,17 +211,18 @@ def main(config_path):
                                                      filter_confined, filter_free, filter_noType)
     # gets two lists, one with the cell names one with the dlp and writes them into a dataframe
     cells, dlps = notebook_statistics.calc()
-    dlpFrame = pd.DataFrame(data={"cell": cells, "DLP": dlps})
+    dlp_frame = pd.DataFrame(data={"cell": cells, "Sigma Dyn [um]": dlps})
     # extracts sigma_dyn
-    dlp_value = dlpFrame.iloc[:, 1].quantile([0.75]).item()
+    dlp_value = dlp_frame.iloc[:, 1].quantile([0.75]).item()
     print("Sigma = " + str(dlp_value))
     # calculates d_min
     d_min = dlp_value ** 2 / (float(dof) * float(camera_integration_time) * 4)
     print("D_min = " + str(d_min))
     # output as file
-    dlpFrame.to_csv(save_dir + "\\DLP_per_cell.csv", index=False)
-    out = pd.Series([dlp_value, d_min], ["Sigma Dyn", "D_min"])
+    dlp_frame.to_csv(save_dir + "\\DLP_per_cell.csv", index=False)
+    out = pd.Series([dlp_value, d_min], ["Sigma Dyn [um]", "D_min [um^2s^-1]"])
     out.to_csv(save_dir + "\\D_min.csv", header=False)
+    shutil.rmtree(save_dir + '\\trackAnalysis')
     print("--- %s seconds ---" % (time.time() - start_time))
 
 
