@@ -12,6 +12,7 @@ import time
 import warnings
 
 import pandas as pd
+
 from pySPT.notebookspy import trackAnalysis_noGUI as trackAnalysis
 from pySPT.notebookspy import trackStatistics_noGUI as sigma_dyn
 
@@ -100,7 +101,7 @@ def main(config_path):
         dof = config["DIFFUSION_TYPE_PARAM"]["degree_of_freedom"]
     except KeyError:
         raise IncorrectConfigException("Parameter degree_of_freedom missing in config.")
-    # minimum detectable D should be zero to calculated  this value
+    # minimum detectable D should be zero to calculate  this value
     min_dynamic_D = "0"
     try:
         min_tra_len = config["DIFFUSION_TYPE_PARAM"]["min_track_length"]
@@ -170,9 +171,9 @@ def main(config_path):
     for dir in directories:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            cslog = get_matching_files(dir,".log","=")
+            cslog = get_matching_files(dir, ".log", "=")
             if len(cslog) == 1:
-                cslog=cslog[0]
+                cslog = cslog[0]
             elif len(cslog) == 0:
                 raise IncorrectConfigException("cell sizes .log file missing in " + dir)
             elif len(cslog) > 1:
@@ -183,7 +184,8 @@ def main(config_path):
             notebook_analysis = trackAnalysis.analysisNotebook(software, mask_words, dir,
                                                                cslog,
                                                                pixel_size, background_size,
-                                                               camera_integration_time, n_points, MSD_f_area, dof, min_dynamic_D,
+                                                               camera_integration_time, n_points, MSD_f_area, dof,
+                                                               min_dynamic_D,
                                                                min_tra_len,
                                                                id_type)
             notebook_analysis.run_analysis()
@@ -199,8 +201,10 @@ def main(config_path):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             print("Analysing " + str(background.index(bg) + 1) + "/" + str(len(background)) + "  " + bg)
-            notebook_analysis = trackAnalysis.analysisNotebook(software, mask_words, bg, "", pixel_size, background_size,
-                                                               camera_integration_time, n_points, MSD_f_area, dof, min_dynamic_D,
+            notebook_analysis = trackAnalysis.analysisNotebook(software, mask_words, bg, "", pixel_size,
+                                                               background_size,
+                                                               camera_integration_time, n_points, MSD_f_area, dof,
+                                                               min_dynamic_D,
                                                                min_tra_len,
                                                                id_type)
             notebook_analysis.run_analysis()
@@ -215,13 +219,15 @@ def main(config_path):
     # creates the statistics notebook depending on whether backgrounds are given or not
     if len(background) == 0:
         notebook_statistics = sigma_dyn.statisticsNotebook(save_dir + "\\trackAnalysis\\cells", "",
-                                                     filter_min_length, filter_max_length, filter_min_D, filter_max_D, filter_immobile,
-                                                     filter_confined, filter_free, filter_noType)
+                                                           filter_min_length, filter_max_length, filter_min_D,
+                                                           filter_max_D, filter_immobile,
+                                                           filter_confined, filter_free, filter_noType)
     else:
         notebook_statistics = sigma_dyn.statisticsNotebook(save_dir + "\\trackAnalysis\\cells",
-                                                     save_dir + "\\trackAnalysis\\backgrounds",
-                                                     filter_min_length, filter_max_length, filter_min_D, filter_max_D, filter_immobile,
-                                                     filter_confined, filter_free, filter_noType)
+                                                           save_dir + "\\trackAnalysis\\backgrounds",
+                                                           filter_min_length, filter_max_length, filter_min_D,
+                                                           filter_max_D, filter_immobile,
+                                                           filter_confined, filter_free, filter_noType)
     # gets two lists, one with the cell names one with the sigma_dyn and writes them into a dataframe
     cells, sigma_dyns = notebook_statistics.calc()
     sigma_dyn_frame = pd.DataFrame(data={"cell": cells, "Sigma Dyn [um]": sigma_dyns})

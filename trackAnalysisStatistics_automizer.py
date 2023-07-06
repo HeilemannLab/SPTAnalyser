@@ -168,14 +168,24 @@ def main(config_path):
 
     # runs analysis for each given directory
 
-    for dir in directories :
+    for dir in directories:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
+            cslog = get_matching_files(dir, ".log", "=")
+            if len(cslog) == 1:
+                cslog = cslog[0]
+            elif len(cslog) == 0:
+                raise IncorrectConfigException("cell sizes .log file missing in " + dir)
+            elif len(cslog) > 1:
+                raise IncorrectConfigException("multiple .log files in " + dir)
+            else:
+                print("This should not happen.")
             print("Analysing " + str(directories.index(dir) + 1) + "/" + str(len(directories)) + " :" + dir)
             notebook_analysis = trackAnalysis.analysisNotebook(software, mask_words, dir,
-                                                               dir + r'\cells\rois\cell_sizes.LOG', pixel_size,
+                                                               cslog, pixel_size,
                                                                background_size,
-                                                               camera_integration_time, n_points, MSD_f_area, dof, min_dynamic_D,
+                                                               camera_integration_time, n_points, MSD_f_area, dof,
+                                                               min_dynamic_D,
                                                                min_tra_len,
                                                                id_type)
             notebook_analysis.run_analysis()
@@ -193,10 +203,12 @@ def main(config_path):
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 print("Analysing " + str(background.index(bg) + 1) + "/" + str(len(background)) + "  " + bg)
-                notebook_analysis = trackAnalysis.analysisNotebook(software, mask_words, bg, '', pixel_size, background_size,
-                                                        camera_integration_time, n_points, MSD_f_area, dof, min_dynamic_D,
-                                                        min_tra_len,
-                                                        id_type)
+                notebook_analysis = trackAnalysis.analysisNotebook(software, mask_words, bg, '', pixel_size,
+                                                                   background_size,
+                                                                   camera_integration_time, n_points, MSD_f_area, dof,
+                                                                   min_dynamic_D,
+                                                                   min_tra_len,
+                                                                   id_type)
                 notebook_analysis.run_analysis()
                 notebook_analysis.save_analysis()
             for file in get_matching_files(bg, '.h5', 'cell'):
@@ -215,7 +227,8 @@ def main(config_path):
 
     else:
         notebook_statistics = trackStatistics.statisticsNotebook(save_dir + '\\trackAnalysis\\cells',
-                                                                 save_dir + '\\trackAnalysis\\backgrounds', filter_min_traj,
+                                                                 save_dir + '\\trackAnalysis\\backgrounds',
+                                                                 filter_min_traj,
                                                                  filter_max_traj,
                                                                  filter_min_D, max_D, filter_immobile,
                                                                  filter_confined, filter_free, filter_noType)

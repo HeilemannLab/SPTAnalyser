@@ -5,14 +5,14 @@ Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.
 
 virtual python only version of the TrackAnalysis.ipynb notebook for batch processing analysis
 """
-from pySPT.Analysis import coverSlip
+from . import coverSlip_script
 from pySPT.Analysis import trackAnalysis
 from pySPT.widgets import widgetColumnSort
 from pySPT.widgets import widgetDirectoryStructure
 from pySPT.widgets import widgetTrackAnalysis
 from pySPT.widgets.widgetNotebooks import init_save_track_analysis
 import time
-from tqdm import *
+from tqdm import tqdm
 
 class analysisNotebook():
 
@@ -29,7 +29,7 @@ class analysisNotebook():
                                                                              bin_size="0.1", x_range="2",
                                                                              y_range="0.5")  # adjust the default parameters
         self.track_analysis = trackAnalysis.TrackAnalysis()
-        self.cover_slip = coverSlip.CoverSlip()
+        self.cover_slip = coverSlip_script.CoverSlip()
         self.widget_track_analysis.software_button.value = software
         self.widget_track_analysis.ignore_words_box.value = mask_words
         self.widget_track_analysis.dir_box.value = directory
