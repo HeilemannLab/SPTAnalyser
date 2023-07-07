@@ -1,10 +1,10 @@
 """
-@author: Johanna Rahm
+@author: Johanna Rahm, Alexander Niedrig
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
 Coverslip -> Cell -> Trajectory.
-Create a coverslip object containing measurement informations that are handed down to cells and trajectories.
+Create a coverslip object containing measurement informations that are handed down to cells and trajectories. -> Used in batch processing script due to different tqdm call.
 """
 
 import numpy as np
