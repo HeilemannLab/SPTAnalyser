@@ -137,21 +137,21 @@ def write_swift(config_path, exp_displacement, p_bleach):
                         prepath = config['PRECISION_FILES'][pkey]
                         break
                 if prepath == '':
-                    precision_vals.append(prepath)
-                else:
                     precision_vals.append(
                         config["INPUT_DIRS"][key] + '\\PreAnalysisParameters\\parameters\\precisions.txt')
+                else:
+                    precision_vals.append(prepath)
                 assert (len(n_file_paths) == len(precision_vals),
                         ('missmatched number of coverslip directories and precision files resulting from' + key))
                 for nkey in config['EXP_NOISE_RATE_FILES']:
                     if nkey == key:
                         noipath = config['EXP_NOISE_RATE_FILES'][nkey]
                         break
-                if prepath == '':
-                    exp_noise_rate_vals.append(noipath)
-                else:
+                if noipath == '':
                     exp_noise_rate_vals.append(
                         config["INPUT_DIRS"][key] + '\\PreAnalysisParameters\\parameters\\exp_noise_rate.txt')
+                else:
+                    exp_noise_rate_vals.append(noipath)
                 assert (len(n_file_paths) == len(exp_noise_rate_vals), (
                             'missmatched number of coverslip directories and expected noise rate files resulting from' + key))
         else:
