@@ -137,21 +137,21 @@ def write_swift(config_path, exp_displacement, p_bleach):
                         prepath = config['PRECISION_FILES'][pkey]
                         break
                 if prepath == '':
-                    precision_vals.append(prepath)
-                else:
                     precision_vals.append(
                         config["INPUT_DIRS"][key] + '\\PreAnalysisParameters\\parameters\\precisions.txt')
+                else:
+                    precision_vals.append(prepath)
                 assert (len(n_file_paths) == len(precision_vals),
                         ('missmatched number of coverslip directories and precision files resulting from' + key))
                 for nkey in config['EXP_NOISE_RATE_FILES']:
                     if nkey == key:
                         noipath = config['EXP_NOISE_RATE_FILES'][nkey]
                         break
-                if prepath == '':
-                    exp_noise_rate_vals.append(noipath)
-                else:
+                if noipath == '':
                     exp_noise_rate_vals.append(
                         config["INPUT_DIRS"][key] + '\\PreAnalysisParameters\\parameters\\exp_noise_rate.txt')
+                else:
+                    exp_noise_rate_vals.append(noipath)
                 assert (len(n_file_paths) == len(exp_noise_rate_vals), (
                             'missmatched number of coverslip directories and expected noise rate files resulting from' + key))
         else:
@@ -241,7 +241,6 @@ def converge(save_directory, config_path, software, values, exp_displacement, p_
             os.remove(file)
 
     # Runs the creation of the .bat file and executes it
-    print(values)
     write_swift(config_path, exp_displacement, p_bleach)
     batch_execution = subprocess.Popen(save_directory + '\\swift.bat', shell=True, stdin=subprocess.PIPE, text=True)
     while batch_execution.returncode is None:
@@ -282,7 +281,6 @@ def converge(save_directory, config_path, software, values, exp_displacement, p_
     bleach_data += [p_bleach, numpy.std(bleach_data),
                     (numpy.std(bleach_data) / numpy.sqrt(len(bleach_data)))]
     values['p_bleach ' + str(iterationNumber + 1)] = bleach_data
-    print(values)
     # checks whether the values have converged, recursively executes itself if not
     exp_displacement = float(exp_displacement)
     p_bleach = float(p_bleach)
@@ -378,8 +376,6 @@ def main(config_path):
             name = name[:-4]
             values['Cell'].append(name)
     values['Cell'] += ['mean', 'SD', 'SEM']
-    print(cell)
-    print(values)
 
     # starts up the recursive convergence process
     converge(save_directory, config_path, software, values, exp_displacement, p_bleach, directories, 0, initial_k,
