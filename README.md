@@ -30,7 +30,7 @@ More single-particle tracking data can be found at https://www.ebi.ac.uk/biostud
 Johanna Rahm, Sebastian Malkusch, Marie-Lena Harwardt, Marina Dietz, Claudia Catapano, Alexander Niedrig
 
 ## Literature
-[6] https://github.com/SMLMS/pyErmine </br>
+[1] https://github.com/SMLMS/pyErmine </br>
 [2] [PALMTracer download](https://docs.google.com/forms/d/e/1FAIpQLSdxkJXmoc5uRqoL8kzCSV2Rv90kEfRMIoaPuk--Bpm0Lttb0g/viewform) </br>
 [3] S. Wolter, A. Löschberger, T. Holm, S. Aufmkolk, M.-C. Dabauvalle, S. van de Linde, M. Sauer, 2012, Nature Methods, 9, 1040-1041, DOI: 10.1038/nmeth.2224 </br>
 [4] M. Ovesny, P. Krizek, J. Borkovec, Z. Svindrych, G. M. Hagen, 2014, Bioinformatics, 30, 2389-2390, DOI: 10.1093/bioinformatics/btu202 </br>
