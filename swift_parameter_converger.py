@@ -138,7 +138,7 @@ def write_swift(config_path, exp_displacement, p_bleach):
                         break
                 if prepath == '':
                     precision_vals.append(
-                        config["INPUT_DIRS"][key] + '\\PreAnalysisParameters\\parameters\\precisions.txt')
+                        config["INPUT_DIRS"][key] + '\\swift_analysis_parameter\\parameters\\precisions.txt')
                 else:
                     precision_vals.append(prepath)
                 assert (len(n_file_paths) == len(precision_vals),
@@ -149,7 +149,7 @@ def write_swift(config_path, exp_displacement, p_bleach):
                         break
                 if noipath == '':
                     exp_noise_rate_vals.append(
-                        config["INPUT_DIRS"][key] + '\\PreAnalysisParameters\\parameters\\exp_noise_rate.txt')
+                        config["INPUT_DIRS"][key] + '\\swift_analysis_parameter\\parameters\\exp_noise_rate.txt')
                 else:
                     exp_noise_rate_vals.append(noipath)
                 assert (len(n_file_paths) == len(exp_noise_rate_vals), (
