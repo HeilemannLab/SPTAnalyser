@@ -66,7 +66,7 @@ def get_files(dir, dir_extension, file_ending, ignore_str):
     file_path = dir + dir_extension
     file_names = []
     for i in os.listdir(file_path):
-        if i.endswith(file_ending) and ignore_str not in i:
+        if i.endswith(file_ending) and i.lower() not in ignore_str:
             file_names.append(i)
     files = [dir + dir_extension + i for i in file_names]
     return files, file_names 
@@ -99,16 +99,20 @@ def main(config_path):
     except KeyError:
         raise IncorrectConfigException("Parameter intensity_range missing in config.")
     try:
+        ignore_str = config["PARAMETERS"]["ignore_str"].strip("][").replace(" ", "").split(",")
+    except KeyError:
+        raise IncorrectConfigException("Parameter ignore_str missing in config.")
+    try:
         macro_directory = config["SAVE_DIR"]["macro_directory"]
     except KeyError:
         raise IncorrectConfigException("No save directory defined in config.")
 
     all_tifs, all_tif_names, all_rois, all_save_files = [], [], [], []
     for dir in dirs:
-        tif_files, tif_names = get_files(dir, r"\\cells\\tifs\\", ".tif", "_dl")  # tif files with "_dl" will be ignored
-        roi_files, _ = get_files(dir, r"\\cells\\rois\\", ".roi", "_size")
+        tif_files, tif_names = get_files(dir, r"\\cells\\tifs\\", ".tif", ["_dl", "_tl"] + ignore_str)  # tif files with "_dl" will be ignored
+        roi_files, _ = get_files(dir, r"\\cells\\rois\\", ".roi", ["_size"] + ignore_str)
         save_files = [dir + r"\\cells\\tracks\\" + os.path.splitext(i)[0] + ".csv" for i in tif_names]
-        background_files, background_names = get_files(dir, r"\\background\\tifs\\", ".tif", "_dl")
+        background_files, background_names = get_files(dir, r"\\background\\tifs\\", ".tif", ["_dl", "_tl"] + ignore_str)
         save_background = [dir + r"\\background\\tracks\\" + os.path.splitext(i)[0] + ".csv" for i in background_names]
         all_tifs.extend(tif_files)
         all_tifs.extend(background_files)
