@@ -66,7 +66,7 @@ def get_files(dir, dir_extension, file_ending, ignore_str):
     file_path = dir + dir_extension
     file_names = []
     for i in os.listdir(file_path):
-        if i.endswith(file_ending) and i.lower() not in ignore_str:
+        if i.endswith(file_ending) and not any([x in i.lower() for x in ignore_str]):
             file_names.append(i)
     files = [dir + dir_extension + i for i in file_names]
     return files, file_names 
@@ -109,10 +109,17 @@ def main(config_path):
 
     all_tifs, all_tif_names, all_rois, all_save_files = [], [], [], []
     for dir in dirs:
-        tif_files, tif_names = get_files(dir, r"\\cells\\tifs\\", ".tif", ["_dl", "_tl"] + ignore_str)  # tif files with "_dl" will be ignored
-        roi_files, _ = get_files(dir, r"\\cells\\rois\\", ".roi", ["_size"] + ignore_str)
+        if ignore_str != [""] and ignore_str != []:
+            ignore_strs_tl = ["_dl", "_tl"] + ignore_str
+            ignore_strs_size = ["_size"] + ignore_str
+        else:
+            ignore_strs_tl = ["_dl", "_tl"]
+            ignore_strs_size = ["_size"]
+            
+        tif_files, tif_names = get_files(dir, r"\\cells\\tifs\\", ".tif", ignore_strs_tl)  # tif files with "_dl" will be ignored
+        roi_files, _ = get_files(dir, r"\\cells\\rois\\", ".roi", ignore_strs_size)
         save_files = [dir + r"\\cells\\tracks\\" + os.path.splitext(i)[0] + ".csv" for i in tif_names]
-        background_files, background_names = get_files(dir, r"\\background\\tifs\\", ".tif", ["_dl", "_tl"] + ignore_str)
+        background_files, background_names = get_files(dir, r"\\background\\tifs\\", ".tif", ignore_strs_tl)
         save_background = [dir + r"\\background\\tracks\\" + os.path.splitext(i)[0] + ".csv" for i in background_names]
         all_tifs.extend(tif_files)
         all_tifs.extend(background_files)
