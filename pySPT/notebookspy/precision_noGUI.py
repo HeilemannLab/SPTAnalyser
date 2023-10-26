@@ -17,7 +17,7 @@ class precisionNotebook():
         self.widget_precision = widgetPrecision.WidgetPrecision(pixel_size=str(pixel_size), camera_dt=str(camera_dt))  # adjust the default parameters
         self.widget_precision.dir_box.value = directory + "\\cells\\tracks"
         self.widget_precision.software_button.value = software
-        self.widget_precision.dir_box_save.value = directory + "\\PreAnalysisParameters"
+        self.widget_precision.dir_box_save.value = directory + "\\swift_analysis_parameter"
         self.precision = precision.Precision()
         self.widget_precision.save_fig_checkbox.value = False
 

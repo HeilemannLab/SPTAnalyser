@@ -25,7 +25,7 @@ class noiseRateNotebook():
         self.widget_exp_noise_rate.dir_name = directory + "\\cells\\tracks"
         self.widget_exp_noise_rate.dir_name_bg = directory + "\\background\\tracks"
         self.widget_exp_noise_rate.roi_path = directory + "\\cells\\rois\\cell_sizes.LOG"
-        self.widget_exp_noise_rate.dir_box_save.value = directory + "\\PreAnalysisParameters"
+        self.widget_exp_noise_rate.dir_box_save.value = directory + "\\swift_analysis_parameter"
         self.widget_exp_noise_rate.box_foldername.value = "exp_noise_rate"
 
     def run_analysis(self):

@@ -64,6 +64,7 @@ class GridNNSearch:
                 subregion = self.point_to_subregion(neighbor)
                 # i = idx in list, c = idx of neighbor list (FGFR1 -> 0, FGFR2 -> 1 ...)
                 grid_neighbors[subregion].append((neighbor, i, c))
+        
         return grid_neighbors
 
     def get_nn_distances(self):

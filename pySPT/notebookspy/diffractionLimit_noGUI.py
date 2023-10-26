@@ -17,7 +17,7 @@ class diffLimitNotebook():
         self.diff_limit = diffLimit.DiffLimit()
         self.widget_diff_limit.software_button.value = software
         self.widget_diff_limit.dir_name = directory + "\\cells\\tracks"
-        self.widget_diff_limit.dir_box_save.value = directory + "\\PreAnalysisParameters"
+        self.widget_diff_limit.dir_box_save.value = directory + "\\swift_analysis_parameter"
         self.widget_diff_limit.box_foldername.value="diff_limit_nn"
 
     def run_analysis(self):
