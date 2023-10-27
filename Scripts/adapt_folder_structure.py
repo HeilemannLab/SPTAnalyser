@@ -53,10 +53,10 @@ def get_matching_files(directory, target, ending=".tif", dl=False):
         for name in files:
             if target in name.lower() and os.path.splitext(name)[1] == ending:  # "dl not in name"
                 if dl:
-                    if "dl" in name.lower() or "tl" in name.lower():
+                    if "_dl" in name.lower() or "_tl" in name.lower():
                         matching_files.append(os.path.join(path, name))
                 else:
-                    if "dl" not in name.lower() or "tl" in name.lower():
+                    if "_dl" not in name.lower() or "_tl" in name.lower():
                         matching_files.append(os.path.join(path, name))
     return matching_files
 
