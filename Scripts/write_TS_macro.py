@@ -22,10 +22,15 @@ class IncorrectConfigException(Exception):
         Exception.__init__(self, msg)
 
 
-def write_macro(save_path, all_tifs, all_tif_names, all_rois, all_save_files, intensity_range):
+def write_macro(save_path, all_tifs, all_tif_names, all_rois, all_save_files, intensity_range, camera_setup_params):
     f = open(save_path, "w+")
     f.write('requires("1.45s");\n')
     f.write('setOption("ExpandableArrays", true);\n\n')
+    f.write('run("Camera setup", "offset=' + str(camera_setup_params['offset']) +
+            ' quantumefficiency=' + str(camera_setup_params['quantumefficiency']) +
+            ' isemgain=true photons2adu=' + str(camera_setup_params['photons2adu']) +
+            ' gainem=' + str(camera_setup_params['gainem']) +
+            ' pixelsize=' + str(camera_setup_params['pixelsize']) + '");\n\n')
     f.write("target_cells = newArray;\n")
 
     for c, tif in enumerate(all_tifs):
@@ -81,7 +86,7 @@ def main(config_path):
     config = configparser.ConfigParser()
     config.sections()
     config.read(config_path)
-
+       
     try:
         if len([key for key in config["INPUT_DIRS"]]):
             for key in config["INPUT_DIRS"]:
@@ -103,9 +108,23 @@ def main(config_path):
     except KeyError:
         raise IncorrectConfigException("Parameter ignore_str missing in config.")
     try:
+        camera_setup_params = {
+            'offset': float(config["CAMERA_SETUP"]["offset"]),
+            'quantumefficiency': float(config["CAMERA_SETUP"]["quantum_efficiency"]),
+            'photons2adu': float(config["CAMERA_SETUP"]["photons2adu"]),
+            'gainem': float(config["CAMERA_SETUP"]["em_gain"]),
+            'pixelsize': float(config["CAMERA_SETUP"]["pixel_size"])
+        }
+    except KeyError:
+        raise IncorrectConfigException("Camera setup parameters missing in config.")
+    try:
         macro_directory = config["SAVE_DIR"]["macro_directory"]
     except KeyError:
         raise IncorrectConfigException("No save directory defined in config.")
+    try:
+        macro_name = config["SAVE_DIR"]["macro_name"]
+    except KeyError:
+        macro_name = datetime.today().strftime('%Y-%m-%d_%Hh-%Mm') + "_TS-macro"
 
     all_tifs, all_tif_names, all_rois, all_save_files = [], [], [], []
     for dir in dirs:
@@ -130,9 +149,9 @@ def main(config_path):
         all_save_files.extend(save_files)
         all_save_files.extend(save_background)
 
-    macro_name = datetime.today().strftime('%Y-%m-%d_%Hh-%Mm') + "_TS-macro.ijm"
-    write_macro(macro_directory + "\\" + macro_name, all_tifs, all_tif_names, all_rois, all_save_files, intensity_range)
-    print("Macro saved successfully at ", macro_directory + "\\" + macro_name)
+    final_macro_name = "TS-macro_" + macro_name + "_" + datetime.today().strftime('%Y-%m-%d_%Hh-%Mm') + ".ijm"
+    write_macro(macro_directory + "\\" + final_macro_name, all_tifs, all_tif_names, all_rois, all_save_files, intensity_range, camera_setup_params)
+    print("Macro saved successfully at ", macro_directory + "\\" + final_macro_name)
 
 
 if __name__ == "__main__":
