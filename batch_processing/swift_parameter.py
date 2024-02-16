@@ -10,11 +10,7 @@ import os
 import sys
 import shutil
 import configparser
-from pySPT.notebookspy import precision_noGUI as precision
-from pySPT.notebookspy import diffractionLimit_noGUI as diffractionLimit
 import pandas as pd
-from pySPT.notebookspy import exp_noise_rate_noGUI as exp_noise_rate
-
 
 class IncorrectConfigException(Exception):
     def __init__(self, msg):
@@ -44,23 +40,30 @@ def get_matching_files(directory, target, exclusion_String):
 def read_areas(directory):
     files = os.listdir(directory)
     files = [file for file in files if file.endswith(".csv")]
-    file_areas = [int(pd.read_csv(directory + "\\" + file)["Area"]) for file in files]
-    return files, file_areas
+    cell_areas = {}  # Use a dictionary to store cell names and their respective areas
+
+    for file in files:
+        data = pd.read_csv(os.path.join(directory, file))
+        areas = data["Area"].tolist()  # Extract "Area" column values as a list
+        areas = [int(area) for area in areas]  # Convert each area value to an integer
+        cell_name = file  # Assuming file names are the cell names, modify this according to your naming scheme
+        cell_areas[cell_name] = areas  # Store the cell name and its corresponding areas in the dictionary
+
+    return cell_areas
 
 
-def write_log(files, file_areas, save_log):
-    f = open(save_log, "w+")
-    f.write("Calibration:\n")
-    f.write('"X:", 1, "Y:", 1, "Units:", "", "Gray Units:", ""\n')
-    f.write('"Image Name", "Area"\n')
+def write_log(cell_areas, save_log):
+    with open(save_log, "w+") as f:
+        f.write("Calibration:\n")
+        f.write('"X:", 1, "Y:", 1, "Units:", "", "Gray Units:", ""\n')
+        f.write('"Image Name", "Area"\n')
 
-    for file, file_area in zip(files, file_areas):
-        if file[-9:-4] == "_size":
-            file = file[:-9] + ".csv"
-        f.write('"' + file + '"' + ", " + str(file_area) + '\n')
+        for cell_name, areas in cell_areas.items():
+            for area in set(areas):  # Use set to remove duplicate areas
+                f.write('"' + cell_name + '"' + ", " + str(area) + '\n')
 
-    f.close()
     print(save_log + " is saved.")
+
 
 
 def main(config_path):
@@ -68,6 +71,17 @@ def main(config_path):
     config = configparser.ConfigParser()
     config.sections()
     config.read(config_path)
+
+    try:
+        spt_analyser_dir = config["SPT_ANALYSER_DIR"]["spt_analyser_dir"]
+        sys.path.append(spt_analyser_dir)  # Add SPTAnalyser directory to Python path
+        from pySPT.notebookspy import precision_noGUI as precision
+        from pySPT.notebookspy import diffractionLimit_noGUI as diffractionLimit
+        from pySPT.notebookspy import exp_noise_rate_noGUI as exp_noise_rate
+        
+    except KeyError:
+        raise IncorrectConfigException("Parameter SPT_ANALYSER_DIR missing in config.")
+        
     try:
         if len([key for key in config["INPUT_DIRS"]]):
             for key in config["INPUT_DIRS"]:
@@ -107,8 +121,8 @@ def main(config_path):
             shutil.rmtree(dir + "\\swift_analysis_parameter")
         os.mkdir(dir + "\\swift_analysis_parameter")
         os.mkdir(dir + "\\swift_analysis_parameter\\parameters")
-        files, file_areas = read_areas(dir + "\\cells\\rois")  # writes cell_sizes.log for directories
-        write_log(files, file_areas, dir + "\\cells\\rois\\cell_sizes.LOG")
+        cell_areas = read_areas(dir + "\\cells\\rois")  # writes cell_sizes.log for directories
+        write_log(cell_areas, dir + "\\cells\\rois\\cell_sizes.LOG")
         # runs virtual precision notebooks
         precison_nb = precision.precisionNotebook(dir, software, pixel_size, camera_integration_time)
         precison_nb.run_analysis()

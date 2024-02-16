@@ -17,6 +17,16 @@ import time
 import numpy
 import pandas as pd
 
+# Read the configuration file
+if len(sys.argv) > 1 and os.path.isfile(sys.argv[1]):
+    config_file_path = sys.argv[1]
+config = configparser.ConfigParser()
+config.read(config_file_path)
+# Get the SPTAnalyser directory from the configuration file
+spt_analyser_dir = config['SPT_ANALYSER_DIR']['spt_analyser_dir']
+# Add the SPTAnalyser directory to the system path
+sys.path.append(spt_analyser_dir)
+# Now import the required modules from the SPTAnalyser directory
 from pySPT.notebookspy import expDisplacement_noGUI as expDisplacement
 from pySPT.notebookspy import pBleach_noGUI as pBleach
 
@@ -396,8 +406,7 @@ def main(config_path):
                                                                       len(data_bleach)))]
     write_statistics(save_directory + '\\mean_per_cs.csv', values_per_cs)
 
-    print("--- %s seconds ---" % (time.time() - start_time))
-
+    print("The analysis finished and took --- %s seconds ---" % (time.time() - start_time))
 
 if __name__ == "__main__":
     try:

@@ -1,5 +1,5 @@
 """
-@author: Alexander Niedrig, Johanna Rahm
+@author: Alexander Niedrig, Johanna Rahm, Claudia Catapano
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 Analyzes tracks and filters data, runs background correction, as well as rearranes it like the trackStatistics notebook does
@@ -10,10 +10,6 @@ import shutil
 import sys
 import time
 import warnings
-
-from pySPT.notebookspy import trackAnalysis_noGUI as trackAnalysis
-from pySPT.notebookspy import trackStatistics_noGUI as trackStatistics
-
 
 class IncorrectConfigException(Exception):
     def __init__(self, msg):
@@ -44,6 +40,15 @@ def main(config_path):
     config.sections()
     config.read(config_path)
     directories = []
+
+    try:
+        spt_analyser_dir = config["SPT_ANALYSER_DIR"]["spt_analyser_dir"]
+        sys.path.append(spt_analyser_dir)  # Add SPTAnalyser directory to Python path
+        from pySPT.notebookspy import trackAnalysis_noGUI as trackAnalysis
+        from pySPT.notebookspy import trackStatistics_noGUI as trackStatistics
+        
+    except KeyError:
+        raise IncorrectConfigException("Parameter SPT_ANALYSER_DIR missing in config.")
 
     try:
         software = config["SOFTWARE"]["software"]
@@ -145,7 +150,7 @@ def main(config_path):
     except KeyError:
         raise IncorrectConfigException("Parameter filter_for_noType missing in config.")
     try:
-        save_dir = config["SAVE_DIR"]["save"]
+        save_dir = config["SAVE_DIR"]["save_dir"]
     except KeyError:
         raise IncorrectConfigException("Parameter save missing in config.")
     # resets tracking directories

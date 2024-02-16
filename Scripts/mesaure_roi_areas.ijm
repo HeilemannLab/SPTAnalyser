@@ -64,3 +64,5 @@ for (i = 0; i < roiList.length; i++) {
     run("Clear Results");
     close("*Results*");
 }
+
+waitForUser("Macro Finished!", "All files in the chosen directory were processed.");

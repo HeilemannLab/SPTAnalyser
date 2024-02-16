@@ -1,5 +1,5 @@
 """
-@author: Alexander Niedrig, Johanna Rahm
+@author: Alexander Niedrig, Johanna Rahm, Claudia Catapano
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 Analyzes tracks, then determines the dynamic localization error and calculates the minimal detectable diffusion coefficient with it.
@@ -12,9 +12,6 @@ import time
 import warnings
 
 import pandas as pd
-
-from pySPT.notebookspy import trackAnalysis_noGUI as trackAnalysis
-from pySPT.notebookspy import trackStatistics_noGUI as sigma_dyn
 
 
 class IncorrectConfigException(Exception):
@@ -46,6 +43,17 @@ def main(config_path):
     config.sections()
     config.read(config_path)
     directories = []
+    
+    try:
+        spt_analyser_dir = config["SPT_ANALYSER_DIR"]["spt_analyser_dir"]
+        sys.path.append(spt_analyser_dir)  # Add SPTAnalyser directory to Python path
+        from pySPT.notebookspy import trackAnalysis_noGUI as trackAnalysis
+        from pySPT.notebookspy import trackStatistics_noGUI as sigma_dyn
+        
+    except KeyError:
+        raise IncorrectConfigException("Parameter SPT_ANALYSER_DIR missing in config.")
+
+
 
     try:
         software = config["SOFTWARE"]["software"]
@@ -101,7 +109,7 @@ def main(config_path):
         dof = config["DIFFUSION_TYPE_PARAM"]["degree_of_freedom"]
     except KeyError:
         raise IncorrectConfigException("Parameter degree_of_freedom missing in config.")
-    # minimum detectable D should be zero to calculate  this value
+    # minimum detectable D should be zero to calculate this value
     min_dynamic_D = "0"
     try:
         min_tra_len = config["DIFFUSION_TYPE_PARAM"]["min_track_length"]
@@ -120,30 +128,38 @@ def main(config_path):
         filter_max_length = config["FILTER_PARAMETERS"]["max_trajectory_len"]
     except KeyError:
         raise IncorrectConfigException("Parameter max_trajectory_len missing in config.")
-    try:
-        filter_min_D = config["FILTER_PARAMETERS"]["min_D"]
-    except KeyError:
-        raise IncorrectConfigException("Parameter min_D missing in config.")
+    filter_min_D = "0" # must be set to 0 to determine Dmin
+    #try:
+    #    filter_min_D = config["FILTER_PARAMETERS"]["min_D"]
+    #except KeyError:
+    #    raise IncorrectConfigException("Parameter min_D missing in config.")
     try:
         filter_max_D = config["FILTER_PARAMETERS"]["max_D"]
     except KeyError:
         raise IncorrectConfigException("Parameter max_D missing in config.")
-    try:
-        filter_immobile = config["FILTER_PARAMETERS"]["filter_for_immobile"]
-    except KeyError:
-        raise IncorrectConfigException("Parameter filter_for_immobile missing in config.")
-    try:
-        filter_confined = config["FILTER_PARAMETERS"]["filter_for_confined"]
-    except KeyError:
-        raise IncorrectConfigException("Parameter filter_for_confined missing in config.")
-    try:
-        filter_free = config["FILTER_PARAMETERS"]["filter_for_free"]
-    except KeyError:
-        raise IncorrectConfigException("Parameter filter_for_free missing in config.")
-    try:
-        filter_noType = config["FILTER_PARAMETERS"]["filter_for_noType"]
-    except KeyError:
-        raise IncorrectConfigException("Parameter filter_for_noType missing in config.")
+    
+    # all data neccessary for sigma dyn determination
+    filter_immobile = 'true'
+    filter_confined = 'true'
+    filter_free = 'true'
+    filter_noType = 'true'
+    #try:
+    #    filter_immobile = config["FILTER_PARAMETERS"]["filter_for_immobile"]
+    #except KeyError:
+    #    raise IncorrectConfigException("Parameter filter_for_immobile missing in config.")
+    #try:
+    #    filter_confined = config["FILTER_PARAMETERS"]["filter_for_confined"]
+    #except KeyError:
+    #    raise IncorrectConfigException("Parameter filter_for_confined missing in config.")
+    #try:
+    #    filter_free = config["FILTER_PARAMETERS"]["filter_for_free"]
+    #except KeyError:
+    #    raise IncorrectConfigException("Parameter filter_for_free missing in config.")
+    #try:
+    #    filter_noType = config["FILTER_PARAMETERS"]["filter_for_noType"]
+    #except KeyError:
+    #    raise IncorrectConfigException("Parameter filter_for_noType missing in config.")
+    
     try:
         save_dir = config["SAVE_DIR"]["save"]
     except KeyError:

@@ -22,10 +22,20 @@ class IncorrectConfigException(Exception):
         Exception.__init__(self, msg)
 
 
-def write_macro(save_path, all_tifs, all_tif_names, all_rois, all_save_files, intensity_range, camera_setup_params):
+def write_macro(save_path, all_tifs, all_tif_names, all_rois, all_save_files, intensity_range, camera_setup_params, batch_mode):
     f = open(save_path, "w+")
-    f.write('requires("1.45s");\n')
+    f.write('requires("1.53f11");\n')
+    f.write('run("Fresh Start");\n')
     f.write('setOption("ExpandableArrays", true);\n\n')
+    
+    # Check batch mode option from the config and include the respective command
+    if batch_mode.lower() == "true":
+        f.write('setBatchMode(true);\n\n')
+    elif batch_mode.lower() == "false":
+        f.write('setBatchMode(false);\n\n')
+    else:
+        raise IncorrectConfigException("Invalid batch mode parameter in config.")
+    
     f.write('run("Camera setup", "offset=' + str(camera_setup_params['offset']) +
             ' quantumefficiency=' + str(camera_setup_params['quantumefficiency']) +
             ' isemgain=true photons2adu=' + str(camera_setup_params['photons2adu']) +
@@ -64,8 +74,10 @@ def write_macro(save_path, all_tifs, all_tif_names, all_rois, all_save_files, in
     f.write('\trun("Export results", "floatprecision=1 filepath=" + save_paths[i] + " fileformat=[CSV (comma separated)] sigma=true intensity=true chi2=true offset=true saveprotocol=true x=true y=true bkgstd=true id=true uncertainty_xy=true frame=true");\n')
     f.write("\tselectWindow(cell_tif_names[i]);\n")
     f.write("\tclose();\n")
-    f.write("}")
-
+    f.write('\tclose("*");\n')
+    f.write('\trun("Close All");\n')
+    f.write("}\n")
+    f.write('waitForUser("Localization finished!", "All files in the specified directories were processed.");')
 
 def get_files(dir, dir_extension, file_ending, ignore_str):
     file_path = dir + dir_extension
@@ -107,6 +119,10 @@ def main(config_path):
         ignore_str = config["PARAMETERS"]["ignore_str"].strip("][").replace(" ", "").split(",")
     except KeyError:
         raise IncorrectConfigException("Parameter ignore_str missing in config.")
+    try:
+        batch_mode = config["PARAMETERS"]["batch_mode"]
+    except KeyError:
+        batch_mode = "false"  # Default to false if parameter not found in config
     try:
         camera_setup_params = {
             'offset': float(config["CAMERA_SETUP"]["offset"]),
@@ -150,7 +166,7 @@ def main(config_path):
         all_save_files.extend(save_background)
 
     final_macro_name = "TS-macro_" + macro_name + "_" + datetime.today().strftime('%Y-%m-%d_%Hh-%Mm') + ".ijm"
-    write_macro(macro_directory + "\\" + final_macro_name, all_tifs, all_tif_names, all_rois, all_save_files, intensity_range, camera_setup_params)
+    write_macro(macro_directory + "\\" + final_macro_name, all_tifs, all_tif_names, all_rois, all_save_files, intensity_range, camera_setup_params, batch_mode)
     print("Macro saved successfully at ", macro_directory + "\\" + final_macro_name)
 
 
