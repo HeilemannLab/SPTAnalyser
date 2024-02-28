@@ -13,7 +13,8 @@ The pipeline is compatible with PALMTracer<sup>[2]</sup>, rapidSTORM<sup>[3]</su
 ## To install the package run
 
 ```
-conda create --name SPTAnalyser
+cd C:\path\to\SPTAnalyser
+conda create --name SPTAnalyser python=3.8
 conda activate SPTAnalyser
 conda install pip pywin32
 pip install jupyterlab
