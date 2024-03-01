@@ -83,7 +83,7 @@ class TransitionCounts:
         segs_of_tracks, track_ids = [], []
         track_file = self.tracked_file[["track.id", "seg.id", "seg.lifetime"]].sort_values(["track.id", "seg.id"])
         track_file = track_file[track_file["seg.lifetime"] > 0].to_numpy()
-        for i in range(np.max(track_file, axis=0)[0] + 1):
+        for i in range(int(np.nanmax(track_file, axis=0)[0]) + 1):
             filtered_segs = []
             any_classified_seg = False
             track = track_file[track_file[:,0] == i]
@@ -421,8 +421,8 @@ class Statistic:
         unique_transition_names = [str(i[0]) + "-" + str(i[1]) for i in unique_transition_names]
 
         out_file_name = self.save_dir + "\\significance_test_" + save_name + ".txt"
-        header = "targets\tWilcoxon statistic\tWilcoxon p\tWilcoxon result\tpaired t-test statistic\t" \
-                 "paired t-test p\tpaired t-test result\t"
+        header = "targets\tpaired t-test statistic\tpaired t-test p-value\tpaired t-test result\tWilcoxon statistic\t" \
+                 "Wilcoxon p-value\tWilcoxon result\t"
         save_data = np.zeros(np.array(unique_transition_names).size, dtype=[("col1", "U7"), ("col2", float),
                                                                             ("col3", float), ("col4", "U4"),
                                                                             ("col5", float), ("col6", float),
