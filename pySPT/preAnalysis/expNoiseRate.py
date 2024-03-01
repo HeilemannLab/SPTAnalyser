@@ -7,7 +7,6 @@ Determine the false positive rate of localizations per cell in %, based on backg
 """
 
 import os
-import datetime
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -75,18 +74,8 @@ class ExpNoiseRate():
 
     def save_results(self, directory, folder_name, save_fig):
         os.mkdir(directory + "\\" + folder_name)
-        now = datetime.datetime.now()
-        year = str(now.year)
-        year = year[2:]
-        month = str(now.month)
-        day = str(now.day)
-        if len(month) == 1:
-            month = str(0) + month
-        if len(day) == 1:
-            day = str(0) + day
-        # save cell info & exp noise rate
-        out_file_name = directory + "\\" + folder_name + "\\" + year + month + day + "_cells_exp_noise_rate.txt"
-        header = "cell name\tcell density [localizations per px2 frame]\texp_noise_rate [%]\t"
+        out_file_name = directory + "\\" + folder_name + "\\" + "cells_exp_noise_rate.txt"
+        header = "cell name\tsignal density [localizations per px2 frame]\texp_noise_rate [%]\t"
         max_name_length = max([len(i) for i in self.cell_names])
         data = np.zeros(np.array(self.cell_names).size, dtype=[("col1", "U"+str(max_name_length)),
                                                                ("col2", float), ("col3", float)])
@@ -95,14 +84,14 @@ class ExpNoiseRate():
         data["col3"] = np.array(self.exp_noise_rates)
         np.savetxt(out_file_name, X=data, fmt=("%10s", "%.4e", "%.4e"), header=header)
         # save mean exp noise rate
-        out_file_name = directory + "\\" + folder_name + "\\" + year + month + day + "_cells_exp_noise_rate_mean.txt"
+        out_file_name = directory + "\\" + folder_name + "\\" + "cells_exp_noise_rate_mean.txt"
         file = open(out_file_name, 'w+')
         if not file.closed:
             file.write("mean exp_noise_rate [%]\n")
             file.write("%.4f" %(np.mean(self.exp_noise_rates)))
             file.close()
         # save background info
-        out_file_name = directory + "\\" + folder_name + "\\" + year + month + day + "_background.txt"
+        out_file_name = directory + "\\" + folder_name + "\\" + "background.txt"
         header = "background name\tbackground density [localizations per px2 frame]\t"
         max_name_length = max([len(i) for i in self.bg_names])
         data = np.zeros(np.array(self.bg_names).size, dtype=[("col1", "U"+str(max_name_length)), ("col2", float)])
@@ -112,7 +101,7 @@ class ExpNoiseRate():
         # save figures
         if save_fig:
             for name, fig in zip(self.figure_names, self.figures):
-                fig.savefig(directory + "\\" + folder_name + "\\" + year + month + day + "_exp_noise_rate_" + name + ".pdf",
+                fig.savefig(directory + "\\" + folder_name + "\\" + "exp_noise_rate_" + name + ".pdf",
                                format="pdf", transparent=True, bbox_inches="tight")
 
     def run_exp_noise_rate(self, cell_dir, bg_dir, roi_path, suffix, bg_size):
