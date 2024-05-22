@@ -35,7 +35,14 @@ def get_matching_files(directory, target, exclusion_string):
                 if exclusion_string not in name.lower():
                     matching_files.append(os.path.join(path, name))
     return matching_files
-
+    
+def delete_empty_directories(directories):
+    for directory in directories:
+        for dirpath, dirnames, filenames in os.walk(directory, topdown=False):
+            for dirname in dirnames:
+                folder_path = os.path.join(dirpath, dirname)
+                if not os.listdir(folder_path):
+                    os.rmdir(folder_path)
 
 def main(config_path):
     start_time = time.time()
@@ -52,8 +59,6 @@ def main(config_path):
         
     except KeyError:
         raise IncorrectConfigException("Parameter SPT_ANALYSER_DIR missing in config.")
-
-
 
     try:
         software = config["SOFTWARE"]["software"]
@@ -164,11 +169,12 @@ def main(config_path):
         save_dir = config["SAVE_DIR"]["save"]
     except KeyError:
         raise IncorrectConfigException("Parameter save missing in config.")
+        
     # resets tracking directories
     try:
         os.mkdir(save_dir)
     except FileExistsError:
-        pass
+        raise IncorrectConfigException("Saving directory already exists, aborting... Please state a new directory.")
     try:
         os.mkdir(save_dir + "\\trackAnalysis")
         if len(background) != 0:
@@ -258,6 +264,7 @@ def main(config_path):
     out = pd.Series([sigma_dyn_value, d_min], ["Sigma Dyn [um]", "D_min [um^2s^-1]"])
     out.to_csv(save_dir + "\\D_min.csv", header=False)
     shutil.rmtree(save_dir + "\\trackAnalysis")
+    delete_empty_directories(directories)
     print("--- %s seconds ---" % (time.time() - start_time))
 
 

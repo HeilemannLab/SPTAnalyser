@@ -15,7 +15,6 @@ class IncorrectConfigException(Exception):
     def __init__(self, msg):
         Exception.__init__(self, msg)
 
-
 def get_matching_files(directory, target, exclusion_string):
     """
     Search in directory and its subdirectories for files with target in their name but missing the exclusion string
@@ -33,6 +32,13 @@ def get_matching_files(directory, target, exclusion_string):
                     matching_files.append(os.path.join(path, name))
     return matching_files
 
+def delete_empty_directories(directories):
+    for directory in directories:
+        for dirpath, dirnames, filenames in os.walk(directory, topdown=False):
+            for dirname in dirnames:
+                folder_path = os.path.join(dirpath, dirname)
+                if not os.listdir(folder_path):
+                    os.rmdir(folder_path)
 
 def main(config_path):
     start_time = time.time()
@@ -153,18 +159,19 @@ def main(config_path):
         save_dir = config["SAVE_DIR"]["save_dir"]
     except KeyError:
         raise IncorrectConfigException("Parameter save missing in config.")
+        
     # resets tracking directories
     try:
         os.mkdir(save_dir)
     except FileExistsError:
-        pass
+        raise IncorrectConfigException("Saving directory already exists, aborting... Please state a new directory.")
     try:
         os.mkdir(save_dir + '\\trackAnalysis')
         if len(background) != 0:
             os.mkdir(save_dir + '\\trackAnalysis\\backgrounds')
         os.mkdir(save_dir + '\\trackAnalysis\\cells')
     except FileExistsError:
-        print("directory " + save_dir + '\\trackAnalysis exists. Will be overwritten')
+        print("directory " + save_dir + '\\trackAnalysis exists and will be overwritten')
         shutil.rmtree(save_dir + '\\trackAnalysis')
         os.mkdir(save_dir + '\\trackAnalysis')
         if len(background) != 0:
@@ -172,7 +179,6 @@ def main(config_path):
         os.mkdir(save_dir + '\\trackAnalysis\\cells')
 
     # runs analysis for each given directory
-
     for dir in directories:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -185,7 +191,7 @@ def main(config_path):
                 raise IncorrectConfigException("multiple .log files in " + dir)
             else:
                 print("This should not happen.")
-            print("Analysing " + str(directories.index(dir) + 1) + "/" + str(len(directories)) + " :" + dir)
+            print("Analysing " + str(directories.index(dir) + 1) + "/" + str(len(directories)) + " : " + dir)
             notebook_analysis = trackAnalysis.analysisNotebook(software, mask_words, dir,
                                                                cslog, pixel_size,
                                                                background_size,
@@ -197,7 +203,7 @@ def main(config_path):
             notebook_analysis.save_analysis()
         for file in get_matching_files(dir, '.h5', 'background'):
             try:
-                shutil.move(file, save_dir + '\\trackAnalysis\\cells')
+                shutil.move(file, save_dir + '\\trackAnalysis\\cells') 
             except shutil.Error:
                 print(
                     'File ' + file + ' already exists in the trackAnalysis directory. Please check for duplicate files. Skipping...')
@@ -238,6 +244,7 @@ def main(config_path):
                                                                  filter_min_D, max_D, filter_immobile,
                                                                  filter_confined, filter_free, filter_noType)
     notebook_statistics.save(save_dir)
+    delete_empty_directories(directories)
     print("--- %s seconds ---" % (time.time() - start_time))
 
 
