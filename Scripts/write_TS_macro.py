@@ -22,7 +22,7 @@ class IncorrectConfigException(Exception):
         Exception.__init__(self, msg)
 
 
-def write_macro(save_path, all_tifs, all_tif_names, all_rois, all_save_files, intensity_range, camera_setup_params, batch_mode):
+def write_macro(save_path, all_tifs, all_tif_names, all_rois, all_save_files, intensity_range, camera_setup_params, batch_mode, multi_emitter_fit):
     f = open(save_path, "w+")
     f.write('requires("1.53f11");\n')
     f.write('run("Fresh Start");\n')
@@ -69,13 +69,21 @@ def write_macro(save_path, all_tifs, all_tif_names, all_rois, all_save_files, in
     f.write("\topen(target_cells[i]);\n")
     f.write('\troiManager("Open", target_rois[i]);\n')
     f.write('\troiManager("Select", i);\n')
-    f.write('\trun("Run analysis", "filter=[Wavelet filter (B-Spline)] scale=2.0 order=3 detector=[Local maximum] connectivity=8-neighbourhood threshold=std(Wave.F1) estimator=[PSF: Integrated Gaussian] sigma=1.6 fitradius=3 method=[Maximum likelihood] full_image_fitting=false mfaenabled=true keep_same_intensity=false nmax=3 fixed_intensity=true expected_intensity='+ intensity_range +' pvalue=1.0E-6 renderer=[Averaged shifted histograms] magnification=5.0 colorize=false threed=false shifts=2 repaint=50");\n')
+    
+    if multi_emitter_fit.lower() == "true":
+        f.write('\trun("Run analysis", "filter=[Wavelet filter (B-Spline)] scale=2.0 order=3 detector=[Local maximum] connectivity=8-neighbourhood threshold=std(Wave.F1) estimator=[PSF: Integrated Gaussian] sigma=1.6 fitradius=3 method=[Maximum likelihood] full_image_fitting=false mfaenabled=true keep_same_intensity=false nmax=3 fixed_intensity=true expected_intensity='+ intensity_range +' pvalue=1.0E-6 renderer=[Averaged shifted histograms] magnification=5.0 colorize=false threed=false shifts=2 repaint=50");\n')
+    elif multi_emitter_fit.lower() == "false":
+        f.write('\trun("Run analysis", "filter=[Wavelet filter (B-Spline)] scale=2.0 order=3 detector=[Local maximum] connectivity=8-neighbourhood threshold=std(Wave.F1) estimator=[PSF: Integrated Gaussian] sigma=1.6 fitradius=3 method=[Maximum likelihood] full_image_fitting=false mfaenabled=false keep_same_intensity=false nmax=3 fixed_intensity=true expected_intensity='+ intensity_range +' pvalue=1.0E-6 renderer=[Averaged shifted histograms] magnification=5.0 colorize=false threed=false shifts=2 repaint=50");\n')
+    else:
+        raise IncorrectConfigException("Invalid multi_emitter_fit parameter in config.")
+        
     f.write('\trun("Show results table", "action=duplicates distformula=uncertainty_xy");\n')
     f.write('\trun("Export results", "floatprecision=1 filepath=" + save_paths[i] + " fileformat=[CSV (comma separated)] sigma=true intensity=true chi2=true offset=true saveprotocol=true x=true y=true bkgstd=true id=true uncertainty_xy=true frame=true");\n')
     f.write("\tselectWindow(cell_tif_names[i]);\n")
     f.write("\tclose();\n")
     f.write('\tclose("*");\n')
     f.write('\trun("Close All");\n')
+    f.write('\trun("Collect Garbage");\n')
     f.write("}\n")
     f.write('waitForUser("Localization finished!", "All files in the specified directories were processed.");')
 
@@ -124,6 +132,15 @@ def main(config_path):
     except KeyError:
         batch_mode = "false"  # Default to false if parameter not found in config
     try:
+        multi_emitter_fit = config["PARAMETERS"]["multi_emitter_fit"]
+    except KeyError:
+        multi_emitter_fit = "true"  # Default to false if parameter not found in config
+    try:
+        process_background = config.getboolean("PARAMETERS", "process_background")
+    except KeyError:
+        process_background = "true"  # Default to true if parameter not found in config
+    
+    try:
         camera_setup_params = {
             'offset': float(config["CAMERA_SETUP"]["offset"]),
             'quantumefficiency': float(config["CAMERA_SETUP"]["quantum_efficiency"]),
@@ -154,19 +171,24 @@ def main(config_path):
         tif_files, tif_names = get_files(dir, r"\\cells\\tifs\\", ".tif", ignore_strs_tl)  # tif files with "_dl" will be ignored
         roi_files, _ = get_files(dir, r"\\cells\\rois\\", ".roi", ignore_strs_size)
         save_files = [dir + r"\\cells\\tracks\\" + os.path.splitext(i)[0] + ".csv" for i in tif_names]
-        background_files, background_names = get_files(dir, r"\\background\\tifs\\", ".tif", ignore_strs_tl)
-        save_background = [dir + r"\\background\\tracks\\" + os.path.splitext(i)[0] + ".csv" for i in background_names]
+        if process_background:
+            background_files, background_names = get_files(dir, r"\\background\\tifs\\", ".tif", ignore_strs_tl)
+            save_background = [dir + r"\\background\\tracks\\" + os.path.splitext(i)[0] + ".csv" for i in background_names]    
         all_tifs.extend(tif_files)
-        all_tifs.extend(background_files)
+        if process_background:
+            all_tifs.extend(background_files)
         all_tif_names.extend(tif_names)
-        all_tif_names.extend(background_names)
+        if process_background:
+            all_tif_names.extend(background_names)
         all_rois.extend(roi_files)
-        all_rois.extend([background_roi for i in range(len(background_files))])
+        if process_background:
+            all_rois.extend([background_roi for i in range(len(background_files))])
         all_save_files.extend(save_files)
-        all_save_files.extend(save_background)
+        if process_background:
+            all_save_files.extend(save_background)
 
     final_macro_name = "TS-macro_" + macro_name + "_" + datetime.today().strftime('%Y-%m-%d_%Hh-%Mm') + ".ijm"
-    write_macro(macro_directory + "\\" + final_macro_name, all_tifs, all_tif_names, all_rois, all_save_files, intensity_range, camera_setup_params, batch_mode)
+    write_macro(macro_directory + "\\" + final_macro_name, all_tifs, all_tif_names, all_rois, all_save_files, intensity_range, camera_setup_params, batch_mode, multi_emitter_fit)
     print("Macro saved successfully at ", macro_directory + "\\" + final_macro_name)
 
 
