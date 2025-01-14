@@ -1,10 +1,12 @@
 """
-@author: Alexander Niedrig, Johanna Rahm
+@author: Alexander Niedrig, Johanna Rahm, Claudia Catapano
 Research group Heilemann
 Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.M.
 
-Creates a swift batch, runs it, and determines p_Bleach and exp_displacement for both,
+Creates a swift batch, runs it, and determines p_bleach and exp_displacement for both,
 then repeats with the new values until both have converged.
+
+All analysis data are saved in the saving path defined in the respective config file.
 """
 import configparser
 import csv
@@ -215,7 +217,12 @@ def write_swift(config_path, exp_displacement, p_bleach):
         else:
             exp_noise_rate += [exp_noise_rate_vals[i]] * n_file_paths[i]
 
+    # Ensure the directory for the batch file exists
+    os.makedirs(os.path.dirname(batch_path), exist_ok=True)
+
+    # Open the batch file for writing
     my_bat = open(batch_path, "w+")
+
     for c, file in enumerate(file_paths):
         my_bat.write(define_swft_command(file, tau, str(exp_displacement), exp_noise_rate[c],
                                          max_displacement, max_displacement_pp, str(p_bleach), p_switch,
@@ -298,8 +305,8 @@ def converge(save_directory, config_path, software, values, exp_displacement, p_
             p_bleach - p_bleach_old) < float(max_diff) * p_bleach_old and iterationNumber < int(max_it):
         print("values converged after " + str(iterationNumber + 1) + " iterations: exp_displacement=" + str(
             exp_displacement) + " p_bleach = " + str(p_bleach))
-    elif iterationNumber >= 10:
-        print("10 iterations reached")
+    elif iterationNumber >= int(max_it):
+        print(f"{max_it} iterations reached")
     else:
         print("values not converged after " + str(iterationNumber + 1) + " iterations: exp_displacement=" + str(
             exp_displacement) + " p_bleach = " + str(
@@ -307,6 +314,35 @@ def converge(save_directory, config_path, software, values, exp_displacement, p_
             p_bleach_old))
         converge(save_directory, config_path, software, values, exp_displacement, p_bleach, directories,
                  iterationNumber + 1, ini_k, cam_dt, n_points, max_diff, max_it)
+
+def move_coverslip_contents_to_save_path(directories, save_directory):
+    """
+    Moves the contents of the 'converger' folder for each coverslip directory to the save_path,
+    directly into a folder named after the coverslip, and removes the 'converger' folder.
+
+    :param directories: List of original coverslip directories specified in the .ini file
+    :param save_directory: The base save directory from the .ini file
+    """
+    for coverslip in directories:
+        coverslip_name = os.path.basename(coverslip.rstrip("\\/"))  # Get the folder name (e.g., "100")
+        source_converger_path = os.path.join(coverslip, "converger")  # Path to the 'converger' folder
+        target_coverslip_path = os.path.join(save_directory, coverslip_name)  # Path to move contents to
+
+        if os.path.exists(source_converger_path):
+            # Ensure the target coverslip directory exists
+            os.makedirs(target_coverslip_path, exist_ok=True)
+
+            # Move all files from the 'converger' folder to the target coverslip folder
+            for item in os.listdir(source_converger_path):
+                source_item = os.path.join(source_converger_path, item)
+                target_item = os.path.join(target_coverslip_path, item)
+                shutil.move(source_item, target_item)
+
+            # Remove the now-empty 'converger' folder
+            os.rmdir(source_converger_path)
+            #print(f"Moved contents of '{source_converger_path}' to '{target_coverslip_path}' and removed 'converger' folder.")
+        else:
+            print(f"No 'converger' folder found in '{coverslip}'. Skipping.")
 
 
 def main(config_path):
@@ -406,7 +442,11 @@ def main(config_path):
                                                                       len(data_bleach)))]
     write_statistics(save_directory + '\\mean_per_cs.csv', values_per_cs)
 
-    print("The analysis finished and took --- %s seconds ---" % (time.time() - start_time))
+    # Move the contents of the 'converger' folder to the save_path/coverslip folder
+    move_coverslip_contents_to_save_path(directories, save_directory)
+
+
+    print("Analysis complete after --- %s seconds ---" % (time.time() - start_time))
 
 if __name__ == "__main__":
     try:
