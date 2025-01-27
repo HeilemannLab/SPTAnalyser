@@ -263,7 +263,7 @@ def main(config_path):
     sigma_dyn_frame.to_csv(save_dir + "\\sigma_dyn_per_cell.csv", index=False)
     out = pd.Series([sigma_dyn_value, d_min], ["Sigma Dyn [um]", "D_min [um^2s^-1]"])
     out.to_csv(save_dir + "\\D_min.csv", header=False)
-    shutil.rmtree(save_dir + "\\trackAnalysis")
+    #shutil.rmtree(save_dir + "\\trackAnalysis")
     delete_empty_directories(directories)
     print("--- %s seconds ---" % (time.time() - start_time))
 
