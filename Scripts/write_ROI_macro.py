@@ -91,6 +91,8 @@ def write_macro_str(save_path, all_tifs, all_tif_names, all_dls, all_dl_names, a
     for _ in range(zoom_factor):
         f.write('\trun("In [+]");\n')
     f.write('\trun("Z Project...", "projection=[Sum Slices]");\n')
+    f.write('\trun("Enhance Contrast", "saturated=0.35");\n')
+    f.write('\trun("Enhance Contrast", "saturated=0.35");\n')
     for _ in range(zoom_factor):
         f.write('\trun("In [+]");\n')   
     f.write("\topen(target_dls[i]);\n")
@@ -203,6 +205,8 @@ def write_macro(save_path, all_tifs, all_tif_names, all_dls, all_dl_names, all_s
     for _ in range(zoom_factor):
         f.write('\trun("In [+]");\n')
     f.write('\trun("Z Project...", "projection=[Sum Slices]");\n')
+    f.write('\trun("Enhance Contrast", "saturated=0.35");\n')
+    f.write('\trun("Enhance Contrast", "saturated=0.35");\n')
     for _ in range(zoom_factor):
         f.write('\trun("In [+]");\n') 
     f.write("\topen(target_dls[i]);\n")
