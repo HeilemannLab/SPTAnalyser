@@ -5,7 +5,7 @@ Institute for Physical and Theoretical Chemistry, Goethe University Frankfurt a.
 
 Creates a swift batch, runs it, and determines p_bleach and exp_displacement for both,
 then repeats with the new values until both have converged.
-
+ 
 All analysis data are saved in the saving path defined in the respective config file.
 """
 import configparser
